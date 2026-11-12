@@ -216,7 +216,7 @@ func TestFilterCursorAndNavigation(t *testing.T) {
 func TestDefaultHintsOrder(t *testing.T) {
 	_, tt, _, _ := setup(t)
 	lines := [][]string{
-		{"导航时：", "移动", "返回", "回到起点", "智能体"},
+		{"导航时：", "移动", "返回", "回到起点", "隐藏文件", "预览", "过滤", "终端", "智能体", "帮助"},
 		{"选中后：", "拷贝", "拷贝路径", "剪切", "粘贴", "新文件夹", "新文件", "重命名", "删除"},
 	}
 	var ys []float64
@@ -240,7 +240,7 @@ func TestDefaultHintsOrder(t *testing.T) {
 	if ys[0] >= ys[1] {
 		t.Fatalf("lines at %v", ys)
 	}
-	for _, k := range []string{"↑↓", "→", "←", "`", ",", ".", ";", "a", "v"} {
+	for _, k := range []string{"↑↓", "→", "←", "`", ",", ".", "Space", "f", ";", "a", "?", "v"} {
 		if !tt.HasText(k) {
 			t.Errorf("no keycap %q", k)
 		}
