@@ -1188,7 +1188,7 @@ UX：
 - `phase19_test.go`：`TestCommonApps`、`TestMenuSingleKeys`；`phase9a_test.go` 检查两行提示的顺序；`phase14a_test.go` 确认 ⌘Y 已经不再绑定。
 - `go test -race ./...`、`vet`、`mygo vet`。
 
-## 阶段 18 后修订三：设置面板定尺寸、默认窗口、提示文案、检查器向右伸展
+## 阶段 18 后修订三：设置面板定尺寸、默认窗口、提示文案、检查器向右伸展（commit f5bb49b）
 
 > 来源：开发会话，2026-11-12，用户提出。
 
