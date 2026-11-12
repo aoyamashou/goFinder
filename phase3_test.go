@@ -77,6 +77,7 @@ func TestShelf(t *testing.T) {
 func TestWorkspaceSaveRestore(t *testing.T) {
 	a, tt, _, root := setup(t)
 	a.dataDir = t.TempDir()
+	a.cfg.WorkspacesSeeded = true // no demo workspaces here
 	alpha := filepath.Join(root, "alpha")
 	a.navigate(a.tab(), alpha)
 	a.tab().sort = ui.SortOrder{Column: "size", Descending: true}
@@ -112,9 +113,20 @@ func TestWorkspaceSaveRestore(t *testing.T) {
 	a.navigate(a.tab(), root)
 	tt.Frame()
 	save("读文档")
-	if !slices.Equal(a.wsList, []string{"写代码", "读文档"}) || !tt.HasText("1 写代码") {
-		t.Fatalf("list %v, strip missing", a.wsList)
+	if !slices.Equal(a.wsList, []string{"写代码", "读文档"}) || !slices.Equal(a.cfg.Workspaces, a.wsList) {
+		t.Fatalf("list %v order %v", a.wsList, a.cfg.Workspaces)
 	}
+	// The toolbar's buttons, not the strip; without the toolbar, the strip.
+	if !slices.Contains(tt.Texts(), "写代码") || tt.HasText("1 写代码") {
+		t.Fatalf("toolbar buttons: %q", tt.Texts())
+	}
+	a.cfg.ShowToolbar = false
+	tt.Frame()
+	if !tt.HasText("1 写代码") {
+		t.Fatal("strip missing without the toolbar")
+	}
+	a.cfg.ShowToolbar = true
+	tt.Frame()
 
 	tt.Key(0, ui.Key1)
 	tt.Frame()
@@ -232,5 +244,50 @@ func TestGitStatusMarks(t *testing.T) {
 	tt.Frame()
 	if a.tab().gitRoot != "" || a.gitBranch(a.tab()) != "" {
 		t.Fatalf("outside a repo: root %q", a.tab().gitRoot)
+	}
+}
+
+// The first launch makes three workspaces to show what they do: Home in
+// three columns, Download side by side, Documents one above the other;
+// first in the toolbar, in that order, and made once only.
+func TestDemoWorkspaces(t *testing.T) {
+	home := t.TempDir()
+	for _, d := range []string{"Downloads", "Documents"} {
+		os.MkdirAll(filepath.Join(home, d), 0o755)
+	}
+	a, tt, _, _ := setup(t)
+	a.sb.home, a.dataDir = home, t.TempDir()
+	os.MkdirAll(filepath.Join(a.dataDir, "workspaces"), 0o755)
+	workspace.Write(a.wsPath("Aa"), workspace.State{Layout: "columns", Panes: []workspace.Pane{{Tabs: []workspace.Tab{{Dir: home}}}}})
+	a.listWorkspaces()
+	tt.Frame()
+	if !slices.Equal(a.wsList, []string{"Home", "Download", "Documents", "Aa"}) || !a.cfg.WorkspacesSeeded ||
+		!loadConfig(a.dataDir).WorkspacesSeeded {
+		t.Fatalf("list %v seeded %v", a.wsList, a.cfg.WorkspacesSeeded)
+	}
+	if err := tt.Click("Download"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	dl := filepath.Join(home, "Downloads")
+	if a.wsCur != "Download" || a.layout != layoutDual || a.panes[0].tab().t.Dir != dl || a.panes[1].tab().t.Dir != dl {
+		t.Fatalf("Download: cur %q layout %d %s", a.wsCur, a.layout, a.panes[0].tab().t.Dir)
+	}
+	tt.Key(0, ui.Key3)
+	tt.Frame()
+	doc := filepath.Join(home, "Documents")
+	if a.wsCur != "Documents" || a.layout != layoutRows || a.panes[1].tab().t.Dir != doc {
+		t.Fatalf("3: cur %q layout %d", a.wsCur, a.layout)
+	}
+	tt.Key(0, ui.Key1)
+	tt.Frame()
+	if a.wsCur != "Home" || a.layout != layoutColumns || a.tab().t.Dir != home {
+		t.Fatalf("1: cur %q dir %s", a.wsCur, a.tab().t.Dir)
+	}
+	// Deleted, not made again.
+	os.Remove(a.wsPath("Download"))
+	a.listWorkspaces()
+	if slices.Contains(a.wsList, "Download") {
+		t.Fatalf("made again: %v", a.wsList)
 	}
 }

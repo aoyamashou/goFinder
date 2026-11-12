@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"slices"
 
@@ -306,16 +307,77 @@ func (a *app) workspaceDialog() {
 	})
 }
 
-// listWorkspaces reads the saved workspaces' names off the main thread.
+// listWorkspaces reads the saved workspaces' names off the main thread,
+// in config.json's order. At the first launch it makes the three that
+// show what workspaces do (seedWorkspaces).
 func (a *app) listWorkspaces() {
 	if a.dataDir == "" {
 		return
 	}
 	dir := filepath.Join(a.dataDir, "workspaces")
+	seed, home := !a.cfg.WorkspacesSeeded, a.sb.home
+	if home == "" {
+		home, _ = os.UserHomeDir()
+	}
+	order := slices.Clone(a.cfg.Workspaces)
 	a.async(func() {
+		var made []string
+		if seed && home != "" {
+			made = seedWorkspaces(dir, home)
+		}
 		names := workspace.List(dir)
-		a.post(func() { a.wsList = names })
+		a.post(func() {
+			if seed {
+				a.cfg.WorkspacesSeeded = true
+				a.cfg.Workspaces = append(made, slices.DeleteFunc(slices.Clone(a.cfg.Workspaces), func(n string) bool { return slices.Contains(made, n) })...)
+				order = slices.Clone(a.cfg.Workspaces)
+				a.saveConfig()
+			}
+			a.wsList = orderWorkspaces(names, order)
+		})
 	})
+}
+
+// demoWorkspaces are the workspaces of the first launch, as the user set
+// them (2026-11-12): home in three columns; Downloads side by side;
+// Documents one above the other.
+var demoWorkspaces = []struct{ name, layout, sub string }{
+	{"Home", "columns", ""},
+	{"Download", "dual", "Downloads"},
+	{"Documents", "rows", "Documents"},
+}
+
+// seedWorkspaces writes the demo workspaces into dir, leaving any of the
+// same name alone, and returns their names.
+func seedWorkspaces(dir, home string) []string {
+	var names []string
+	for _, d := range demoWorkspaces {
+		names = append(names, d.name)
+		p := workspace.Path(dir, d.name)
+		if _, err := os.Stat(p); err == nil {
+			continue
+		}
+		tab := workspace.Tab{Dir: filepath.Join(home, d.sub)}
+		s := workspace.State{Layout: d.layout, Panes: []workspace.Pane{{Tabs: []workspace.Tab{tab}}, {Tabs: []workspace.Tab{tab}}}}
+		workspace.Write(p, s)
+	}
+	return names
+}
+
+// orderWorkspaces is names in order's order, the rest after by name.
+func orderWorkspaces(names, order []string) []string {
+	var out []string
+	for _, n := range order {
+		if slices.Contains(names, n) && !slices.Contains(out, n) {
+			out = append(out, n)
+		}
+	}
+	for _, n := range names {
+		if !slices.Contains(out, n) {
+			out = append(out, n)
+		}
+	}
+	return out
 }
 
 // saveWorkspace saves the screen as workspace name, which becomes the
@@ -336,6 +398,10 @@ func (a *app) saveWorkspace(name string) {
 			}
 			a.wsCur = name
 			a.status = "已保存工作区「" + name + "」"
+			if !slices.Contains(a.cfg.Workspaces, name) {
+				a.cfg.Workspaces = append(a.cfg.Workspaces, name) // a new one comes last
+				a.saveConfig()
+			}
 			a.listWorkspaces()
 		})
 	})
@@ -410,10 +476,53 @@ func (a *app) switchWorkspace(name string) {
 	})
 }
 
+// wsOnToolbar reports whether the toolbar shows the workspace buttons.
+func (a *app) wsOnToolbar() bool {
+	return a.cfg.ShowToolbar && slices.Contains(a.toolbarIDs(), "workspace")
+}
+
+// workspaceButtons is the toolbar's workspace item: a button for each
+// saved workspace, the one on screen lit, its key (1–9) in the tip; then
+// the dialog's button, to save the screen as one.
+func (a *app) workspaceButtons(c *ui.Context) {
+	if n := len(a.wsList); n > 0 {
+		a.wsSel = slices.Index(a.wsList, a.wsCur)
+		parts := ui.SegmentedBase(c.Key("tb:ws"), &a.wsSel, n)
+		parts.Track.Label("工作区").Radius(px("radius-pill")).Background(tok(c, "surface-200")).
+			AlignItems(ui.Center).Gap(0).Shrink(0)
+		for i, name := range a.wsList {
+			tip := "切换到工作区「" + name + "」"
+			if i < 9 {
+				tip = a.tip(fmt.Sprintf("ws.%d", i+1), tip)
+			}
+			s := parts.Segment(i).Height(segmentH).Padding(0, px("space-2")).Radius(px("radius-pill")).Label(name).Tooltip(tip)
+			col := tok(c, "ink")
+			if i == a.wsSel {
+				s.Background(tok(c, "selection"))
+				col = tok(c, "selection-ink")
+			}
+			s.Children(func() {
+				ui.Text(c, name).FontSize(fontCaption).SingleLine().TextColor(col)
+			})
+			if s.Clicked() {
+				a.switchWorkspace(name)
+				a.wantFocus = true
+			}
+		}
+	}
+	act, _ := a.km.Action("workspace")
+	btn := a.symButton(c.Key("tb:workspace"), actionSymbols["workspace"], a.actionTitle("workspace"), a.toolbarTip("workspace", act.Title), false, false)
+	a.dbg(c, btn, tbName("workspace"))
+	if btn.Clicked() {
+		a.run("workspace")
+	}
+}
+
 // workspaceStrip is the saved workspaces, the one on screen chosen, above
-// the panes once there are two or more and one is on screen.
+// the panes once there are two or more and one is on screen, while the
+// toolbar does not show them.
 func (a *app) workspaceStrip(c *ui.Context) {
-	if a.wsCur == "" || len(a.wsList) < 2 {
+	if a.wsCur == "" || len(a.wsList) < 2 || a.wsOnToolbar() {
 		return
 	}
 	a.wsSel = slices.Index(a.wsList, a.wsCur)

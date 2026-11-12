@@ -297,6 +297,12 @@ type config struct {
 	// StartDir2 is the second pane's (dual and rows layouts): each pane
 	// keeps its own, for 启动时从这里开始 and ` alike.
 	StartDir2 string `json:"startDir2,omitempty"`
+	// Workspaces is the order of the saved workspaces (1–9, [ ], the
+	// toolbar); those not named here follow by name. WorkspacesSeeded is
+	// set once the three of the first launch (Home, Download, Documents)
+	// were made, so ones deleted stay deleted.
+	Workspaces       []string `json:"workspaces,omitempty"`
+	WorkspacesSeeded bool     `json:"workspacesSeeded,omitempty"`
 	// Version is the config's format; before 7, the toolbar was off by
 	// default and written as [], which now means the default toolbar.
 	Version int `json:"version"`

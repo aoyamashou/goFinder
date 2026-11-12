@@ -82,7 +82,7 @@ var toolbarTips = map[string]string{
 	"copy": "拷贝选中项", "cut": "剪切选中项", "paste": "粘贴到当前文件夹",
 	"trash": "删除选中项（可在废纸篓恢复）", "newfile": "在当前文件夹新建文件",
 	"newfolder": "在当前文件夹新建文件夹", "rename": "重命名选中项",
-	"reveal": "在 Finder 中显示选中项", "workspace": "保存或恢复一组布局与标签页",
+	"reveal": "在 Finder 中显示选中项", "workspace": "把当前布局保存为工作区，或切换工作区（1–9、[ ]）",
 	"copypath": "拷贝选中项的路径", "layout.columns": "切换为三列布局（上级/当前/预览）",
 	"layout.dual": "切换为左右双栏布局", "layout.rows": "切换为上下分栏布局",
 	"settings": "打开设置", "help": "查看全部快捷键",
@@ -244,6 +244,9 @@ func (a *app) toolbarStrip(c *ui.Context, ids []string, ts *tabState, bar ui.Tit
 			case "@new":
 				a.dbg(c, a.symButton(c.Key("tb:@new"), actionSymbols[id], "新建", "新建 · "+toolbarTips[id], false, false).
 					Menu(func(m *ui.Menu) { a.newItems(m, a.active, ts.t.Dir) }), "tb.new")
+				continue
+			case "workspace":
+				a.workspaceButtons(c)
 				continue
 			case "@sort":
 				a.dbg(c, a.symButton(c.Key("tb:@sort"), actionSymbols[id], "排序", "排序 · "+toolbarTips[id], false, false).

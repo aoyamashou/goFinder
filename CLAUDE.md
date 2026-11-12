@@ -58,7 +58,7 @@ go tool mygo build -skip-installer    # 打包到 build/darwin-arm64/goFinder.ap
   - `sys.go`：`system` 接口（含 shell 命令、`NSFileViewer` 读写）和 `config.json` 读取。设为默认浏览器会改用户系统设置，只在测试里用 `fakeSys` 验证，不要在本机实际执行。
 - **线程模型**：耗时的读写通过 `a.async` 放到 goroutine，结果通过 `a.post`（即 `win.Update`）回到主线程。`tabState.seq` 和 `previewState.seq` 用来丢弃过期结果。测试里把 `async` 和 `post` 换成同步执行，`system` 换成 `fakeSys`（见 `main_test.go`）。
 - **文件监听**：`syncWatches` 只监听屏幕上可见窗格的目录，使用 `HintsOnly` 模式，收到变化后重新读取目录。
-- **用户配置**：放在 `~/Library/Application Support/goFinder/`，包括 `config.json`（终端和编辑器的应用名、是否显示隐藏文件和侧边栏、`contextMenu`、`toolbar`、`commands`）、`keymap.json`（按动作 ID 覆盖键位）、`templates/`、`shelf.json`、`workspaces/`；收藏夹在 iCloud Drive 的 `goFinder/favorites.json`（无 iCloud 时在数据目录）。
+- **用户配置**：放在 `~/Library/Application Support/goFinder/`，包括 `config.json`（终端和编辑器的应用名、是否显示隐藏文件和侧边栏、`contextMenu`、`toolbar`、`commands`、工作区顺序 `workspaces`）、`keymap.json`（按动作 ID 覆盖键位）、`templates/`、`shelf.json`、`workspaces/`；收藏夹在 iCloud Drive 的 `goFinder/favorites.json`（无 iCloud 时在数据目录）。
 
 ## 文档索引
 
