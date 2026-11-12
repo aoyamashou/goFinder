@@ -1440,6 +1440,21 @@ UX：
 **验证**
 - 相关界面测试同步新文案；`go test ./...`、`go vet ./...`、`go tool mygo vet .` 通过。
 
+### 阶段 18 后修订十三：对外发布前整理仓库
+> 来源：本开发会话（2026-11-12），用户提出。
+
+**要改什么**：撤下和开发无关的文件；根目录源码列表太长，用文件夹整理。官网 `site/` 留在仓库。
+
+**实现**
+- 撤下 `generated-images/icon.png`（生成图标时的中间稿，`generated-images/` 加进 `.gitignore`）和 `docs/diag/reveal.swift`（一次性诊断脚本）。
+- 界面层整体移到 `gui/`（`package gui`）；根目录 `main.go` 只调用 `gui.Main()`。`docs/design-tokens.json` 移到 `gui/design-tokens.json`（`go:embed` 不能引用上级目录）；`TestDebugIDsDoc` 改读 `../docs/debug-ids.md`。
+- 32 个按阶段命名的测试文件按功能合并为 12 个：`main_test.go`、`keys_test.go`、`workflow_test.go`、`agents_test.go`、`theme_test.go`、`chrome_test.go`、`preview_test.go`、`inspector_test.go`、`columns_test.go`、`mouse_test.go`、`files_test.go`、`bench_view_test.go`。测试内容不变。
+- 文档同步：`CLAUDE.md` 的命令和架构、设计系统、mygo-maintenance skill 的 vet 命令。
+
+**边界**：不改任何行为；本文档里旧阶段提到的文件名（如 `phase3_test.go`、根目录的 `.go` 文件）是当时的记录，不回改。
+
+**验证**：`go build ./...`、`go vet ./...`、`go tool mygo vet .`、`go tool mygo vet ./gui`、`go test ./...` 通过；`go tool mygo build -skip-installer` 打包成功，签名为 Apple_self_dev。
+
 ## 测试和验证
 - **纯逻辑包写单元测试，用 `go test ./...` 运行**：
   - `keymap`：按键解析、上下文过滤、用户覆盖、冲突检测；

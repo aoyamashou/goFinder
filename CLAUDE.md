@@ -16,11 +16,11 @@ goFinder：轻量、键盘鼠标都优先的 macOS 文件管理器。用 [MyGo](
 ```bash
 go tool mygo dev                      # 开发运行，改代码自动重启
 go test ./...                         # 全部测试，界面测试用 ui.Tester，不开窗口
-go test -run TestQuickSelect .        # 运行单个测试
-go vet ./... && go tool mygo vet .    # mygo vet 检查是否把构建期的值存进了长期状态
+go test -run TestFilter ./gui        # 运行单个测试
+go vet ./... && go tool mygo vet . && go tool mygo vet ./gui    # mygo vet 检查是否把构建期的值存进了长期状态
 go test -race ./...
 go test -run '^$' -bench Open10k ./internal/pane   # 打开 1 万文件目录的性能基准
-go test -run '^$' -bench 10k .                      # 界面层：进入 1 万文件目录、空闲帧、光标移动
+go test -run '^$' -bench 10k ./gui                  # 界面层：进入 1 万文件目录、空闲帧、光标移动
 go tool mygo build -skip-installer    # 打包到 build/darwin-arm64/goFinder.app，用 Apple_self_dev 签名
 ```
 
@@ -47,7 +47,7 @@ go tool mygo build -skip-installer    # 打包到 build/darwin-arm64/goFinder.ap
   - `shelf`：暂存架列表与 `shelf.json`；`workspace`：工作区（布局与各窗格文件夹）序列化（`workspaces/*.json`，`1`–`9`、`[` `]` 切换）；`git`：查找仓库根、解析 `git status --porcelain=v2`；`finder`：只读解析 Finder 侧边栏（sfl3/sfl4：bplist + NSKeyedArchiver + bookmark）与新窗口起始位置；
   - `icons`：文件名/扩展名/属性（目录、链接、可执行、仓库根）→ Nerd Font 字形和颜色（参照 Yazi 与 nerd-fonts），隐藏项变暗；
   - `finfo`：检查器的属性（`Stat`：种类、大小、创建/修改/访问时间、权限、所有者）和文件夹统计（`Count`，有上限）。
-- 根目录的 `package main` 是界面层：
+- 根目录只有 `main.go`（`package main`，只调用 `gui.Main()`）。界面层在 `gui/`（`package gui`），测试按功能分文件（`keys_test.go`、`workflow_test.go`、`chrome_test.go` 等，公共的 `setup`/`fakeSys` 在 `main_test.go`）：
   - `app.go`：状态和 `run(actionID)`；
   - `view.go`：布局、文件列表、地址栏、状态栏、对话框，以及 `dispatch`（每帧把键位表转成 `c.Shortcut` 调用）；
   - `columns.go`：Yazi 式三列（上级｜当前｜第 4 栏）、文件行（图标+名称+Git 字母）、列宽计算、长名中间截断、焦点边框；
@@ -64,6 +64,6 @@ go tool mygo build -skip-installer    # 打包到 build/darwin-arm64/goFinder.ap
 ## 文档索引
 
 - `README.md`：面向用户的介绍（特点、与访达的性能对比、安装、键位、配置）；实现细节不写在这里，写进 `docs/plan.md` 的对应阶段。
-- `docs/design-system.md`（及 `docs/design-tokens.json`）：goFinder 设计系统——颜色、字体、间距、圆角、尺寸 token 与组件规范；改界面前先读。
+- `docs/design-system.md`（及 `gui/design-tokens.json`，由 `theme.go` 嵌入）：goFinder 设计系统——颜色、字体、间距、圆角、尺寸 token 与组件规范；改界面前先读。
 - `docs/website.md`：官网（gofinder.ryou.im）的目录、部署方式、设计依据与内容边界；官网源码在 `site/`。
 - `docs/plan.md`：分阶段计划（架构、默认键位、资源原则、各阶段范围与验证方式）。完成一个阶段后在文档开头的状态行标注 commit 号。

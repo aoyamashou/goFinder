@@ -1,7 +1,7 @@
 # goFinder 设计系统
 
 > 来源：goFinder 主会话，2026-11-11；以 Artifacts 中的「Unlocknote.com 设计系统」为底产出（阶段 11 第一步）。
-> 本文件与 `docs/design-tokens.json` 是唯一事实来源；Artifact「goFinder 设计系统」（https://claude.ai/artifact/LcapwwLodgW55ZtBdYS7b9）只作展示，含组件预览。
+> 本文件与 `gui/design-tokens.json` 是唯一事实来源；Artifact「goFinder 设计系统」（https://claude.ai/artifact/LcapwwLodgW55ZtBdYS7b9）只作展示，含组件预览。
 > 状态：待用户确认后套用到软件（阶段 11 第二步）。
 
 > 简洁、高速、实用。灰阶承担一切，品牌青既是强调色也是点缀。
