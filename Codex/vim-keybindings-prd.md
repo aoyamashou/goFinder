@@ -213,3 +213,5 @@ CGO_ENABLED=0 go test ./...
 |---|---|---|
 | 设置开关与动作绑定 | ![浅色设置](images/vim-keys-light-settings.png) | ![深色设置](images/vim-keys-dark-settings.png) |
 | 主界面与导航提示 | ![浅色导航提示](images/vim-keys-light-main.png) | ![深色导航提示](images/vim-keys-dark-main.png) |
+
+已实现：commit 800f7a0。

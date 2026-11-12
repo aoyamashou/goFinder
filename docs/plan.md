@@ -1473,7 +1473,7 @@ UX：
 **验证**：`TestAboutPage` 检查各区块文字、头像解码、点开链接的网址；`MYGO_SHOTS` 截图核对浅色和深色；`go vet`、`mygo vet`、`go test ./...` 通过，打包成功。
 
 ### 阶段 18 后修订十五：设置中增加可选 Vim 键位
-> 来源：Codex 开发会话（2026-11-12），[Issue #2](https://github.com/aoyamashou/goFinder/issues/2) 及用户补充的设置开关需求；按 Claude 审查提交 5b752ae 修订后的 [PRD](../Codex/vim-keybindings-prd.md) 实施。
+> 来源：Codex 开发会话（2026-11-12），[Issue #2](https://github.com/aoyamashou/goFinder/issues/2) 及用户补充的设置开关需求；按 Claude 审查提交 5b752ae 修订后的 [PRD](../Codex/vim-keybindings-prd.md) 实施。已实现：commit 800f7a0。
 
 **要改什么**：设置 › 快捷键增加默认关闭的「Vim 键位」开关，开启后支持 h/j/k/l，仍保留方向键和原有组合键；用户自定义优先。
 
