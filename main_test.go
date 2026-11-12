@@ -265,7 +265,7 @@ func TestRenameNewTrash(t *testing.T) {
 		tt.Key(0, ui.KeyDown)
 		tt.Frame()
 	}
-	tt.Key(0, ui.KeyF2)
+	tt.Key(0, ui.KeyEnter)
 	tt.Frame()
 	if !a.dlgOpen || a.dlgText != "notes.md" {
 		t.Fatalf("rename dialog: open %v text %q", a.dlgOpen, a.dlgText)

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -76,5 +77,30 @@ func TestEjectVolume(t *testing.T) {
 	tt.Frame()
 	if !strings.Contains(a.status, "无法推出") || !strings.Contains(a.status, "busy") {
 		t.Fatalf("status %q", a.status)
+	}
+}
+
+// TestCommonApps: the terminal and editor lists offer the common ones
+// installed, not every app, and keep the current choice.
+func TestCommonApps(t *testing.T) {
+	installed := []string{"Ghostty", "Google Chrome", "Kaku", "Terminal", "Visual Studio Code", "Zed"}
+	if got := commonApps(installed, commonTerminals, "Terminal"); !slices.Equal(got, []string{"Terminal", "Ghostty", "Kaku"}) {
+		t.Fatalf("terminals %v", got)
+	}
+	if got := commonApps(installed, commonEditors, "MyEditor"); !slices.Equal(got, []string{"MyEditor", "Visual Studio Code", "Zed"}) {
+		t.Fatalf("editors %v", got)
+	}
+}
+
+// TestMenuSingleKeys: the right-click menu shows each action's first key,
+// a double tap too: "c c" by 复制路径, not ⌥⌘C.
+func TestMenuSingleKeys(t *testing.T) {
+	_, tt, _, _ := setup(t)
+	if err := tt.RightClick("notes.md"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if !tt.HasText("c c") || tt.HasText("⌥⌘C") {
+		t.Fatalf("menu texts %q", tt.Texts())
 	}
 }

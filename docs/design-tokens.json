@@ -78,7 +78,7 @@
   "size": {"tokens": [
     {"name": "row-height", "value": "22px", "usage": "文件列表、侧边栏、菜单项的行高。"},
     {"name": "toolbar-height", "value": "38px", "usage": "工具栏高度（含上下 space-1）。"},
-    {"name": "statusbar-row", "value": "22px", "usage": "两行状态栏每一行的高度。"},
+    {"name": "statusbar-row", "value": "22px", "usage": "状态栏每一行（结果句一行、键位提示两行）的高度。"},
     {"name": "sidebar-width", "value": "190px", "usage": "侧边栏宽度。"},
     {"name": "inspector-width", "value": "280px", "usage": "检查器（第 4 栏）固定宽度。"},
     {"name": "focus-width", "value": "1.5px", "usage": "键盘焦点栏边框宽度。"}

@@ -105,7 +105,7 @@ func defaultKeys() map[string][]string {
 		"fav.remove":   {"Cmd+Ctrl+Backspace"},
 
 		"filter":      {"f"},
-		"quicklook":   {"Space", "Cmd+Y"},
+		"quicklook":   {"Space"},
 		"select.all":  {"Cmd+A"},
 		"select.none": {"Escape"},
 
@@ -113,7 +113,7 @@ func defaultKeys() map[string][]string {
 		"cut":       {"x", "Cmd+X"},
 		"paste":     {"v", "Cmd+V"},
 		"trash":     {"d", "Cmd+Backspace"},
-		"rename":    {"Enter", "F2", "r"},
+		"rename":    {"Enter", "r"},
 		"newfile":   {"n n", "Cmd+N"},
 		"newfolder": {"n", "Cmd+Shift+N"},
 		"copypath":  {"c c", "Cmd+Alt+C"},
@@ -384,14 +384,16 @@ func fromUIMods(m ui.Modifiers) keymap.Mods {
 // tap cannot be one, so the next key shows instead.
 func (a *app) menuItem(m *ui.Menu, id, title string) *ui.MenuItem {
 	it := m.Item(title)
-	for _, ch := range a.km.KeysFor(id) {
-		if ch.Double {
-			continue
-		}
-		if k, ok := uiKeys[ch.Key]; ok {
+	// The action's first key, as the status bar shows it: a single key
+	// before its ⌘ one. A double tap ("c c") has no Shortcut form, so it
+	// is the item's trailing text, at the end as the shortcuts are.
+	if keys := a.km.KeysFor(id); len(keys) > 0 {
+		ch := keys[0]
+		if k, ok := uiKeys[ch.Key]; ok && !ch.Double {
 			it.Shortcut(toUIMods(ch.Mods), k)
+		} else {
+			it.Trailing(ch.String())
 		}
-		break
 	}
 	return it
 }

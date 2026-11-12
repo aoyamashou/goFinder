@@ -669,7 +669,8 @@ func (a *app) statusBar(c *ui.Context, t *ui.Theme) {
 			}
 		})
 		separatorLine(c.Key("sb:mid"))
-		a.dbg(c, ui.Row(c.Key("sb:hints")).Height(px("statusbar-row")).Padding(0, px("space-2")).AlignItems(ui.Center).Children(func() { a.statusHints(c) }), "status.hints")
+		a.dbg(c, ui.Row(c.Key("sb:hints")).Height(px("statusbar-row")).Padding(0, px("space-2")).AlignItems(ui.Center).Children(func() { a.statusHints(c, 0) }), "status.hints")
+		ui.Row(c.Key("sb:hints2")).Height(px("statusbar-row")).Padding(0, px("space-2")).AlignItems(ui.Center).Children(func() { a.statusHints(c, 1) })
 	})
 }
 

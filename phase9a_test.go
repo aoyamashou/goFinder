@@ -211,20 +211,34 @@ func TestFilterCursorAndNavigation(t *testing.T) {
 	}
 }
 
-// The default hints, in order.
+// The default hints, in order, on two lines: looking and going, then
+// editing.
 func TestDefaultHintsOrder(t *testing.T) {
 	_, tt, _, _ := setup(t)
-	want := []string{"过滤", "拷贝", "拷贝路径", "剪切", "粘贴", "新文件夹", "新文件", "重命名", "删除", "帮助"}
-	at := -1.0
-	for _, w := range want {
-		r, ok := tt.Find(w)
-		if !ok {
-			t.Fatalf("hint %q missing: %q", w, tt.Texts())
+	lines := [][]string{
+		{"过滤", "回到起点", "启动智能体", "帮助"},
+		{"拷贝", "拷贝路径", "剪切", "粘贴", "新文件夹", "新文件", "重命名", "删除"},
+	}
+	var ys []float64
+	for _, want := range lines {
+		at, y := -1.0, -1.0
+		for _, w := range want {
+			r, ok := tt.Find(w)
+			if !ok {
+				t.Fatalf("hint %q missing: %q", w, tt.Texts())
+			}
+			if float64(r.X) <= at {
+				t.Fatalf("hint %q out of order (x %v after %v)", w, r.X, at)
+			}
+			if y >= 0 && float64(r.Y) != y {
+				t.Fatalf("hint %q off its line (y %v, not %v)", w, r.Y, y)
+			}
+			at, y = float64(r.X), float64(r.Y)
 		}
-		if float64(r.X) <= at {
-			t.Fatalf("hint %q out of order (x %v after %v)", w, r.X, at)
-		}
-		at = float64(r.X)
+		ys = append(ys, y)
+	}
+	if ys[0] >= ys[1] {
+		t.Fatalf("lines at %v", ys)
 	}
 	for _, k := range []string{"f", "v", "?"} {
 		if !tt.HasText(k) {

@@ -640,14 +640,33 @@ func (a *app) dialog(c *ui.Context) {
 	}
 }
 
+// commonTerminals and commonEditors are the apps the settings offer as
+// terminal and editor, by bundle name, when installed: not every app.
+var (
+	commonTerminals = []string{"Terminal", "iTerm", "Ghostty", "Kaku", "Warp", "WezTerm", "Alacritty",
+		"kitty", "Hyper", "Tabby", "Wave", "Rio"}
+	commonEditors = []string{"TextEdit", "Xcode", "Visual Studio Code", "Cursor", "Windsurf", "Antigravity",
+		"Kiro", "Trae", "Zed", "Sublime Text", "CotEditor", "BBEdit", "Nova", "TextMate", "MacVim",
+		"Neovide", "Emacs", "Typora", "Fleet", "IntelliJ IDEA", "GoLand", "PyCharm", "WebStorm", "Android Studio"}
+)
+
+// commonApps lists the installed apps among common, in common's order,
+// cur first when it is not among them.
+func commonApps(installed, common []string, cur string) []string {
+	var out []string
+	for _, n := range common {
+		if slices.Contains(installed, n) {
+			out = append(out, n)
+		}
+	}
+	if cur != "" && !slices.Contains(out, cur) {
+		out = append([]string{cur}, out...)
+	}
+	return out
+}
+
 // settingsView chooses the apps ⌘⌥T and ⌘⌥E open the folder in.
 func (a *app) settingsView(c *ui.Context) {
-	opts := func(cur string) []string {
-		if slices.Contains(a.setApps, cur) || cur == "" {
-			return a.setApps
-		}
-		return append([]string{cur}, a.setApps...)
-	}
 	dialogModal(c, &a.dlgOpen, func() {
 		col := ui.Column(c).Width(600).Gap(px("space-3")).ObserveInput(a.recordKey)
 		defer func() {
@@ -685,12 +704,13 @@ func (a *app) settingsView(c *ui.Context) {
 				uiCaption(c, "正在读取已安装的应用…", "muted")
 			}
 			for _, f := range []struct {
-				label string
-				v     *string
-			}{{"终端", &a.setTerm}, {"编辑器", &a.setEditor}} {
+				label  string
+				v      *string
+				common []string
+			}{{"终端", &a.setTerm, commonTerminals}, {"编辑器", &a.setEditor, commonEditors}} {
 				ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
 					ui.Text(c, f.label).Width(56)
-					ui.Select(c.Key("set"+f.label), f.v, opts(*f.v)).Label(f.label).Grow(1)
+					ui.Select(c.Key("set"+f.label), f.v, commonApps(a.setApps, f.common, *f.v)).Label(f.label).Grow(1)
 				})
 			}
 			ui.Checkbox(c.Key("set.confirmTrash"), &a.setConfirm, "移到废纸篓前确认（d、⌘⌫）")

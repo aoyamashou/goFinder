@@ -9,7 +9,7 @@ import (
 )
 
 // Space is Quick Look, not a check mark: the action select.toggle is gone,
-// Space and ⌘Y open the item under the cursor, and pressing again ends the
+// Space (⌘Y no more) opens the item under the cursor, and pressing again ends the
 // open one first.
 func TestQuickLook(t *testing.T) {
 	a, tt, fs, root := setup(t)
@@ -18,10 +18,11 @@ func TestQuickLook(t *testing.T) {
 			t.Fatal("select.toggle still there")
 		}
 	}
-	for _, key := range []string{"Space", "Cmd+Y"} {
-		if id, ok := a.km.Lookup(mustChord(t, key)); !ok || id != "quicklook" {
-			t.Fatalf("%s → %q", key, id)
-		}
+	if id, ok := a.km.Lookup(mustChord(t, "Space")); !ok || id != "quicklook" {
+		t.Fatalf("Space → %q", id)
+	}
+	if _, ok := a.km.Lookup(mustChord(t, "Cmd+Y")); ok {
+		t.Fatal("⌘Y still bound")
 	}
 	a.tab().cursor = 0
 	name := cursorName(a)
@@ -33,7 +34,7 @@ func TestQuickLook(t *testing.T) {
 	if a.tab().sel.Len() != 0 {
 		t.Fatal("space selected")
 	}
-	tt.Key(ui.Cmd, ui.KeyY)
+	tt.Key(0, ui.KeySpace)
 	tt.Frame()
 	if len(fs.quickLooks) != 2 || fs.quickStops != 1 {
 		t.Fatalf("looks %d stops %d", len(fs.quickLooks), fs.quickStops)

@@ -64,18 +64,36 @@ func hintItem(c *ui.Context, keys, title string) {
 	})
 }
 
-// statusHints is the middle of the status bar: the common keys; while a
-// modifier is held, every key with exactly it, by group, cut short where
-// there is no room; while the filter types, its query and keys.
-func (a *app) statusHints(c *ui.Context) {
+// hintLines are the status bar's two lines of common keys, as the user
+// set them (2026-11-12): looking and going, then editing.
+var hintLines = [2][]string{
+	{"quicklook", "filter", "go.start", "agent", "help"},
+	{"copy", "copypath", "cut", "paste", "newfolder", "newfile", "rename", "trash"},
+}
+
+// statusHints is line (0 or 1) of the status bar's hints: the common keys
+// of hintLines, each action's first key; while a modifier is held, every
+// key with exactly it, by group, cut short where there is no room, on the
+// first line; while the filter types, its query and keys, there too.
+func (a *app) statusHints(c *ui.Context, line int) {
+	held := fromUIMods(c.Modifiers())
 	ui.Row(c).Grow(1).Shrink(1).Gap(px("space-3")).AlignItems(ui.Center).Clip().Children(func() {
+		if line == 1 {
+			if !a.filterOn && held == 0 {
+				a.hintLine(c, hintLines[1])
+			}
+			return
+		}
 		if a.filterOn {
 			uiCaption(c, fmt.Sprintf("过滤「%s」：%d 项", a.filterText, len(a.tab().t.Entries())), "ink").SingleLine().Shrink(0)
 			hintItem(c, "↩", "保留")
 			hintItem(c, "Esc", "清除")
 			return
 		}
-		held := fromUIMods(c.Modifiers())
+		if held == 0 {
+			a.hintLine(c, hintLines[0])
+			return
+		}
 		group := ""
 		for i, h := range a.km.Hints(held) {
 			if held != 0 && i == hintsMax {
@@ -96,4 +114,20 @@ func (a *app) statusHints(c *ui.Context) {
 			hintItem(c, h.Keys, title)
 		}
 	})
+}
+
+// hintLine shows ids' first keys with their short titles; an action the
+// user left without a key is left out.
+func (a *app) hintLine(c *ui.Context, ids []string) {
+	for _, id := range ids {
+		keys := a.km.KeysFor(id)
+		if len(keys) == 0 {
+			continue
+		}
+		title := hintTitles[id]
+		if title == "" {
+			title = a.actionTitle(id)
+		}
+		hintItem(c, keys[0].String(), title)
+	}
 }
