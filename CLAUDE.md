@@ -65,4 +65,5 @@ go tool mygo build -skip-installer    # 打包到 build/darwin-arm64/goFinder.ap
 
 - `README.md`：面向用户的介绍（特点、与访达的性能对比、安装、键位、配置）；实现细节不写在这里，写进 `docs/plan.md` 的对应阶段。
 - `docs/design-system.md`（及 `docs/design-tokens.json`）：goFinder 设计系统——颜色、字体、间距、圆角、尺寸 token 与组件规范；改界面前先读。
+- `docs/website.md`：官网（gofinder.ryou.im）的目录、部署方式、设计依据与内容边界；官网源码在 `site/`。
 - `docs/plan.md`：分阶段计划（架构、默认键位、资源原则、各阶段范围与验证方式）。完成一个阶段后在文档开头的状态行标注 commit 号。

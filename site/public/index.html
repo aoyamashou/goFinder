@@ -1,0 +1,584 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>goFinder · 键盘优先的 macOS 文件管理器</title>
+<meta name="description" content="goFinder 是 Yazi 风格的 macOS 文件管理器：三栏并排、单键操作、拼音首字母过滤，空闲内存 58 MB。可在 GitHub 下载。">
+<meta name="theme-color" content="#141516">
+<meta property="og:title" content="goFinder · 键盘优先的 macOS 文件管理器">
+<meta property="og:description" content="三栏并排、单键操作、拼音首字母过滤，空闲内存 58 MB。">
+<meta property="og:url" content="https://gofinder.ryou.im/">
+<link rel="icon" type="image/png" href="assets/icon.png">
+<link rel="apple-touch-icon" href="assets/icon.png">
+<script>document.documentElement.className='js'</script>
+<style>
+:root{
+  --bg:#141516; --s1:#1b1d1f; --s2:#26292c; --sep:#34383c;
+  --ink:#f5f7f8; --muted:#aab1b8; --faint:#8a9198;
+  --sel:#0a64d6; --sel-ink:#fff; --signal:#00dafc; --signal-ink:#000; --signal-text:#00dafc;
+  --danger:#ff6b6b; --warn:#ffb020; --added:#3fb950;
+  --t-folder:#58a6ff; --t-code:#ffa657; --t-doc:#adb5bd; --t-image:#f778ba; --t-archive:#e3b341; --t-config:#8b949e;
+  --ui:-apple-system,"SF Pro Text","PingFang SC","Hiragino Sans","Hiragino Sans GB",system-ui,sans-serif;
+  --code:Menlo,Consolas,monospace; /* taste-skill-ignore */
+  --gap:8px; --m:16px; --r:8px;
+}
+@media (prefers-color-scheme:light){
+  :root{
+    --bg:#fff; --s1:#f2f4f5; --s2:#e7eaec; --sep:#d5dadf;
+    --ink:#0a0a0a; --muted:#545a61; --faint:#666d74;
+    --signal-text:#00718a; --danger:#b42318; --warn:#8a5a00; --added:#1a7f37;
+    --t-folder:#1f6feb; --t-code:#bc4c00; --t-doc:#57606a; --t-image:#bf3989; --t-archive:#9a6700; --t-config:#6e7781;
+  }
+}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--ink);font:400 17px/1.6 var(--ui);-webkit-font-smoothing:antialiased}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--sel);outline-offset:2px}
+::selection{background:var(--signal);color:#000}
+.wrap{max-width:1680px;margin:0 auto;padding:0 var(--m);overflow-x:clip}
+.wm{font-weight:800;letter-spacing:-.035em;line-height:1}
+.wm i{font-style:normal;color:var(--signal)}
+
+/* nav */
+nav{display:flex;align-items:center;gap:24px;height:64px}
+nav .wm{font-size:24px;text-decoration:none}
+nav .links{display:flex;gap:4px;margin-left:auto}
+nav .links a{padding:8px 12px;border-radius:var(--r);text-decoration:none;color:var(--muted);font-size:15px;transition:background .15s,color .15s}
+nav .links a:hover{background:var(--s1);color:var(--ink)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 24px;border-radius:var(--r);background:var(--signal);color:var(--signal-ink);font:600 16px/1 var(--ui);text-decoration:none;transition:transform .15s,background .15s}
+.btn:hover{transform:translateY(-2px)}
+.btn:active{transform:translateY(1px) scale(.98)}
+.btn.sm{min-height:40px;padding:0 16px;font-size:15px}
+.link{color:var(--ink);text-underline-offset:4px;text-decoration-thickness:1px}
+.link:hover{text-decoration-color:var(--signal)}
+
+/* board */
+.board{display:grid;grid-template-columns:repeat(12,1fr);gap:var(--gap)}
+.tile{background:var(--s1);border-radius:var(--r);padding:24px;position:relative;overflow:hidden;min-width:0}
+.tile.alt{background:var(--s2)}
+h2{font:700 clamp(34px,3.2vw,46px)/1.1 var(--ui);letter-spacing:-.03em;margin:120px 0 32px}
+h3{font:600 20px/1.3 var(--ui);letter-spacing:-.01em}
+.soft{color:var(--muted)}
+.cap{font-size:15px;color:var(--muted);line-height:1.55}
+
+/* hero */
+.hero .name{grid-column:1/7;min-height:300px;display:flex;flex-direction:column;justify-content:flex-end}
+.hero .name .wm{font-size:clamp(72px,11.2vw,184px);margin-bottom:-.04em}
+.hero .say{grid-column:7/13;min-height:300px;display:flex;flex-direction:column;justify-content:space-between;gap:24px}
+.hero h1{font:700 clamp(34px,3.2vw,46px)/1.15 var(--ui);letter-spacing:-.03em}
+.hero .say p{font-size:20px;line-height:1.5;max-width:34em}
+.actions{display:flex;flex-wrap:wrap;align-items:center;gap:16px 24px}
+.hero .demo{grid-column:1/9;padding:0;min-height:560px;background:var(--s1)}
+.hero .side{grid-column:9/13;display:grid;grid-template-rows:1fr 1fr;gap:var(--gap)}
+.icon-tile{display:flex;align-items:center;gap:20px}
+.icon-tile img{width:112px;height:112px;flex:none}
+.icon-tile p{font-size:17px;line-height:1.5}
+.keys-tile{display:flex;flex-direction:column;justify-content:flex-start;gap:24px}
+.kc-row{display:flex;flex-wrap:wrap;gap:6px}
+.kc{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;padding:0 9px;border-radius:999px;background:var(--s2);color:var(--ink);font:600 13px/1 var(--ui);letter-spacing:1px}
+.tile.alt .kc{background:var(--bg)}.fr .kc{background:var(--s2)}
+.keys-grid{display:grid;grid-template-columns:auto 1fr;gap:10px 14px;align-items:center;font-size:16px}
+
+/* shutter + reveal */
+.shutter{clip-path:inset(0 0 100% 0);animation:shut 1.1s .15s cubic-bezier(.2,.7,.1,1) forwards}
+.shutter .win{transform:scale(1.12);animation:settle 1.1s .15s cubic-bezier(.2,.7,.1,1) forwards}
+@keyframes shut{to{clip-path:inset(0 0 0 0)}}
+@keyframes settle{to{transform:scale(1)}}
+.js .rv{opacity:0;transform:translateY(24px);transition:opacity .6s cubic-bezier(.2,.7,.1,1),transform .6s cubic-bezier(.2,.7,.1,1);transition-delay:calc(var(--i,0)*80ms)}
+.js .rv.in{opacity:1;transform:none}
+.heroin{animation:rise .7s cubic-bezier(.2,.7,.1,1) both;animation-delay:calc(var(--i,0)*90ms)}
+@keyframes rise{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){
+  .shutter,.shutter .win{animation:none;clip-path:none;transform:none}
+  .js .rv{opacity:1;transform:none;transition:none}
+  .heroin{animation:none}
+  .btn,nav .links a{transition:none}
+  html{scroll-behavior:auto}
+}
+
+/* ---- interface fragments (data-ui) ---- */
+[data-ui]{font:400 14px/1.4 var(--ui);color:var(--ink)}
+.win{display:flex;flex-direction:column;height:100%;min-height:560px;background:var(--bg);color:var(--ink)}
+[data-ui] .tb{display:flex;align-items:center;height:42px;padding:0 14px;background:var(--s1);border-bottom:1px solid var(--sep);gap:14px;flex:none}
+.dots{display:flex;gap:8px}.dots b{width:12px;height:12px;border-radius:50%;background:var(--s2)}
+.dots b:nth-child(1){background:#ff5f57}.dots b:nth-child(2){background:#febc2e}.dots b:nth-child(3){background:#28c840}
+.path{display:flex;align-items:center;gap:4px;height:28px;padding:0 14px;border-radius:999px;background:var(--s2);font:400 14px/1 var(--ui);color:var(--muted);white-space:nowrap;overflow:hidden}
+.path b{font-weight:400;color:var(--ink)}
+.ttl{margin-left:auto;font-size:13px;color:var(--signal-text);font-weight:600}
+.cols{display:grid;grid-template-columns:1fr 1.25fr 1.25fr;flex:1;min-height:0}
+[data-ui] .col{padding:8px 6px;border-right:1px solid var(--sep);overflow:hidden;font:400 15px/1 var(--ui);display:flex;flex-direction:column;gap:2px}
+.col:last-child{border-right:0}
+[data-ui] .col.focus{box-shadow:inset 0 0 0 1.5px var(--sel);border-radius:5px}
+.row{display:flex;align-items:center;gap:9px;height:30px;padding:0 9px;border-radius:5px;cursor:default;white-space:nowrap;min-width:0}
+.row span.n{overflow:hidden;text-overflow:ellipsis;flex:1}
+.row.hid span.n{color:var(--faint)}
+.row:hover{background:var(--s2)}
+.row.cur{background:var(--sel);color:var(--sel-ink)}
+.row.cur .g{background:#fff!important}
+.row.cur .g::after{background:#fff!important}
+.row.dim{background:var(--s2)}
+.git{font:700 12px/1 var(--ui);width:14px;text-align:center}
+.git.M{color:var(--warn)}.git.A{color:var(--added)}.git.Q{color:var(--muted)}
+.row.cur .git{color:#fff}
+.g{width:15px;height:11px;border-radius:2px;flex:none;position:relative}
+.g.dir{background:var(--t-folder);border-radius:2px 4px 2px 2px}
+.g.dir::before{content:"";position:absolute;left:0;top:-3px;width:7px;height:4px;border-radius:2px 2px 0 0;background:inherit}
+.row.cur .g.dir::before{background:#fff}
+.g.f{width:11px;height:14px;border-radius:2px}
+.g.code{background:var(--t-code)}.g.doc{background:var(--t-doc)}.g.img{background:var(--t-image)}.g.arc{background:var(--t-archive)}.g.cfg{background:var(--t-config)}
+.pv{padding:12px 12px;font:400 14px/1.65 var(--ui);color:var(--muted);white-space:pre;overflow:hidden}
+.pv b{color:var(--ink);font-weight:400}
+.pv .k{color:var(--t-code)}.pv .s{color:var(--added)}
+.empty{padding:12px;color:var(--faint);font-size:14px}
+[data-ui] .sb{flex:none;background:var(--s1);border-top:1px solid var(--sep)}
+.sb .l1,.sb .l2{display:flex;align-items:center;gap:16px;height:30px;padding:0 14px;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden}
+[data-ui] .sb .l2{border-top:1px solid var(--sep);gap:14px}
+.sb .l2 span{display:inline-flex;align-items:center;gap:6px}
+.sb .dot{width:6px;height:6px;border-radius:50%;background:var(--signal)}
+.sb .flt{color:var(--signal-text);font-weight:600}
+.fbox{display:none;align-items:center;gap:8px;height:28px;margin:6px 8px 4px;padding:0 6px 0 14px;border-radius:999px;background:var(--s1);font:400 14px/1 var(--ui);color:var(--muted)}
+.fbox.on{display:flex}
+.fbox input{flex:1;min-width:0;background:none;border:0;color:var(--ink);font:inherit;outline:0}
+.hint{position:absolute;right:14px;top:50px;font-size:13px;color:var(--muted);background:var(--s2);padding:6px 12px;border-radius:999px;pointer-events:none;transition:opacity .2s}
+.demo.live .hint{opacity:0}
+.demo:focus-visible{outline-offset:-3px}
+
+/* feature cells */
+.feats{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap)}
+.cell{background:var(--s2);min-height:420px;padding:0;display:flex;flex-direction:column;justify-content:space-between}
+.cell .tx{padding:24px}.cell .tx h3{font-size:20px}
+.cell .tx p{font-size:17px;line-height:1.6;margin-top:8px}
+.cell .fr{margin:0 0 0 auto;width:calc(100% - 40px);align-self:flex-end}
+.cell.rev{flex-direction:column-reverse}
+.cell.rev .fr{margin:0 auto 0 0;align-self:flex-start}
+.fr{background:var(--bg);color:var(--ink);padding:18px 20px 20px;border-radius:var(--r);min-height:216px}
+.cell:not(.rev) .fr{border-radius:var(--r) 0 0 0;margin-bottom:0}
+.cell.rev .fr{border-radius:0 0 var(--r) 0}
+.fr .row{height:30px}
+.pill{display:inline-flex;align-items:center;gap:8px;height:28px;padding:0 14px;border-radius:999px;background:var(--s2);font:400 14px/1 var(--ui);color:var(--muted)}
+.pill em{font-style:normal;color:var(--signal-text);font-weight:600}
+.seg{display:inline-flex;padding:3px;border-radius:999px;background:var(--s2);gap:2px}
+.seg span{padding:5px 14px;border-radius:999px;font-size:13px;color:var(--muted)}
+.seg span.on{background:var(--sel);color:#fff}
+.menu{background:var(--s1);border-radius:10px;padding:6px;display:flex;flex-direction:column;gap:2px}
+.menu div{display:flex;align-items:center;gap:10px;height:30px;padding:0 12px;border-radius:5px;font-size:14px}
+.menu div.hl{background:var(--sel);color:#fff}
+.menu .kb{margin-left:auto;font-size:12px;color:var(--muted)}
+.menu .hl .kb{color:#fff}
+.menu .tri{display:inline-flex;flex-direction:column;gap:2px;width:14px}
+.menu .tri i{display:block;height:2px;border-radius:2px;background:var(--signal)}
+.menu .tri i:nth-child(2){width:70%}.menu .tri i:nth-child(3){width:40%}
+[data-ui] .menu .sep{height:1px;padding:0;margin:4px 6px;background:var(--sep)}
+.menu .del{color:var(--danger)}
+.sbar .si{display:flex;align-items:center;gap:10px;height:28px;padding:0 10px;border-radius:5px;font-size:14px}
+.sbar .si:before{content:"";width:12px;height:12px;border-radius:3px;background:var(--muted);opacity:.7}
+.sbar .si.on{background:var(--s2)}
+.sbar .sh{font-size:12px;font-weight:700;color:var(--muted);padding:8px 10px 4px}
+.ws{display:flex;gap:6px;margin-top:12px}
+.ws span{padding:0 14px;height:28px;display:inline-flex;align-items:center;border-radius:999px;background:var(--s2);font-size:13px;color:var(--muted)}
+.ws span.on{background:var(--sel);color:#fff}
+
+/* stats */
+.mosaic{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap)}
+.mosaic .big{grid-column:1/3;padding:0}.mosaic .big .win{min-height:460px}
+.fig{display:flex;flex-direction:column;justify-content:space-between;gap:48px;padding:28px;min-height:300px}
+.fig .n{font:800 clamp(56px,5.6vw,96px)/.95 var(--ui);letter-spacing:-.04em}
+.fig .n small{font-size:.3em;font-weight:700;letter-spacing:-.02em;margin-left:6px}
+.fig p{font-size:17px;line-height:1.5;max-width:20em}
+.fig.sig .n{color:var(--signal-text)}
+.tbl{margin-top:var(--gap);padding:8px 24px 16px}
+.tbl table{width:100%;border-collapse:collapse;font-size:17px}
+.tbl th,.tbl td{text-align:left;padding:14px 12px 14px 0;border-bottom:1px solid var(--sep);vertical-align:top;font-variant-numeric:tabular-nums}
+.tbl th{font-weight:600;color:var(--muted);font-size:15px}
+.tbl tr:last-child td{border-bottom:0}
+.tbl td:nth-child(2){font-weight:700}
+.note{font-size:15px;margin-top:16px;max-width:38em}
+
+/* keys */
+.keyb{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--gap)}
+.kt{min-height:176px;display:flex;flex-direction:column;justify-content:space-between;gap:20px;padding:22px}
+.kt .kc-row{gap:8px}
+.kt .kc{min-width:32px;height:32px;font-size:15px;background:var(--bg)}
+.kt h3{font-size:20px}
+.kt p{font-size:15px;margin-top:2px;line-height:1.5}
+.keyw{grid-column:span 2}
+.keyb .wide{grid-column:span 4;display:flex;flex-wrap:wrap;gap:12px 32px;align-items:center;min-height:0;flex-direction:row;justify-content:space-between}
+
+/* faq */
+.faq{display:grid;grid-template-columns:repeat(12,1fr);gap:var(--gap);align-items:start}
+.faq h2{grid-column:1/5;position:sticky;top:32px;margin:120px 0 0}
+.faq .list{grid-column:5/13;margin-top:120px;display:flex;flex-direction:column;gap:var(--gap)}
+details{background:var(--s1);border-radius:var(--r);transition:background .2s}
+summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:72px;padding:16px 24px;font:500 20px/1.35 var(--ui);cursor:pointer}
+summary::-webkit-details-marker{display:none}
+summary .pm{position:relative;width:16px;height:16px;flex:none}
+summary .pm::before,summary .pm::after{content:"";position:absolute;left:0;right:0;top:6.5px;height:3px;background:currentColor;border-radius:2px;transition:transform .25s}
+summary .pm::after{transform:rotate(90deg)}
+details[open]{background:var(--signal);color:var(--signal-ink)}
+details[open] .pm::after{transform:rotate(0)}
+details .ans{padding:0 24px 24px;font-size:17px;line-height:1.65;max-width:36em}
+details .ans pre{margin-top:12px;padding:14px 16px;border-radius:6px;background:rgba(0,0,0,.14);white-space:pre-wrap;word-break:break-all;font:400 14px/1.5 var(--code)}
+details[open] .ans a{color:inherit}
+summary:hover{opacity:.9}
+
+/* cta */
+.cta{display:grid;grid-template-columns:2fr 8fr 2fr;gap:var(--gap);margin:120px -4px 0;min-height:360px}
+.cta .fl{background:var(--s2);border-radius:0 var(--r) var(--r) 0;margin-left:-40px}
+.cta .fr2{background:var(--s1);border-radius:var(--r) 0 0 var(--r);margin-right:-40px}
+.cta .mid{background:var(--s1);border-radius:var(--r);padding:44px;display:flex;align-items:center;gap:40px}
+.cta .mid img{width:168px;height:168px;flex:none}
+.cta h2{margin:0 0 12px}
+.cta p{font-size:17px;max-width:34em;margin-bottom:24px}
+
+/* footer */
+footer{margin-top:72px;padding-bottom:12px}
+.mark{display:flex;gap:4px;align-items:flex-end;height:clamp(180px,34svh,340px)}
+.mark span{display:flex;align-items:flex-end;border-radius:var(--r);background:var(--ink);color:var(--bg);font:800 clamp(70px,13vw,230px)/.8 var(--ui);letter-spacing:-.05em;padding:0 .02em .08em .06em;overflow:hidden}
+.mark span.dot{background:var(--signal);color:#000;padding-left:0;justify-content:center}
+.fcols{display:grid;grid-template-columns:repeat(12,1fr);gap:24px var(--gap);margin-top:48px;font-size:15px}
+.fcols div{grid-column:span 2;display:flex;flex-direction:column;gap:10px}
+.fcols div.ct{grid-column:9/13}
+.fcols a{text-decoration:none;color:var(--muted)}.fcols a:hover{color:var(--ink)}
+.fcols b{font-weight:600}
+.last{display:flex;align-items:center;justify-content:space-between;margin-top:56px;color:var(--muted);font-size:14px}
+
+/* tablet / phone */
+@media (max-width:1100px){
+  .hero .name{grid-column:1/13;min-height:240px}
+  .hero .say{grid-column:1/13;min-height:0}
+  .hero .demo{grid-column:1/13}
+  .hero .side{grid-column:1/13;grid-template-columns:1fr 1fr;grid-template-rows:auto}
+  .feats{grid-template-columns:repeat(2,1fr)}
+  .keyb{grid-template-columns:repeat(2,1fr)}
+  .keyb .wide{grid-column:span 2}
+  .faq h2{grid-column:1/13;position:static;margin-bottom:0}
+  .faq .list{grid-column:1/13;margin-top:24px}
+  .cta{grid-template-columns:1fr}
+  .cta .fl,.cta .fr2{display:none}
+  nav .links a:not(.keep){display:none}
+}
+@media (max-width:720px){
+  :root{--gap:6px}
+  nav{height:56px}
+  nav .btn.sm{background:none;color:var(--signal-text);padding:0;min-height:44px;width:auto}
+  .keyb .kt{grid-column:auto!important}
+  .hero .name{min-height:200px;padding:20px}
+  .hero .name .wm{font-size:19vw}
+  .hero .say{padding:20px}
+  .hero .say p{font-size:18px}
+  .hero .demo{min-height:0}
+  .win{min-height:460px}
+  .cols{grid-template-columns:1fr 1.4fr}
+  .cols .col:nth-child(3){display:none}
+  .path{font-size:12px;padding:0 10px}
+  .ttl,.hint{display:none}
+  .fr{min-height:0}
+  .sb .l2{display:none}
+  .hero .side{grid-template-columns:1fr}
+  .icon-tile img{width:88px;height:88px}
+  .feats{grid-template-columns:1fr}
+  .cell{min-height:0;gap:20px}
+  .cell .fr{width:calc(100% - 24px)}
+  .mosaic .big{grid-row:1}
+  .mosaic .big .win{min-height:420px}
+  .fig{padding:20px;min-height:200px}
+  .fig .n{font-size:13vw}
+  .tbl{padding:4px 16px 12px}
+  .tbl table{font-size:15px}.tbl th,.tbl td{padding-right:8px}
+  .keyb{grid-template-columns:1fr}
+  .keyb .wide{grid-column:auto}
+  .kt{min-height:0}
+  h2{margin:80px 0 20px;font-size:34px}
+  .faq h2{margin:80px 0 0}.faq .list{margin-top:16px}
+  summary{font-size:18px;padding:14px 20px;min-height:64px}
+  details .ans{padding:0 20px 20px;font-size:16px}
+  .cta{margin:80px 0 0}
+  .cta .mid{flex-direction:column;align-items:flex-start;padding:28px 22px}
+  .cta .mid img{width:96px;height:96px}
+  .cta h2{font-size:30px}
+  .btn{width:100%}
+  footer{margin-top:56px}
+  .fcols div{grid-column:span 6}.fcols div.ct{grid-column:1/13}
+  .mark{height:22svh}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <a class="wm" href="#top" aria-label="goFinder 首页">goFinder<i>.</i></a>
+    <div class="links">
+      <a href="#features">特点</a><a href="#perf">性能</a><a href="#keys">键位</a><a href="#faq">问题</a>
+      <a class="keep" href="https://github.com/aoyamashou/goFinder">GitHub</a>
+    </div>
+    <a class="btn sm" href="https://github.com/aoyamashou/goFinder/releases/latest">下载最新版</a>
+  </nav>
+
+  <main id="top">
+  <!-- 首屏 -->
+  <section class="board hero" aria-label="goFinder">
+    <div class="tile name heroin" style="--i:0"><div class="wm" aria-hidden="true">goFinder<i>.</i></div></div>
+    <div class="tile say heroin" style="--i:1">
+      <div>
+        <h1>键盘优先的 macOS 文件管理器</h1>
+        <p style="margin-top:16px">三栏并排，光标停在哪，就预览哪。单键操作，拼音首字母过滤，空闲内存 58 MB。</p>
+      </div>
+      <div class="actions">
+        <a class="btn" href="https://github.com/aoyamashou/goFinder/releases/latest">从 GitHub 下载</a>
+        <a class="link" href="https://github.com/aoyamashou/goFinder">查看源码</a>
+      </div>
+    </div>
+
+    <div class="tile demo shutter" id="demo" tabindex="0" role="application" aria-label="goFinder 界面演示：点击后可用方向键和 f 键操作" data-ui>
+      <div class="win">
+        <div class="tb"><div class="dots"><b></b><b></b><b></b></div><div class="path" id="pth"><b>~</b></div><div class="ttl" id="ttl">Documents</div></div>
+        <div class="fbox" id="fbox"><span>过滤</span><input id="finp" aria-label="过滤" autocomplete="off" spellcheck="false"></div>
+        <div class="cols" id="cols">
+          <div class="col"><div class="row dim"><i class="g dir"></i><span class="n">Documents</span></div><div class="row"><i class="g dir"></i><span class="n">dev</span></div><div class="row"><i class="g dir"></i><span class="n">Downloads</span></div></div>
+          <div class="col focus"><div class="row cur"><i class="g f doc"></i><span class="n">模型查询.txt</span></div><div class="row"><i class="g f doc"></i><span class="n">季度报告.pdf</span></div><div class="row"><i class="g f doc"></i><span class="n">会议纪要.md</span></div></div>
+          <div class="col"><div class="pv">示例文本文件</div></div>
+        </div>
+        <div class="sb"><div class="l1"><span class="dot"></span><span id="msg">试试 ↑ ↓ → ← ，按 f 过滤，输入 mxcx</span></div>
+          <div class="l2"><span><kbd class="kc">↑↓</kbd>移动</span><span><kbd class="kc">→</kbd>打开</span><span><kbd class="kc">←</kbd>上级</span><span><kbd class="kc">f</kbd>过滤</span><span><kbd class="kc">Esc</kbd>清除</span></div></div>
+      </div>
+      <div class="hint">点这里，再按方向键</div>
+    </div>
+
+    <div class="side">
+      <div class="tile alt icon-tile heroin" style="--i:3"><img src="assets/icon.png" width="112" height="112" alt="goFinder 应用图标：四宫格简笔画"><p>目前只有 Apple Silicon 版本。启动时自动检查更新。</p></div>
+      <div class="tile keys-tile heroin" style="--i:4">
+        <h3>常用操作只要一个键</h3>
+        <div class="keys-grid">
+          <div class="kc-row"><kbd class="kc">c</kbd></div><span>复制</span>
+          <div class="kc-row"><kbd class="kc">v</kbd></div><span>粘贴</span>
+          <div class="kc-row"><kbd class="kc">d</kbd></div><span>移到废纸篓</span>
+          <div class="kc-row"><kbd class="kc">f</kbd></div><span>过滤</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 特点 -->
+  <h2 id="features" class="rv">手不离键盘</h2>
+  <section class="feats" aria-label="特点">
+    <article class="tile cell rv" style="--i:0">
+      <div class="tx"><h3>边打边过滤，认拼音首字母</h3><p>按 f 后立即过滤，1 万个文件也没有延迟。输入 mxcx 就能找到「模型查询.txt」。</p></div>
+      <div class="fr" data-ui><span class="pill">过滤 <em>mxcx</em></span>
+        <div style="margin-top:10px;padding:0" class="col" role="presentation">
+          <div class="row cur"><i class="g f doc"></i><span class="n">模型查询.txt</span></div>
+          <div class="row"><i class="g f doc"></i><span class="n">面向消息传递.md</span></div>
+        </div></div>
+    </article>
+    <article class="tile cell rev rv" style="--i:1">
+      <div class="tx"><h3>单键快捷键</h3><p>c 复制，v 粘贴，d 移到废纸篓，n 新建，↩ 重命名。键位按英语四级水平设定，按 ? 打开速查表，全部可改。</p></div>
+      <div class="fr" data-ui><div class="kc-row" style="gap:8px"><kbd class="kc">c</kbd><kbd class="kc">v</kbd><kbd class="kc">x</kbd><kbd class="kc">d</kbd><kbd class="kc">n</kbd><kbd class="kc">s</kbd><kbd class="kc">f</kbd><kbd class="kc">a</kbd><kbd class="kc">?</kbd></div>
+        <div style="margin-top:16px;font-size:14px;color:var(--muted);display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center"><span style="display:inline-flex;align-items:center;gap:8px"><kbd class="kc">c c</kbd>复制路径</span><span style="display:inline-flex;align-items:center;gap:8px"><kbd class="kc">n n</kbd>按模板新建</span><span style="display:inline-flex;align-items:center;gap:8px"><kbd class="kc">s s</kbd>收藏</span></div></div>
+    </article>
+    <article class="tile cell rv" style="--i:2">
+      <div class="tx"><h3>访达侧边栏，原样移植</h3><p>个人收藏、位置跟随访达，另有自己的收藏夹，在多台 Mac 间经 iCloud 同步。</p></div>
+      <div class="fr sbar" data-ui><div class="sh">个人收藏</div><div class="si on">文稿</div><div class="si">下载</div><div class="si">桌面</div><div class="sh">收藏夹</div><div class="si">dev / goFinder</div></div>
+    </article>
+    <article class="tile cell rev rv" style="--i:3">
+      <div class="tx"><h3>多窗格、暂存架、工作区</h3><p>左右或上下双栏；整理文件时先放进暂存架；工作区记住布局和各窗格的文件夹，数字键切换。</p></div>
+      <div class="fr" data-ui><span class="seg"><span>三列</span><span class="on">左右</span><span>上下</span></span>
+        <div class="ws"><span class="on">1 文稿</span><span>2 项目</span><span>3 素材</span></div></div>
+    </article>
+    <article class="tile cell rv" style="--i:4">
+      <div class="tx"><h3>Zip 当文件夹，Git 看得见</h3><p>压缩包像文件夹一样进入，复制出来即解压；仓库里改动过的文件标上 M、A、? 。</p></div>
+      <div class="fr" data-ui><span class="pill"><b style="color:var(--ink);font-weight:400">素材.zip!</b>/封面</span>
+        <div class="col" style="padding:10px 0 0">
+          <div class="row"><i class="g f img"></i><span class="n">封面.png</span></div>
+          <div class="row"><i class="g f code"></i><span class="n">actions.go</span><span class="git M">M</span></div>
+          <div class="row"><i class="g f doc"></i><span class="n">notes.md</span><span class="git A">A</span></div>
+          <div class="row"><i class="g f cfg"></i><span class="n">.env.local</span><span class="git Q">?</span></div>
+        </div></div>
+    </article>
+    <article class="tile cell rev rv" style="--i:5">
+      <div class="tx"><h3>按 a，交给你的 AI Agent</h3><p>在当前文件夹启动 Claude 等命令行 Agent；t 开终端，e 开编辑器，空格调用系统 Quick Look 预览。</p></div>
+      <div class="fr" data-ui><div class="menu">
+        <div>在终端中打开<span class="kb">t</span></div>
+        <div class="hl"><span class="tri"><i></i><i></i><i></i></span>在这里打开 Claude<span class="kb">a</span></div>
+        <div>在编辑器中打开<span class="kb">e</span></div>
+        <div class="sep"></div>
+        <div class="del">移到废纸篓<span class="kb">d</span></div></div></div>
+    </article>
+  </section>
+
+  <!-- 性能 -->
+  <h2 id="perf" class="rv">小，而且快</h2>
+  <section aria-label="性能">
+    <div class="mosaic">
+      <div class="tile big rv" data-ui style="--i:0">
+        <div class="win">
+          <div class="tb"><div class="dots"><b></b><b></b><b></b></div><div class="path"><b>~</b>/big-folder</div><div class="ttl">10 000 项</div></div>
+          <div class="cols" style="grid-template-columns:1fr 1.6fr 1.6fr">
+            <div class="col"><div class="row dim"><i class="g dir"></i><span class="n">big-folder</span></div><div class="row"><i class="g dir"></i><span class="n">dev</span></div></div>
+            <div class="col focus">
+              <div class="row"><i class="g f img"></i><span class="n">IMG_0001.jpg</span></div><div class="row"><i class="g f img"></i><span class="n">IMG_0002.jpg</span></div><div class="row"><i class="g f img"></i><span class="n">IMG_0003.jpg</span></div><div class="row cur"><i class="g f img"></i><span class="n">IMG_0004.jpg</span></div><div class="row"><i class="g f img"></i><span class="n">IMG_0005.jpg</span></div><div class="row"><i class="g f img"></i><span class="n">IMG_0006.jpg</span></div><div class="row"><i class="g f img"></i><span class="n">IMG_0007.jpg</span></div><div class="row"><i class="g f img"></i><span class="n">IMG_0008.jpg</span></div><div class="row"><i class="g f img"></i><span class="n">IMG_0009.jpg</span></div><div class="row"><i class="g f img"></i><span class="n">IMG_0010.jpg</span></div>
+            </div>
+            <div class="col"><div class="pv">JPEG 图片 · 3.2 MB
+4032 × 3024</div></div>
+          </div>
+          <div class="sb"><div class="l1"><span class="dot"></span><span>读取并排序 25 ms · 进入目录到画出第一帧约 45 ms</span></div></div>
+        </div>
+      </div>
+      <div class="tile fig alt rv" style="--i:1"><div class="n">58<small>MB</small></div><p>空闲内存占用，访达是 183 MB，约三分之一。</p></div>
+      <div class="tile fig sig rv" style="--i:2"><div class="n">45<small>ms</small></div><p>进入有 1 万个文件的目录，到画出第一帧。</p></div>
+    </div>
+    <div class="tile tbl rv">
+      <table>
+        <thead><tr><th scope="col">项目</th><th scope="col">goFinder</th><th scope="col">访达</th></tr></thead>
+        <tbody>
+          <tr><td>空闲内存</td><td>58 MB</td><td>183 MB</td></tr>
+          <tr><td>空闲 CPU</td><td>0.08 s（约 0.1%）</td><td>0.22 s（约 0.4%）</td></tr>
+          <tr><td>1 万个文件：内存</td><td>71–72 MB</td><td>约 240 MB</td></tr>
+          <tr><td>1 万个文件：CPU</td><td>约 0.4 s，从启动到显示</td><td>1.3–2.1 s，打开后 10 秒内</td></tr>
+          <tr><td>启动</td><td>冷启动 530–550 ms</td><td>新窗口 294–312 ms</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">冷启动比访达开新窗口慢约 0.2 秒：访达是系统应用，常驻后台，没有冷启动。界面朴素是因为一切从省出发：不用 WebView，不加载系统文件图标，只给屏幕上看得到的文件夹开文件监听，Quick Look 等光标停下来才生成预览。</p>
+  </section>
+
+  <!-- 键位 -->
+  <h2 id="keys" class="rv">一个键，一件事</h2>
+  <section class="keyb" aria-label="键位">
+    <div class="tile kt rv" style="grid-column:span 2;--i:0"><div><h3>移动、打开、上级</h3><p>不用习惯 Vim 键位。⌘↓ 打开，⌘↑ 上级。</p></div><div class="kc-row"><kbd class="kc">↑</kbd><kbd class="kc">↓</kbd><kbd class="kc">→</kbd><kbd class="kc">←</kbd></div></div>
+    <div class="tile kt rv" style="--i:1"><div><h3>过滤</h3><p>边打字边过滤，支持拼音首字母。</p></div><div class="kc-row"><kbd class="kc">f</kbd></div></div>
+    <div class="tile kt rv" style="--i:2"><div><h3>快速查看</h3><p>系统 Quick Look：PDF、Office、视频、图片。</p></div><div class="kc-row"><kbd class="kc">Space</kbd></div></div>
+    <div class="tile kt rv" style="--i:3"><div><h3>切换窗格</h3><p>单栏时进出侧边栏。</p></div><div class="kc-row"><kbd class="kc">Tab</kbd></div></div>
+    <div class="tile kt rv" style="grid-column:span 2;--i:0"><div><h3>复制、复制路径、剪切、粘贴</h3><p>⌘C ⌥⌘C ⌘X ⌘V 同样可用。</p></div><div class="kc-row"><kbd class="kc">c</kbd><kbd class="kc">c c</kbd><kbd class="kc">x</kbd><kbd class="kc">v</kbd></div></div>
+    <div class="tile kt rv" style="--i:1"><div><h3>移到废纸篓</h3><p>先确认，从不永久删除。⌘⌫ 同样可用。</p></div><div class="kc-row"><kbd class="kc">d</kbd></div></div>
+    <div class="tile kt rv" style="grid-column:span 2;--i:2"><div><h3>新建文件夹、按模板新建</h3><p>⇧⌘N 与 ⌘N 同样可用。</p></div><div class="kc-row"><kbd class="kc">n</kbd><kbd class="kc">n n</kbd></div></div>
+    <div class="tile kt rv" style="--i:3"><div><h3>重命名</h3><p>选中后直接改。</p></div><div class="kc-row"><kbd class="kc">↩</kbd><kbd class="kc">r</kbd></div></div>
+    <div class="tile kt rv" style="--i:0"><div><h3>前往</h3><p>输入路径，带补全。⌘L 同样可用。</p></div><div class="kc-row"><kbd class="kc">g</kbd></div></div>
+    <div class="tile kt rv" style="--i:1"><div><h3>终端、Agent、编辑器</h3><p>在当前文件夹打开。</p></div><div class="kc-row"><kbd class="kc">t</kbd><kbd class="kc">a</kbd><kbd class="kc">e</kbd></div></div>
+    <div class="tile kt rv" style="--i:2"><div><h3>暂存架、收藏</h3><p>s 暂存选中项，s s 收藏当前文件夹。</p></div><div class="kc-row"><kbd class="kc">s</kbd><kbd class="kc">s s</kbd></div></div>
+    <div class="tile kt rv" style="grid-column:span 2;--i:3"><div><h3>工作区</h3><p>对话框与切换。⌘1–9 同样可用。</p></div><div class="kc-row"><kbd class="kc">w</kbd><kbd class="kc">1–9</kbd><kbd class="kc">[</kbd><kbd class="kc">]</kbd></div></div>
+    <div class="tile kt wide alt rv"><p style="margin:0;font-size:16px;color:var(--ink)">只有 c c、n n、s s 是同一个键连按两下（400 ms 内），其余都是单键。<span class="soft"> 按 ? 打开速查表，在设置（⌘,）的「快捷键」页可以改键。</span></p><a class="link" href="https://github.com/aoyamashou/goFinder#键位">完整键位表</a></div>
+  </section>
+
+  <!-- 问题 -->
+  <section class="faq" aria-label="常见问题">
+    <h2 id="faq" class="rv">常见问题</h2>
+    <div class="list">
+      <details name="q" class="rv"><summary>提示「已损坏」或「无法打开」怎么办？<span class="pm"></span></summary><div class="ans">目前用自签证书签名，没有经过 Apple 公证。第一次打开被拦下时，到「系统设置 › 隐私与安全性」点「仍要打开」；仍不行就解除下载隔离：<pre><code>sudo xattr -r -d com.apple.quarantine /Applications/goFinder.app</code></pre></div></details>
+      <details name="q" class="rv" style="--i:1"><summary>支持 Intel Mac 吗？<span class="pm"></span></summary><div class="ans">目前只有 Apple Silicon 版本。</div></details>
+      <details name="q" class="rv" style="--i:2"><summary>一定要装 Nerd Font 吗？<span class="pm"></span></summary><div class="ans">不用。列表图标使用 Nerd Font 字体，设置里可以一键下载；不装也能用，图标会退回文字符号。</div></details>
+      <details name="q" class="rv" style="--i:3"><summary>怎么更新？<span class="pm"></span></summary><div class="ans">goFinder 启动时会自动检查更新，有新版本时在应用内升级。也可以随时到 GitHub Releases 下载。</div></details>
+      <details name="q" class="rv" style="--i:4"><summary>键位和配置能改吗？<span class="pm"></span></summary><div class="ans">能。设置里有「快捷键」页；也可以在数据目录 ~/Library/Application Support/goFinder/ 里编辑 keymap.json 和 config.json，自定义终端、编辑器、右键菜单和 shell 命令。</div></details>
+      <details name="q" class="rv" style="--i:5"><summary>为什么界面这么朴素？<span class="pm"></span></summary><div class="ans">一切从省出发：低内存、低 CPU、响应快。没有动画，没有 WebView，只用本机已装的字体，只给看得见的文件夹开监听。</div></details>
+      <details name="q" class="rv" style="--i:6"><summary>能看到源码吗？<span class="pm"></span></summary><div class="ans">能。源码和每个版本的更新记录都在 <a href="https://github.com/aoyamashou/goFinder">GitHub</a>。goFinder 基于 <a href="https://mygo.egoist.dev/docs">MyGo</a> 写成，纯 Go，不用 WebView。</div></details>
+    </div>
+  </section>
+
+  <!-- 下载 -->
+  <section class="cta" aria-label="下载">
+    <div class="fl"></div>
+    <div class="mid rv">
+      <img src="assets/icon.png" width="168" height="168" alt="">
+      <div>
+        <h2 id="download">下载 goFinder</h2>
+        <p>在 GitHub Releases 下载 .dmg，把 goFinder 拖进「应用程序」文件夹。目前只有 Apple Silicon 版本。</p>
+        <div class="actions"><a class="btn" href="https://github.com/aoyamashou/goFinder/releases/latest">前往 GitHub 下载</a><a class="link" href="https://github.com/aoyamashou/goFinder/blob/main/CHANGELOG.md">更新记录</a></div>
+      </div>
+    </div>
+    <div class="fr2"></div>
+  </section>
+  </main>
+
+  <footer>
+    <div class="mark rv" role="img" aria-label="goFinder.">
+      <span style="flex:1.1;height:78%">g</span><span style="flex:1.1;height:100%">o</span><span style="flex:1.2;height:64%">F</span><span style="flex:.5;height:90%">i</span><span style="flex:1.1;height:72%">n</span><span style="flex:1.1;height:100%">d</span><span style="flex:1.1;height:84%">e</span><span style="flex:.8;height:68%">r</span><span class="dot" style="flex:.55;height:40%">.</span>
+    </div>
+    <div class="fcols">
+      <div><b>下载</b><a href="https://github.com/aoyamashou/goFinder/releases/latest">最新版本</a><a href="https://github.com/aoyamashou/goFinder/releases">所有版本</a></div>
+      <div><b>文档</b><a href="https://github.com/aoyamashou/goFinder#readme">README</a><a href="https://github.com/aoyamashou/goFinder/blob/main/CHANGELOG.md">更新记录</a></div>
+      <div><b>源码</b><a href="https://github.com/aoyamashou/goFinder">GitHub</a><a href="https://mygo.egoist.dev/docs">MyGo</a></div>
+      <div><b>页面</b><a href="#features">特点</a><a href="#keys">键位</a></div>
+      <div class="ct"><b>一句话</b><span class="soft">基于 MyGo 打造的 Finder 替代品。因为是狗大V做的 Finder，中文名叫狗方德。</span></div>
+    </div>
+    <div class="last"><span>© 2026 goFinder</span><a class="link" href="#top">回到顶部</a></div>
+  </footer>
+</div>
+
+<script>
+(function(){
+  /* 进入视口时依次出现 */
+  var els=[].slice.call(document.querySelectorAll('.rv'));
+  if(!('IntersectionObserver' in window)){els.forEach(function(e){e.classList.add('in')});}
+  else{var io=new IntersectionObserver(function(es){es.forEach(function(x){if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target)}})},{rootMargin:'0px 0px -8% 0px'});els.forEach(function(e){io.observe(e)});}
+
+  /* 可操作的演示 */
+  var T={n:'~',k:'dir',kids:[
+    {n:'Documents',k:'dir',kids:[
+      {n:'模型查询.txt',k:'doc',py:'mxcx',pv:'<b>模型查询</b>\n\n- 价格表\n- 上下文长度\n- 速率限制'},
+      {n:'季度报告.pdf',k:'doc',py:'jdbg',pv:'PDF 文稿\n按空格，用 Quick Look 查看'},
+      {n:'会议纪要.md',k:'doc',py:'hyjy',pv:'# 会议纪要\n\n- 确认发版时间\n- 整理暂存架'},
+      {n:'合同草稿.docx',k:'doc',py:'htcg',pv:'Word 文稿\n按空格，用 Quick Look 查看'}]},
+    {n:'dev',k:'dir',kids:[
+      {n:'goFinder',k:'dir',git:'M',kids:[
+        {n:'actions.go',k:'code',git:'M',pv:'<span class="k">func</span> actions() []Action {\n  <span class="k">return</span> []Action{\n    {ID: <span class="s">"copy"</span>, Keys: <span class="s">"c"</span>},\n    {ID: <span class="s">"filter"</span>, Keys: <span class="s">"f"</span>},\n  }\n}'},
+        {n:'main.go',k:'code',pv:'<span class="k">package</span> main\n\n<span class="k">func</span> main() {\n  run()\n}'},
+        {n:'columns.go',k:'code',pv:'<span class="k">package</span> main\n\n// 三列：上级｜当前｜预览'},
+        {n:'README.md',k:'doc',git:'M',pv:'# goFinder\n\n键盘优先的文件管理器'},
+        {n:'CHANGELOG.md',k:'doc',pv:'# 更新记录\n\n## 0.18.7'},
+        {n:'go.mod',k:'cfg',pv:'module goFinder\n\ngo 1.24'}]},
+      {n:'site',k:'dir',kids:[{n:'index.html',k:'code',pv:'<span class="k">&lt;!doctype html&gt;</span>'}]}]},
+    {n:'Downloads',k:'dir',kids:[
+      {n:'goFinder.dmg',k:'arc',pv:'磁盘映像'},
+      {n:'素材.zip',k:'dir',py:'sc',zip:1,kids:[{n:'封面.png',k:'img',py:'fm',pv:'PNG 图片'},{n:'图标.svg',k:'img',py:'tb',pv:'SVG 图片'}]},
+      {n:'screenshot.png',k:'img',pv:'PNG 图片'}]},
+    {n:'Pictures',k:'dir',kids:[{n:'IMG_0001.jpg',k:'img',pv:'JPEG 图片'},{n:'IMG_0002.jpg',k:'img',pv:'JPEG 图片'}]},
+    {n:'.zshrc',k:'cfg',hid:1,pv:'export EDITOR=vim'}
+  ]};
+  var demo=document.getElementById('demo'); if(!demo)return;
+  var cols=document.getElementById('cols'),pth=document.getElementById('pth'),ttl=document.getElementById('ttl'),msg=document.getElementById('msg'),fbox=document.getElementById('fbox'),finp=document.getElementById('finp');
+  var stack=[T.kids[0]], idx=[0], filt='', fon=false; /* stack: 当前所在目录链（不含根） */
+  function cur(){return stack.length?stack[stack.length-1]:T}
+  function chain(){return [T].concat(stack)}
+  function list(dir,f){var a=dir.kids||[];if(!f)return a;var q=f.toLowerCase();return a.filter(function(x){return x.n.toLowerCase().indexOf(q)>-1||(x.py&&x.py.indexOf(q)===0)||(x.py&&x.py.indexOf(q)>-1)})}
+  function esc(s){return s.replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
+  function row(x,cls,i){var g=x.k==='dir'?'dir':'f '+x.k;var gt=x.git?'<span class="git '+x.git+'">'+x.git+'</span>':'';return '<div class="row '+(cls||'')+(x.hid?' hid':'')+'" data-i="'+i+'"><i class="g '+g+'"></i><span class="n">'+esc(x.n)+'</span>'+gt+'</div>'}
+  function render(){
+    var d=cur(), items=list(d,filt), i=Math.min(idx[stack.length-1]||0,Math.max(items.length-1,0)); idx[stack.length-1]=i;
+    var ch=chain(), parent=ch.length>1?ch[ch.length-2]:null, left='';
+    if(parent){parent.kids.forEach(function(x,j){left+=row(x,x===d?'dim':'',-1)})}
+    else{left='<div class="empty">~</div>'}
+    var mid=items.length?items.map(function(x,j){return row(x,j===i?'cur':'',j)}).join(''):'<div class="empty">没有匹配项</div>';
+    var sel=items[i], right='';
+    if(sel){ if(sel.k==='dir'){right=(sel.kids||[]).map(function(x){return row(x,'',-1)}).join('')||'<div class="empty">空文件夹</div>'} else {right='<div class="pv">'+(sel.pv||esc(sel.n))+'</div>'} }
+    cols.innerHTML='<div class="col">'+left+'</div><div class="col focus">'+mid+'</div><div class="col">'+right+'</div>';
+    var p=ch.map(function(x){return esc(x.n)+(x.zip?'!':'')}).join('/').replace('~/','~/');
+    pth.innerHTML='<b>'+p+'</b>'; ttl.textContent=d.n;
+    var m='';
+    if(filt){m='<span class="flt">过滤：'+esc(filt)+'</span> · '+items.length+' 项'}
+    else if(sel){m=esc(sel.n)+(sel.k==='dir'?' · '+((sel.kids||[]).length)+' 项':'')}
+    msg.innerHTML=m;
+  }
+  function move(n){var items=list(cur(),filt);if(!items.length)return;var i=(idx[stack.length-1]||0)+n;idx[stack.length-1]=Math.max(0,Math.min(items.length-1,i));render()}
+  function enter(){var items=list(cur(),filt),sel=items[idx[stack.length-1]||0];if(sel&&sel.k==='dir'){stack.push(sel);idx[stack.length-1]=0;filt='';finp.value='';render()}}
+  function up(){if(stack.length>1){var from=stack.pop();var p=cur();idx[stack.length-1]=Math.max(0,(p.kids||[]).indexOf(from));filt='';finp.value='';render()}}
+  function openF(){fon=true;fbox.classList.add('on');finp.focus()}
+  function closeF(clear){fon=false;fbox.classList.remove('on');if(clear){filt='';finp.value=''}render();demo.focus()}
+  demo.addEventListener('focus',function(){demo.classList.add('live')});
+  demo.addEventListener('click',function(e){var r=e.target.closest&&e.target.closest('.row');if(r&&r.dataset.i>-1&&r.parentNode===cols.children[1]){idx[stack.length-1]=+r.dataset.i;render()}if(!fon)demo.focus()});
+  demo.addEventListener('dblclick',function(e){if(e.target.closest&&e.target.closest('.row'))enter()});
+  demo.addEventListener('keydown',function(e){
+    if(fon)return;
+    var k=e.key, used=true;
+    if(k==='ArrowDown')move(1);else if(k==='ArrowUp')move(-1);else if(k==='ArrowRight'||k==='Enter')enter();else if(k==='ArrowLeft')up();
+    else if(k==='f'&&!e.metaKey&&!e.ctrlKey)openF();
+    else if(k==='Escape'&&filt){filt='';finp.value='';render()}
+    else used=false;
+    if(used)e.preventDefault();
+  });
+  finp.addEventListener('input',function(){filt=finp.value;idx[stack.length-1]=0;render()});
+  finp.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();closeF(false)}else if(e.key==='Escape'){e.preventDefault();closeF(true)}e.stopPropagation()});
+  render();
+})();
+</script>
+</body>
+</html>

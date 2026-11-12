@@ -1,0 +1,10 @@
+{
+  "name": "gofinder-site",
+  "private": true,
+  "description": "goFinder 官网（静态页，部署到 Cloudflare Workers Static Assets）",
+  "devDependencies": {
+    "cf": "^1.0.0-beta.30",
+    "wrangler": "^4.160.1"
+  },
+  "type": "module"
+}
