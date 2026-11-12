@@ -16,7 +16,7 @@
 :root{
   --bg:#141516; --s1:#1b1d1f; --s2:#26292c; --sep:#34383c;
   --ink:#f5f7f8; --muted:#aab1b8; --faint:#8a9198;
-  --sel:#0a64d6; --sel-ink:#fff; --signal:#00dafc; --signal-ink:#000; --signal-text:#00dafc;
+  --sel:#00dafc; --sel-ink:#000; --signal:#00dafc; --signal-ink:#000; --signal-text:#00dafc;
   --danger:#ff6b6b; --warn:#ffb020; --added:#3fb950;
   --t-folder:#58a6ff; --t-code:#ffa657; --t-doc:#adb5bd; --t-image:#f778ba; --t-archive:#e3b341; --t-config:#8b949e;
   --ui:-apple-system,"SF Pro Text","PingFang SC","Hiragino Sans","Hiragino Sans GB",system-ui,sans-serif;
@@ -35,7 +35,7 @@
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 body{background:var(--bg);color:var(--ink);font:400 17px/1.6 var(--ui);-webkit-font-smoothing:antialiased}
 a{color:inherit}
-:focus-visible{outline:2px solid var(--sel);outline-offset:2px}
+:focus-visible{outline:2px solid var(--signal-text);outline-offset:2px}
 ::selection{background:var(--signal);color:#000}
 .wrap{max-width:1680px;margin:0 auto;padding:0 var(--m);overflow-x:clip}
 .wm{font-weight:800;letter-spacing:-.035em;line-height:1}
@@ -116,16 +116,16 @@ h3{font:600 20px/1.3 var(--ui);letter-spacing:-.01em}
 .row.hid span.n{color:var(--faint)}
 .row:hover{background:var(--s2)}
 .row.cur{background:var(--sel);color:var(--sel-ink)}
-.row.cur .g{background:#fff!important}
-.row.cur .g::after{background:#fff!important}
+.row.cur .g{background:var(--sel-ink)!important}
+.row.cur .g::after{background:var(--sel-ink)!important}
 .row.dim{background:var(--s2)}
 .git{font:700 12px/1 var(--ui);width:14px;text-align:center}
 .git.M{color:var(--warn)}.git.A{color:var(--added)}.git.Q{color:var(--muted)}
-.row.cur .git{color:#fff}
+.row.cur .git{color:var(--sel-ink)}
 .g{width:15px;height:11px;border-radius:2px;flex:none;position:relative}
 .g.dir{background:var(--t-folder);border-radius:2px 4px 2px 2px}
 .g.dir::before{content:"";position:absolute;left:0;top:-3px;width:7px;height:4px;border-radius:2px 2px 0 0;background:inherit}
-.row.cur .g.dir::before{background:#fff}
+.row.cur .g.dir::before{background:var(--sel-ink)}
 .g.f{width:11px;height:14px;border-radius:2px}
 .g.code{background:var(--t-code)}.g.doc{background:var(--t-doc)}.g.img{background:var(--t-image)}.g.arc{background:var(--t-archive)}.g.cfg{background:var(--t-config)}
 .pv{padding:12px 12px;font:400 14px/1.65 var(--ui);color:var(--muted);white-space:pre;overflow:hidden}
@@ -161,14 +161,14 @@ h3{font:600 20px/1.3 var(--ui);letter-spacing:-.01em}
 .pill em{font-style:normal;color:var(--signal-text);font-weight:600}
 .seg{display:inline-flex;padding:3px;border-radius:999px;background:var(--s2);gap:2px}
 .seg span{padding:5px 14px;border-radius:999px;font-size:13px;color:var(--muted)}
-.seg span.on{background:var(--sel);color:#fff}
+.seg span.on{background:var(--sel);color:var(--sel-ink)}
 .menu{background:var(--s1);border-radius:10px;padding:6px;display:flex;flex-direction:column;gap:2px}
 .menu div{display:flex;align-items:center;gap:10px;height:30px;padding:0 12px;border-radius:5px;font-size:14px}
-.menu div.hl{background:var(--sel);color:#fff}
+.menu div.hl{background:var(--sel);color:var(--sel-ink)}
 .menu .kb{margin-left:auto;font-size:12px;color:var(--muted)}
-.menu .hl .kb{color:#fff}
+.menu .hl .kb{color:var(--sel-ink)}
 .menu .tri{display:inline-flex;flex-direction:column;gap:2px;width:14px}
-.menu .tri i{display:block;height:2px;border-radius:2px;background:var(--signal)}
+.menu .tri i{display:block;height:2px;border-radius:2px;background:var(--signal)}.menu .hl .tri i{background:var(--sel-ink)}
 .menu .tri i:nth-child(2){width:70%}.menu .tri i:nth-child(3){width:40%}
 [data-ui] .menu .sep{height:1px;padding:0;margin:4px 6px;background:var(--sep)}
 .menu .del{color:var(--danger)}
@@ -178,7 +178,7 @@ h3{font:600 20px/1.3 var(--ui);letter-spacing:-.01em}
 .sbar .sh{font-size:12px;font-weight:700;color:var(--muted);padding:8px 10px 4px}
 .ws{display:flex;gap:6px;margin-top:12px}
 .ws span{padding:0 14px;height:28px;display:inline-flex;align-items:center;border-radius:999px;background:var(--s2);font-size:13px;color:var(--muted)}
-.ws span.on{background:var(--sel);color:#fff}
+.ws span.on{background:var(--sel);color:var(--sel-ink)}
 
 /* stats */
 .mosaic{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap)}
@@ -244,6 +244,44 @@ footer{margin-top:72px;padding-bottom:12px}
 .fcols b{font-weight:600}
 .last{display:flex;align-items:center;justify-content:space-between;margin-top:56px;color:var(--muted);font-size:14px}
 
+
+/* interface screenshot (data-ui) */
+.shotwrap{margin-top:var(--gap)}
+.shot{padding:0;background:var(--bg)}
+.shot .row.cur{background:var(--signal);color:var(--signal-ink)}
+.shot .row.cur .g{background:#000!important}
+.shot .row.cur .g.dir::before{background:#000}
+.shot .row .git{margin-left:auto}
+.shot .seg span.on{background:var(--signal);color:var(--signal-ink)}
+.s-tb{display:flex;align-items:center;gap:14px;height:46px;padding:0 16px;background:var(--s1)}
+.s-title{flex:1;text-align:center;font-size:14px;font-weight:600;color:var(--signal-text);margin-right:-120px;pointer-events:none}
+.s-right{display:flex;align-items:center;gap:8px;margin-left:auto;position:relative;z-index:1}
+.agent{display:inline-flex;align-items:center;gap:8px;height:28px;padding:0 10px;border-radius:6px;background:var(--s2);font-size:13px}
+.agent .tri{display:inline-flex;flex-direction:column;gap:2px;width:14px}
+.agent .tri i{display:block;height:2px;border-radius:2px;background:var(--signal)}
+.agent .tri i:nth-child(2){width:70%}.agent .tri i:nth-child(3){width:40%}
+.agent .car{color:var(--muted);font-size:11px;margin-left:4px}
+.wsp{display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:999px;font-size:13px;color:var(--muted)}
+.wsp.on{background:var(--signal);color:var(--signal-ink);font-weight:600}
+.s-body{display:grid;grid-template-columns:190px 1fr;min-height:0}
+.s-side{background:var(--s1);padding:8px 8px 12px;display:flex;flex-direction:column;gap:2px}
+.s-panes{display:flex;flex-direction:column;gap:0;min-width:0}
+.s-pane{display:flex;flex-direction:column;height:300px;min-width:0}
+.s-pane+.s-pane{background:var(--bg)}
+.s-path{padding:10px 12px 6px}
+.s-path .path{display:inline-flex;width:100%;height:30px}
+.s-path .path b{font-weight:400;color:var(--ink)}
+.s-cols{display:grid;grid-template-columns:1fr 1.15fr 1.7fr;flex:1;min-height:0;padding:0 8px;gap:8px}
+.s-cols .col{border:0;padding:0;overflow:hidden}
+[data-ui] .s-pane.on .col.focus{box-shadow:inset 0 0 0 1.5px var(--signal);padding:6px;border-radius:6px}
+.s-pane .col .row.dim{background:var(--s2)}
+.s-cols .pv{padding:6px 8px;font-size:13.5px;line-height:1.7;color:var(--ink);overflow:hidden}
+.s-pane:not(.on) .s-cols .col:nth-child(3){}
+.s-sb{background:var(--s1)}
+.s-l1{display:flex;align-items:center;justify-content:space-between;height:34px;padding:0 16px;font-size:13px;color:var(--muted)}
+.s-l2{display:flex;align-items:center;gap:14px;height:34px;padding:0 16px;font-size:13px;color:var(--muted);overflow:hidden;white-space:nowrap}
+.s-l2 span{display:inline-flex;align-items:center;gap:6px}
+
 /* tablet / phone */
 @media (max-width:1100px){
   .hero .name{grid-column:1/13;min-height:240px}
@@ -274,6 +312,14 @@ footer{margin-top:72px;padding-bottom:12px}
   .cols .col:nth-child(3){display:none}
   .path{font-size:12px;padding:0 10px}
   .ttl,.hint{display:none}
+  .s-side,.s-pane+.s-pane,.s-right .agent,.s-right .wsp:not(.on),.s-l2{display:none}
+  .s-body{grid-template-columns:1fr}
+  .s-title{margin-right:0;text-align:left}
+  .s-cols{grid-template-columns:1fr 1.2fr}
+  .s-cols .col:nth-child(3){display:none}
+  .s-pane{height:320px}
+  .s-l1{justify-content:flex-end}.s-l1>span:first-child{display:none}
+
   .fr{min-height:0}
   .sb .l2{display:none}
   .hero .side{grid-template-columns:1fr}
@@ -331,6 +377,29 @@ footer{margin-top:72px;padding-bottom:12px}
       </div>
     </div>
 
+  </section>
+
+  <!-- 界面 -->
+  <section class="shotwrap rv" aria-label="goFinder 界面截图：上下双栏">
+    <div class="tile shot" data-ui>
+      <div class="s-tb"><div class="dots"><b></b><b></b><b></b></div><div class="s-title">Downloads</div>
+        <div class="s-right"><span class="agent"><span class="tri"><i></i><i></i><i></i></span>Claude<span class="car">▾</span></span><span class="wsp on">默认工作区</span><span class="wsp">下载</span><span class="wsp">文稿</span></div></div>
+      <div class="s-body"><aside class="sbar s-side"><div class="sh">个人收藏</div><div class="si">最近使用</div><div class="si">应用程序</div><div class="si">主目录</div><div class="si">桌面</div><div class="si on">下载</div><div class="si">图片</div><div class="si">文稿</div><div class="si">音乐</div><div class="si">影片</div><div class="sh">位置</div><div class="si">iCloud 云盘</div><div class="si">Macintosh HD</div><div class="sh">收藏夹</div><div class="si">项目</div><div class="si">下载</div></aside><div class="s-panes"><div class="s-pane on"><div class="s-path"><span class="path"><b>Users</b> › <b>user</b> › <b>Downloads</b></span></div><div class="s-cols"><div class="col "><div class="row "><i class="g dir"></i><span class="n">Applications</span></div><div class="row "><i class="g dir"></i><span class="n">Desktop</span></div><div class="row "><i class="g dir"></i><span class="n">Documents</span></div><div class="row dim"><i class="g dir"></i><span class="n">Downloads</span></div><div class="row "><i class="g dir"></i><span class="n">Library</span></div><div class="row "><i class="g dir"></i><span class="n">Movies</span></div><div class="row "><i class="g dir"></i><span class="n">Music</span></div><div class="row "><i class="g dir"></i><span class="n">Pictures</span></div><div class="row "><i class="g dir"></i><span class="n">Projects</span></div></div><div class="col focus"><div class="row "><i class="g dir"></i><span class="n">项目资料</span></div><div class="row "><i class="g dir"></i><span class="n">素材</span></div><div class="row "><i class="g f arc"></i><span class="n">app-1.2.0-arm64.dmg</span></div><div class="row "><i class="g f arc"></i><span class="n">app-1.2.1-arm64.dmg</span></div><div class="row "><i class="g f arc"></i><span class="n">设计稿.zip</span></div><div class="row "><i class="g f doc"></i><span class="n">报价单.pdf</span></div><div class="row cur"><i class="g f doc"></i><span class="n">README.md</span></div><div class="row "><i class="g f img"></i><span class="n">截图.png</span></div><div class="row "><i class="g f doc"></i><span class="n">会议记录.pdf</span></div></div><div class="col"><div class="pv"><b># 项目名称</b>
+
+&gt; 一句话说明这个项目是做什么的。
+
+项目介绍写在这里，可以有几行文字，
+也可以有列表：
+
+- 第一个特点
+- 第二个特点
+- 第三个特点
+
+## 安装
+
+下载后拖进「应用程序」文件夹。</div></div></div></div><div class="s-pane"><div class="s-path"><span class="path"><b>Users</b> › <b>user</b> › <b>Documents</b></span></div><div class="s-cols"><div class="col "><div class="row "><i class="g dir"></i><span class="n">Applications</span></div><div class="row "><i class="g dir"></i><span class="n">Desktop</span></div><div class="row dim"><i class="g dir"></i><span class="n">Documents</span></div><div class="row "><i class="g dir"></i><span class="n">Downloads</span></div><div class="row "><i class="g dir"></i><span class="n">Library</span></div><div class="row "><i class="g dir"></i><span class="n">Movies</span></div><div class="row "><i class="g dir"></i><span class="n">Music</span></div><div class="row "><i class="g dir"></i><span class="n">Pictures</span></div><div class="row "><i class="g dir"></i><span class="n">Projects</span></div></div><div class="col "><div class="row dim"><i class="g dir"></i><span class="n">项目 A</span></div><div class="row "><i class="g dir"></i><span class="n">笔记</span></div><div class="row "><i class="g dir"></i><span class="n">合同</span></div><div class="row "><i class="g dir"></i><span class="n">报告</span></div><div class="row "><i class="g dir"></i><span class="n">照片整理</span></div><div class="row "><i class="g dir"></i><span class="n">备份</span></div><div class="row "><i class="g dir"></i><span class="n">教程</span></div><div class="row "><i class="g dir"></i><span class="n">草稿</span></div><div class="row "><i class="g dir"></i><span class="n">素材库</span></div></div><div class="col "><div class="row "><i class="g dir"></i><span class="n">子文件夹 A</span></div><div class="row "><i class="g dir"></i><span class="n">子文件夹 B</span></div><div class="row "><i class="g f doc"></i><span class="n">说明.md</span></div></div></div></div></div></div>
+      <div class="s-sb"><div class="s-l1"><span>上：~　下：~/Documents</span><span class="seg"><span>三列</span><span>左右</span><span class="on">上下</span></span></div><div class="s-l2"><span><kbd class="kc">⇧⌘.</kbd>隐藏文件</span><span><kbd class="kc">⇧⌘H</kbd>主目录</span><span><kbd class="kc">⇧⌘D</kbd>桌面</span><span><kbd class="kc">⇧⌘O</kbd>文稿</span><span><kbd class="kc">⇧⌘A</kbd>应用程序</span><span><kbd class="kc">⇧⌘N</kbd>新文件夹</span><span><kbd class="kc">⇧⌘]</kbd>下一个工作区</span><span><kbd class="kc">⇧⌘[</kbd>上一个工作区</span></div></div>
+    </div>
   </section>
 
   <!-- 性能 -->
