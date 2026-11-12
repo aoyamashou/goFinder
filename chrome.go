@@ -118,8 +118,9 @@ func (a *app) symButtonTint(c *ui.Context, sym, label, tip string, on, disabled 
 }
 
 // titleBar is the strip under the window controls (c.TitleBar), dragging
-// the window: the Agent button, the workspaces' buttons, then the active
-// folder's name. Its tips show at once.
+// the window: the active folder's name centered in the room left, then at
+// the right end the Agent button and the workspaces' buttons. Its tips
+// show at once.
 func (a *app) titleBar(c *ui.Context) {
 	bar := c.TitleBar()
 	th := *c.Theme()
@@ -130,11 +131,11 @@ func (a *app) titleBar(c *ui.Context) {
 			AlignItems(ui.Center).Shrink(0).Background(tok(c, "surface-100")).DragWindow()
 		a.dbg(c, row, "titlebar")
 		row.Children(func() {
-			a.agentSplit(c, a.tab())
-			a.workspaceButtons(c)
 			ui.Spacer(c)
 			ui.Text(c, a.windowTitle()).FontSize(12).TextColor(titleColor(c)).SingleLine().Shrink(1).MinWidth(0)
 			ui.Spacer(c)
+			a.agentSplit(c, a.tab())
+			a.workspaceButtons(c)
 		})
 	})
 	separatorLine(c.Key("titlebar.sep"))

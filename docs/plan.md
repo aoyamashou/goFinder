@@ -1354,6 +1354,23 @@ UX：
 - `TestNoToolbar`、`TestNoToolbarAndDarkByDefault`：没有后退/新建等按钮，没有 `toolbar` 动作；`TestTitleBarTips`、`TestAgentTitleBar`、`TestConfigOldToolbarIgnored`。
 - `go test ./...`、`go vet ./...`、`go tool mygo vet .` 通过。
 
+### 阶段 18 后修订九：Agent 与工作区按钮移到标题栏右端；README 换成 goFinder. 字标
+> 来源：本开发会话（2026-11-12），用户提出。
+
+**要改什么**
+1. Agent 按钮和工作区按钮移到窗口最右边；当前路径的文字在剩余宽度里居中。
+2. README 顶部的应用图标换成「关于」页的字标 goFinder.。
+
+**实现**
+- `titleBar`：Spacer、文件夹名、Spacer，然后 Agent 分体按钮和工作区按钮，靠右。
+- 字标：`wordmark_test.go` 的 `TestWordmarkPNG`（设 `MYGO_WORDMARK=目录` 才运行）用 `wordmark` 在白底和黑底各画一次，做差值抠图得到透明 PNG，浅色、深色各一张，放在 `docs/images/`；README 用 `<picture>` 按 GitHub 的明暗主题切换。
+
+**边界**
+- 不改按钮行为和键位；`resources/icon.png` 应用图标不变。
+
+**验证**
+- `go test ./...`、`go vet ./...`、`go tool mygo vet .` 通过；`TestChromeShots` 截图核对标题栏布局。
+
 ## 测试和验证
 - **纯逻辑包写单元测试，用 `go test ./...` 运行**：
   - `keymap`：按键解析、上下文过滤、用户覆盖、冲突检测；

@@ -1,4 +1,9 @@
-<p align="center"><img src="resources/icon.png" width="128" alt="goFinder"></p>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/wordmark-dark.png">
+    <img src="docs/images/wordmark-light.png" width="240" alt="goFinder.">
+  </picture>
+</p>
 
 # goFinder
 
@@ -44,7 +49,7 @@ goFinder 在 Yazi 的基础上增加了：
 - 左右或上下双栏、暂存架、Workspace（多工作区切换）、按模板新建文件、像文件夹一样浏览 Zip、Git 状态标记。
 - 右键菜单、快捷键和 shell 命令都可以自定义。
 - 自动更新：从 GitHub Release 下载签名校验过的新版本。
--不支持多标签，因为本身已带双窗口模式，多标签没有意义。支持Workspace，可将常用的窗口/路径组合保存下来，一键调用。顶部标题栏上每个工作区一个按钮（Agent 按钮在它们最左边），也可以按 `1`–`9`、`[` `]` 切换；首次打开自带 Home、Download（左右双栏）、Documents（上下双栏）三个演示工作区。
+-不支持多标签，因为本身已带双窗口模式，多标签没有意义。支持Workspace，可将常用的窗口/路径组合保存下来，一键调用。顶部标题栏右端每个工作区一个按钮（Agent 按钮在它们左边），也可以按 `1`–`9`、`[` `]` 切换；首次打开自带 Home、Download（左右双栏）、Documents（上下双栏）三个演示工作区。
 
 ## 性能
 在同一台 Mac 上，用同样的方法分别测了 goFinder和原生访达：
