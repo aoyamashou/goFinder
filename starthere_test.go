@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-// 启动时从这里开始 on a folder sets startDir, saved; startDir opens there
+// 设为起点 on a folder sets startDir, saved; startDir opens there
 // while the folder is there; choosing it again clears it.
 func TestStartHere(t *testing.T) {
 	a, tt, _, root := setup(t)
@@ -16,7 +16,7 @@ func TestStartHere(t *testing.T) {
 		if err := tt.RightClick("beta"); err != nil {
 			t.Fatal(err)
 		}
-		if err := tt.ChooseMenuItem("启动时从这里开始"); err != nil {
+		if err := tt.ChooseMenuItem("设为起点"); err != nil {
 			t.Fatal(err)
 		}
 		tt.Frame()

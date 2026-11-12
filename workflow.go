@@ -97,7 +97,7 @@ func (a *app) shelfTo(ts *tabState, move bool) {
 		return
 	}
 	srcs, dst := slices.Clone(a.sh.items), ts.t.Dir
-	verb := map[bool]string{false: "拷贝", true: "移动"}[move]
+	verb := map[bool]string{false: "复制", true: "移动"}[move]
 	a.status = fmt.Sprintf("正在把暂存架的 %d 项%s到这里…", len(srcs), verb)
 	a.async(func() {
 		var out []string
@@ -155,7 +155,7 @@ func (a *app) shelfView(c *ui.Context) {
 		empty := len(a.sh.items) == 0
 		// The three buttons share the row and may shrink: no overflow.
 		ui.Row(c).Gap(4).Children(func() {
-			if faceButton(c.Key("shc"), "拷贝到此", "ink", empty).Padding(0, px("space-1")).Grow(1).Shrink(1).MinWidth(0).Tooltip(a.keyTip("shelf.copy", "拷贝到当前文件夹")).Clicked() {
+			if faceButton(c.Key("shc"), "复制到此", "ink", empty).Padding(0, px("space-1")).Grow(1).Shrink(1).MinWidth(0).Tooltip(a.keyTip("shelf.copy", "复制到当前文件夹")).Clicked() {
 				a.run("shelf.copy")
 			}
 			if faceButton(c.Key("shm"), "移动到此", "ink", empty).Padding(0, px("space-1")).Grow(1).Shrink(1).MinWidth(0).Tooltip(a.keyTip("shelf.move", "移动到当前文件夹")).Clicked() {
@@ -463,12 +463,12 @@ func (a *app) listWorkspaces() {
 var demoWorkspaces = []struct{ name, layout, sub string }{
 	{"默认工作区", "columns", ""},
 	{"下载", "dual", "Downloads"},
-	{"文档", "rows", "Documents"},
+	{"文稿", "rows", "Documents"},
 }
 
 // oldDemoNames are the demo workspaces' names of 0.18.4, and their new
 // ones.
-var oldDemoNames = []struct{ old, new string }{{"Home", "默认工作区"}, {"Download", "下载"}, {"Documents", "文档"}}
+var oldDemoNames = []struct{ old, new string }{{"Home", "默认工作区"}, {"Download", "下载"}, {"Documents", "文稿"}}
 
 // migrateDemoNames renames the demo workspaces of 0.18.4 in dir to their
 // Chinese names, where the new name is free, and returns old → new.
@@ -690,7 +690,7 @@ func (a *app) workspaceView(c *ui.Context) {
 					}
 				})
 			}
-			ui.Text(c, "把当前布局保存为工作区（按 1–9、[ ] 切换）：").FontSize(12)
+			ui.Text(c, "把当前布局保存为工作区（按 "+a.firstKey("ws.1")+"–"+a.firstKey("ws.9")+"、"+a.firstKey("ws.prev")+" "+a.firstKey("ws.next")+" 切换）：").FontSize(12)
 			ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
 				in := ui.TextInput(c.Key("wsname"), &a.dlgText).Label("名称").Placeholder("名称").AutoFocus().Grow(1)
 				if ui.Button(c.Key("wssave"), "保存").Clicked() || in.Submitted() {

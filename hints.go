@@ -12,11 +12,11 @@ import (
 
 // hintTitles are shorter titles for the status bar's hints.
 var hintTitles = map[string]string{
-	"filter": "过滤", "copy": "拷贝", "copypath": "拷贝路径", "cut": "剪切", "paste": "粘贴",
+	"filter": "过滤", "copy": "复制", "copypath": "复制路径", "cut": "剪切", "paste": "粘贴",
 	"rename": "重命名", "trash": "删除", "newfolder": "新文件夹", "newfile": "新文件",
-	"quicklook": "预览", "help": "帮助", "hidden": "隐藏文件", "sortmenu": "排序", "addr": "前往", "settings": "设置",
-	"agent": "智能体", "go.start": "回到起点", "open": "打开", "up": "返回", "terminal": "终端",
-	"pane.switch": "切换窗口", "editor": "编辑器", "workspace": "工作区", "shelf.add": "暂存", "fav.add": "收藏",
+	"quicklook": "快速查看", "help": "速查表", "hidden": "隐藏文件", "sortmenu": "排序", "addr": "前往", "settings": "设置",
+	"agent": "Agent", "go.start": "回到起点", "open": "打开", "up": "上级", "terminal": "终端",
+	"pane.switch": "切换窗格", "editor": "编辑器", "workspace": "工作区", "shelf.add": "暂存", "fav.add": "收藏",
 }
 
 // hintsMax is how many hints a held modifier shows before "… ? 全部".

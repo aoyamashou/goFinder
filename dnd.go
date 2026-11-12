@@ -166,7 +166,7 @@ func (a *app) dropFiles(srcs []string, dir string, offer transfer.Offer) {
 	if move && !slices.ContainsFunc(srcs, func(s string) bool { return filepath.Dir(s) != filepath.Clean(dir) }) {
 		return // already there
 	}
-	verb := "拷贝"
+	verb := "复制"
 	if move {
 		verb = "移动"
 	}

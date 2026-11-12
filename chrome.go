@@ -43,6 +43,24 @@ const noAgentHint = "没有启用的 Agent，去设置 › Agent 启用"
 var actionSymbols = map[string]string{"agent": "sparkles", "workspace": "square.on.square"}
 
 // tip is what hovering an action's button says: its name and first key.
+// firstKey is the first key of action id, as the hints show it; "" if
+// the user left it without one.
+func (a *app) firstKey(id string) string {
+	if keys := a.km.KeysFor(id); len(keys) > 0 {
+		return keys[0].String()
+	}
+	return ""
+}
+
+// keysText is every key of action id, joined by "、".
+func (a *app) keysText(id string) string {
+	var out []string
+	for _, k := range a.km.KeysFor(id) {
+		out = append(out, k.String())
+	}
+	return strings.Join(out, "、")
+}
+
 func (a *app) tip(id, title string) string {
 	if keys := a.km.KeysFor(id); len(keys) > 0 {
 		return title + "  " + keys[0].String()
@@ -53,7 +71,7 @@ func (a *app) tip(id, title string) string {
 // toolbarTips say what a title bar button does, in a sentence: the tip
 // is "name · this · first key". Buttons with none fall back to tip.
 var toolbarTips = map[string]string{
-	"agent": "在当前文件夹启动 Agent", "workspace": "把当前布局保存为工作区，或切换工作区（1–9、[ ]）",
+	"agent": "在这里打开默认 Agent", "workspace": "切换、保存、重命名、删除工作区",
 }
 
 // toolbarTip is the tip of a title bar button: "name · what it does · key".
@@ -374,7 +392,9 @@ func (a *app) openFolderWith(id, dir string) {
 	dir = vfs.RealDir(dir)
 	a.async(func() {
 		if err := a.sys.OpenWith(appName, dir); err != nil {
-			a.post(func() { a.status = fmt.Sprintf("无法用 %s 打开（⌘, 选择其他应用）", appName) })
+			a.post(func() {
+				a.status = fmt.Sprintf("无法用 %s 打开（%s 在设置里选择其他应用）", appName, a.firstKey("settings"))
+			})
 		}
 	})
 }

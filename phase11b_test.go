@@ -67,9 +67,9 @@ func TestStatusBarTwoRows(t *testing.T) {
 		if !ok1 {
 			t.Fatalf("no hint row: %q", tt.Texts())
 		}
-		a.status = "已拷贝 3 项"
+		a.status = "已复制 3 项"
 		tt.Frame()
-		msg, ok2 := tt.Find("已拷贝 3 项")
+		msg, ok2 := tt.Find("已复制 3 项")
 		if !ok2 || msg.Y >= top.Y {
 			t.Fatalf("rows: message %v, hints %v", msg, top)
 		}
@@ -101,9 +101,9 @@ func TestStatusDoneDot(t *testing.T) {
 	signal := token("signal", false)
 	// The status bar's top row, under the list, whose cursor row is the
 	// same cyan (the accent): only the row's own pixels count.
-	a.status = "已拷贝 3 项"
+	a.status = "已复制 3 项"
 	tt.Frame()
-	msg, _ := tt.Find("已拷贝 3 项")
+	msg, _ := tt.Find("已复制 3 项")
 	row := ui.Rect{X: 0, Y: msg.Y - 2, W: 400, H: msg.H + 4}
 	if n := colorPx(tt, row, signal); n < 8 {
 		t.Fatalf("no dot with a result: %d px", n)
@@ -216,7 +216,7 @@ func TestChromeShots(t *testing.T) {
 		a.dataDir = t.TempDir()
 		installed(a, "claude", "codex")
 		a.setDefaultAgent("codex")
-		a.status = "已拷贝 3 项"
+		a.status = "已复制 3 项"
 		a.showPreview = true
 		a.sh.show = true
 		a.shelve([]string{"/tmp/a.txt", "/tmp/b.txt"})

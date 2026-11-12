@@ -254,11 +254,11 @@ func TestDemoWorkspaces(t *testing.T) {
 	workspace.Write(a.wsPath("Aa"), workspace.State{Layout: "columns", Panes: []workspace.Pane{{Tabs: []workspace.Tab{{Dir: home}}}}})
 	a.listWorkspaces()
 	tt.Frame()
-	if !slices.Equal(a.wsList, []string{"默认工作区", "下载", "文档", "Aa"}) || !a.cfg.WorkspacesSeeded ||
+	if !slices.Equal(a.wsList, []string{"默认工作区", "下载", "文稿", "Aa"}) || !a.cfg.WorkspacesSeeded ||
 		!loadConfig(a.dataDir).WorkspacesSeeded || loadConfig(a.dataDir).DefaultWorkspace != "默认工作区" {
 		t.Fatalf("list %v seeded %v default %q", a.wsList, a.cfg.WorkspacesSeeded, a.cfg.DefaultWorkspace)
 	}
-	if err := tt.Click("文档"); err != nil {
+	if err := tt.Click("文稿"); err != nil {
 		t.Fatal(err)
 	}
 	tt.Frame()
@@ -271,7 +271,7 @@ func TestDemoWorkspaces(t *testing.T) {
 	tt.Key(0, ui.Key3)
 	tt.Frame()
 	doc := filepath.Join(home, "Documents")
-	if a.wsCur != "文档" || a.layout != layoutRows || a.panes[1].tab().t.Dir != doc {
+	if a.wsCur != "文稿" || a.layout != layoutRows || a.panes[1].tab().t.Dir != doc {
 		t.Fatalf("3: cur %q layout %d", a.wsCur, a.layout)
 	}
 	tt.Key(0, ui.Key1)
@@ -295,7 +295,7 @@ func TestWorkspaceRenameDelete(t *testing.T) {
 	a.sb.home, a.dataDir = home, t.TempDir()
 	a.listWorkspaces()
 	tt.Frame()
-	tt.Key(0, ui.Key3) // 文档
+	tt.Key(0, ui.Key3) // 文稿
 	tt.Frame()
 	// The dialog first (a click right after a drawn menu is the menu's):
 	// 删除 is off on the default, and moves the others to the Trash.
@@ -330,7 +330,7 @@ func TestWorkspaceRenameDelete(t *testing.T) {
 	tt.Frame()
 
 	// The menu of a button: 重命名… opens the rename dialog.
-	if err := tt.RightClick("文档"); err != nil {
+	if err := tt.RightClick("文稿"); err != nil {
 		t.Fatal(err)
 	}
 	if m := menuLabels(tt); !slices.Contains(m, "重命名…") || !slices.Contains(m, "删除") {
@@ -340,7 +340,7 @@ func TestWorkspaceRenameDelete(t *testing.T) {
 		t.Fatal(err)
 	}
 	tt.Frame()
-	if !a.dlgOpen || a.dlg != dlgWsRename || a.dlgText != "文档" {
+	if !a.dlgOpen || a.dlg != dlgWsRename || a.dlgText != "文稿" {
 		t.Fatalf("dialog %v %d %q", a.dlgOpen, a.dlg, a.dlgText)
 	}
 	a.dlgText = "我的文档"

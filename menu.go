@@ -41,7 +41,7 @@ var roles = map[string]struct {
 	"@undo":       {mygo.RoleUndo, "撤销", ""},
 	"@redo":       {mygo.RoleRedo, "重做", ""},
 	"@cut":        {mygo.RoleCut, "剪切", "cut"},
-	"@copy":       {mygo.RoleCopy, "拷贝", "copy"},
+	"@copy":       {mygo.RoleCopy, "复制", "copy"},
 	"@paste":      {mygo.RolePaste, "粘贴", "paste"},
 	"@selectAll":  {mygo.RoleSelectAll, "全选", "select.all"},
 	"@minimize":   {mygo.RoleMinimize, "最小化", ""},

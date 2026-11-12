@@ -128,7 +128,7 @@ func TestBlankMenu(t *testing.T) {
 	}
 	tt.RightClickAt(r.X+r.W/2, r.Y+r.H-8)
 	m := tt.Menu()
-	want := []string{"新建文件", "新建文件夹", "粘贴", "在终端中打开", "在这里打开 Claude", "在这里打开 Codex", "排序方式", "显示/隐藏隐藏文件", "刷新", "复制路径"}
+	want := []string{"新建文件", "新建文件夹", "粘贴", "在终端中打开", "在这里打开 Claude", "在这里打开 Codex", "排序方式", "显示隐藏文件", "刷新", "复制路径"}
 	var got []string
 	for _, s := range m {
 		if s != "" && s != "-" {

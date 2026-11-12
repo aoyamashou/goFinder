@@ -97,7 +97,7 @@ func zipInfo(e vfs.Entry) finfo.Info {
 
 // gitWords say a git mark.
 var gitWords = map[string]string{
-	"M": "已修改", "A": "已添加", "D": "已删除", "R": "已重命名", "C": "已拷贝", "U": "有冲突", "??": "未跟踪", "•": "含改动",
+	"M": "已修改", "A": "已添加", "D": "已删除", "R": "已重命名", "C": "已复制", "U": "有冲突", "??": "未跟踪", "•": "含改动",
 }
 
 // inspectorView is the inspector of the active pane's cursor, or of its

@@ -64,7 +64,7 @@ func TestZipBrowse(t *testing.T) {
 	// Read-only: no new file, no trash.
 	tt.Key(ui.Cmd, ui.KeyN)
 	tt.Frame()
-	if a.dlgOpen || !tt.HasText("压缩包内只读：可以拷贝（⌘C）后到别处粘贴来解压") {
+	if a.dlgOpen || !tt.HasText("压缩包内只读：可以复制（c）后到别处粘贴来解压") {
 		t.Fatalf("newfile in zip: open %v status %q", a.dlgOpen, a.status)
 	}
 

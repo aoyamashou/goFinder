@@ -74,7 +74,7 @@ func TestKeymapConflictsShown(t *testing.T) {
 	if err := tt.RightClick("notes.md"); err != nil {
 		t.Fatal(err)
 	}
-	if m := tt.Menu(); !slices.Contains(m, "拷贝") || slices.ContainsFunc(m, func(s string) bool { return strings.Contains(s, "nope") }) {
+	if m := tt.Menu(); !slices.Contains(m, "复制") || slices.ContainsFunc(m, func(s string) bool { return strings.Contains(s, "nope") }) {
 		t.Fatalf("menu %q", m)
 	}
 	tt.CloseMenu()

@@ -340,7 +340,7 @@ func (a *app) saveConfig() {
 // readOnly refuses a change inside an archive, saying so.
 func (a *app) readOnly(ts *tabState) bool {
 	if vfs.InZip(ts.t.Dir) {
-		a.status = "压缩包内只读：可以拷贝（⌘C）后到别处粘贴来解压"
+		a.status = "压缩包内只读：可以复制（" + a.firstKey("copy") + "）后到别处粘贴来解压"
 		return true
 	}
 	return false
@@ -528,11 +528,11 @@ func (a *app) reloadVisible() {
 // paste pastes into dst, ts's folder or one a side column shows.
 func (a *app) paste(ts *tabState, dst string) {
 	if len(a.clip) == 0 {
-		a.status = "没有拷贝或剪切的项目"
+		a.status = "没有复制或剪切的项目"
 		return
 	}
 	srcs, cut := a.clip, a.clipCut
-	verb := "拷贝"
+	verb := "复制"
 	if cut {
 		verb = "移动"
 	}
@@ -949,8 +949,8 @@ func (a *app) run(id string) {
 		}
 		a.clip = paths(ts.chosen())
 		a.clipCut = id == "cut"
-		verb := map[bool]string{false: "已拷贝", true: "已剪切"}[a.clipCut]
-		a.status = fmt.Sprintf("%s %d 项，到目标文件夹按 ⌘V", verb, len(a.clip))
+		verb := map[bool]string{false: "已复制", true: "已剪切"}[a.clipCut]
+		a.status = fmt.Sprintf("%s %d 项，到目标文件夹按 %s 粘贴", verb, len(a.clip), a.firstKey("paste"))
 	case "paste":
 		if !a.readOnly(ts) {
 			a.paste(ts, ts.t.Dir)

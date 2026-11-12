@@ -209,7 +209,7 @@ func TestDebugShots(t *testing.T) {
 	a.dataDir = t.TempDir()
 	a.debugOn, a.showPreview, a.sh.show = true, true, true
 	a.shelve([]string{"/tmp/a.txt", "/tmp/b.txt"})
-	a.status = "已拷贝 3 项"
+	a.status = "已复制 3 项"
 	save := func(n string) {
 		tt.Frame()
 		tt.Frame()

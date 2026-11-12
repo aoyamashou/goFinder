@@ -20,7 +20,7 @@ func (a *app) startHereItem(m *ui.Menu, pi int, e vfs.Entry) {
 	}
 	on := *a.startDirOf(pi) == e.Path
 	m.Separator()
-	if m.Item("启动时从这里开始").Checked(on).Chosen() {
+	if m.Item("设为起点").Checked(on).Chosen() {
 		a.setStartDir(pi, e.Path, !on)
 	}
 }
@@ -39,10 +39,10 @@ func (a *app) startDirOf(pi int) *string {
 func (a *app) setStartDir(pi int, dir string, on bool) {
 	if on {
 		*a.startDirOf(pi) = dir
-		a.status = "启动时将打开 " + filepath.Base(dir)
+		a.status = "已把 " + filepath.Base(dir) + " 设为起点"
 	} else {
 		*a.startDirOf(pi) = ""
-		a.status = "已取消启动文件夹"
+		a.status = "已取消起点"
 	}
 	a.saveConfig()
 }

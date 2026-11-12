@@ -45,9 +45,9 @@ func TestQuickLook(t *testing.T) {
 	}
 }
 
-// The status bar says 预览 for Space.
+// The status bar says 快速查看 for Space.
 func TestQuickLookHint(t *testing.T) {
-	if hintTitles["quicklook"] != "预览" {
+	if hintTitles["quicklook"] != "快速查看" {
 		t.Fatal("hint title")
 	}
 }

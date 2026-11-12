@@ -184,7 +184,7 @@ func TestHelpSheet(t *testing.T) {
 	a, tt, _, _ := setup(t)
 	tt.Key(ui.Shift, ui.KeySlash)
 	tt.Frame()
-	if !a.helpOpen || !tt.HasText("快捷键（Esc 关闭）") || !tt.HasText("移到废纸篓") {
+	if !a.helpOpen || !tt.HasText("速查表（Esc 关闭）") || !tt.HasText("移到废纸篓") {
 		t.Fatalf("help not shown: open=%v %q", a.helpOpen, tt.Texts())
 	}
 	tt.Type("废纸")

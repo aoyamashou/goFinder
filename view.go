@@ -358,7 +358,7 @@ func (a *app) addressBar(c *ui.Context, pi int, p *paneState, ts *tabState) {
 			return
 		}
 		capsule := ui.Row(c.Key("capsule")).Grow(1).Shrink(1).Height(capsuleH).Gap(0).Padding(0, px("space-2")).AlignItems(ui.Center).
-			Background(tok(c, "surface-100")).Radius(px("radius-pill")).Font(a.listFont()).FontSize(float32(a.listSize())).Tooltip("点击空白处输入路径 ⌘L")
+			Background(tok(c, "surface-100")).Radius(px("radius-pill")).Font(a.listFont()).FontSize(float32(a.listSize())).Tooltip("点击空白处或按 " + a.firstKey("addr") + " 输入路径")
 		if capsule.Clicked() {
 			a.active = pi
 			a.run("addr")
@@ -486,7 +486,7 @@ func (a *app) helpSheet(c *ui.Context, t *ui.Theme) {
 		hs := ui.Column(c).Width(helpSheetW).Gap(px("space-2"))
 		defer func() { a.dbg(c, hs, "dlg.help") }()
 		hs.Children(func() {
-			ui.Text(c, "快捷键（Esc 关闭）").FontSize(fontTitle).FontWeight(weightTitle)
+			ui.Text(c, "速查表（Esc 关闭）").FontSize(fontTitle).FontWeight(weightTitle)
 			for _, w := range a.warns {
 				uiCaption(c, "⚠ "+w, "danger")
 			}
@@ -735,7 +735,7 @@ func (a *app) settingsPage(c *ui.Context) {
 			ui.Select(c.Key("set"+f.label), f.v, commonApps(a.setApps, f.common, *f.v)).Label(f.label).Grow(1)
 		})
 	}
-	ui.Checkbox(c.Key("set.confirmTrash"), &a.setConfirm, "移到废纸篓前确认（d、⌘⌫）")
+	ui.Checkbox(c.Key("set.confirmTrash"), &a.setConfirm, "移到废纸篓前确认（"+a.keysText("trash")+"）")
 	a.appearanceSettings(c)
 	uiCaption(c, "保存到数据目录的 config.json", "muted")
 	ui.Divider(c)

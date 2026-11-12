@@ -99,7 +99,7 @@ func TestShelfButtonsWithinPanel(t *testing.T) {
 	}
 	_ = panel
 	var rects []ui.Rect
-	for _, s := range []string{"拷贝到此", "移动到此", "清空"} {
+	for _, s := range []string{"复制到此", "移动到此", "清空"} {
 		r, ok := tt.Find(s)
 		if !ok {
 			t.Fatalf("no %s", s)

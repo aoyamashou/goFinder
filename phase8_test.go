@@ -174,9 +174,9 @@ func TestConfirmTrashDefault(t *testing.T) {
 // lower row has the hints, ↩ 重命名 among them.
 func TestTwoRowStatusBar(t *testing.T) {
 	a, tt, _, _ := setup(t)
-	a.status = "已拷贝 3 项"
+	a.status = "已复制 3 项"
 	tt.Frame()
-	top, ok1 := tt.Find("已拷贝 3 项")
+	top, ok1 := tt.Find("已复制 3 项")
 	view, ok2 := tt.Find("左右")
 	hint, ok3 := tt.Find("重命名")
 	if !ok1 || !ok2 || !ok3 {
@@ -227,11 +227,11 @@ func TestDrawnMenus(t *testing.T) {
 	}
 	tt.Frame()
 	menu := tt.Menu()
-	if !slices.Contains(menu, "拷贝") || !slices.Contains(menu, "移到废纸篓") {
+	if !slices.Contains(menu, "复制") || !slices.Contains(menu, "移到废纸篓") {
 		t.Fatalf("menu %q", menu)
 	}
 	// Drawn: its items are elements of the window, keys beside them.
-	for _, k := range []string{"拷贝", "c", "x", "v", "d", "↩", "移到废纸篓"} {
+	for _, k := range []string{"复制", "c", "x", "v", "d", "↩", "移到废纸篓"} {
 		if !tt.HasText(k) {
 			t.Fatalf("drawn menu lacks %q: %q", k, tt.Texts())
 		}
@@ -254,8 +254,8 @@ func TestDrawnMenus(t *testing.T) {
 		}
 		return n
 	}
-	if red("移到废纸篓") == 0 || red("拷贝") != 0 {
-		t.Fatalf("red pixels: trash %d copy %d", red("移到废纸篓"), red("拷贝"))
+	if red("移到废纸篓") == 0 || red("复制") != 0 {
+		t.Fatalf("red pixels: trash %d copy %d", red("移到废纸篓"), red("复制"))
 	}
 	if err := tt.Click("移到废纸篓"); err != nil {
 		t.Fatal(err)

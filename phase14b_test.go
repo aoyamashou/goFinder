@@ -154,10 +154,10 @@ func TestThirdColumnRightClick(t *testing.T) {
 	}
 	tt.Frame()
 	m := tt.Menu()
-	if !slicesHas(m, "拷贝") || !slicesHas(m, "移到废纸篓") && !slicesHas(m, "删除") {
+	if !slicesHas(m, "复制") || !slicesHas(m, "移到废纸篓") && !slicesHas(m, "删除") {
 		t.Fatalf("menu %q", m)
 	}
-	if err := tt.ChooseMenuItem("拷贝"); err != nil {
+	if err := tt.ChooseMenuItem("复制"); err != nil {
 		t.Fatal(err)
 	}
 	tt.Frame()

@@ -26,7 +26,7 @@ func TestFilterPinyin(t *testing.T) {
 	}
 }
 
-// TestGoStart: ` goes to the folder 启动时从这里开始 chose, else to ~, and to
+// TestGoStart: ` goes to the folder 设为起点 chose, else to ~, and to
 // ~ when the folder is gone.
 func TestGoStart(t *testing.T) {
 	home := t.TempDir()

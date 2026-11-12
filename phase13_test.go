@@ -89,7 +89,7 @@ func TestHelpSheetKeyGroups(t *testing.T) {
 	a.run("help")
 	tt.Frame()
 	tt.Frame()
-	q, ok1 := tt.Find("快捷键（Esc 关闭）")
+	q, ok1 := tt.Find("速查表（Esc 关闭）")
 	b, ok2 := tt.Access("在设置中修改")
 	if !ok1 || !ok2 {
 		t.Fatalf("sheet missing: %q", tt.Texts())
@@ -167,7 +167,7 @@ func TestTitleBarTips(t *testing.T) {
 	tt.Frame()
 	tt.Advance(20 * time.Millisecond)
 	tt.Frame()
-	if !hasPart(tt, "把当前布局保存为工作区") {
+	if !hasPart(tt, "切换、保存、重命名、删除工作区") {
 		t.Fatalf("no tip at once: %q", tt.Texts())
 	}
 	// Elsewhere (the path capsule's blank end) the default delay holds.
@@ -182,12 +182,12 @@ func TestTitleBarTips(t *testing.T) {
 	tt.Frame()
 	tt.Advance(100 * time.Millisecond)
 	tt.Frame()
-	if tt.HasText("点击空白处输入路径") {
+	if tt.HasText("点击空白处或按 g 输入路径") {
 		t.Fatal("the window's tip shows at once")
 	}
 	tt.Advance(time.Second)
 	tt.Frame()
-	if !tt.HasText("点击空白处输入路径") {
+	if !tt.HasText("点击空白处或按 g 输入路径") {
 		t.Fatalf("the window's tip never shows: %q", tt.Texts())
 	}
 }
