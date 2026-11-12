@@ -331,33 +331,6 @@ footer{margin-top:72px;padding-bottom:12px}
       </div>
     </div>
 
-    <div class="tile demo shutter" id="demo" tabindex="0" role="application" aria-label="goFinder 界面演示：点击后可用方向键和 f 键操作" data-ui>
-      <div class="win">
-        <div class="tb"><div class="dots"><b></b><b></b><b></b></div><div class="path" id="pth"><b>~</b></div><div class="ttl" id="ttl">Documents</div></div>
-        <div class="fbox" id="fbox"><span>过滤</span><input id="finp" aria-label="过滤" autocomplete="off" spellcheck="false"></div>
-        <div class="cols" id="cols">
-          <div class="col"><div class="row dim"><i class="g dir"></i><span class="n">Documents</span></div><div class="row"><i class="g dir"></i><span class="n">dev</span></div><div class="row"><i class="g dir"></i><span class="n">Downloads</span></div></div>
-          <div class="col focus"><div class="row cur"><i class="g f doc"></i><span class="n">模型查询.txt</span></div><div class="row"><i class="g f doc"></i><span class="n">季度报告.pdf</span></div><div class="row"><i class="g f doc"></i><span class="n">会议纪要.md</span></div></div>
-          <div class="col"><div class="pv">示例文本文件</div></div>
-        </div>
-        <div class="sb"><div class="l1"><span class="dot"></span><span id="msg">试试 ↑ ↓ → ← ，按 f 过滤，输入 mxcx</span></div>
-          <div class="l2"><span><kbd class="kc">↑↓</kbd>移动</span><span><kbd class="kc">→</kbd>打开</span><span><kbd class="kc">←</kbd>上级</span><span><kbd class="kc">f</kbd>过滤</span><span><kbd class="kc">Esc</kbd>清除</span></div></div>
-      </div>
-      <div class="hint">点这里，再按方向键</div>
-    </div>
-
-    <div class="side">
-      <div class="tile alt icon-tile heroin" style="--i:3"><img src="assets/icon.png" width="112" height="112" alt="goFinder 应用图标：四宫格简笔画"><p>目前只有 Apple Silicon 版本。启动时自动检查更新。</p></div>
-      <div class="tile keys-tile heroin" style="--i:4">
-        <h3>常用操作只要一个键</h3>
-        <div class="keys-grid">
-          <div class="kc-row"><kbd class="kc">c</kbd></div><span>复制</span>
-          <div class="kc-row"><kbd class="kc">v</kbd></div><span>粘贴</span>
-          <div class="kc-row"><kbd class="kc">d</kbd></div><span>移到废纸篓</span>
-          <div class="kc-row"><kbd class="kc">f</kbd></div><span>过滤</span>
-        </div>
-      </div>
-    </div>
   </section>
 
   <!-- 特点 -->
@@ -510,74 +483,6 @@ footer{margin-top:72px;padding-bottom:12px}
   var els=[].slice.call(document.querySelectorAll('.rv'));
   if(!('IntersectionObserver' in window)){els.forEach(function(e){e.classList.add('in')});}
   else{var io=new IntersectionObserver(function(es){es.forEach(function(x){if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target)}})},{rootMargin:'0px 0px -8% 0px'});els.forEach(function(e){io.observe(e)});}
-
-  /* 可操作的演示 */
-  var T={n:'~',k:'dir',kids:[
-    {n:'Documents',k:'dir',kids:[
-      {n:'模型查询.txt',k:'doc',py:'mxcx',pv:'<b>模型查询</b>\n\n- 价格表\n- 上下文长度\n- 速率限制'},
-      {n:'季度报告.pdf',k:'doc',py:'jdbg',pv:'PDF 文稿\n按空格，用 Quick Look 查看'},
-      {n:'会议纪要.md',k:'doc',py:'hyjy',pv:'# 会议纪要\n\n- 确认发版时间\n- 整理暂存架'},
-      {n:'合同草稿.docx',k:'doc',py:'htcg',pv:'Word 文稿\n按空格，用 Quick Look 查看'}]},
-    {n:'dev',k:'dir',kids:[
-      {n:'goFinder',k:'dir',git:'M',kids:[
-        {n:'actions.go',k:'code',git:'M',pv:'<span class="k">func</span> actions() []Action {\n  <span class="k">return</span> []Action{\n    {ID: <span class="s">"copy"</span>, Keys: <span class="s">"c"</span>},\n    {ID: <span class="s">"filter"</span>, Keys: <span class="s">"f"</span>},\n  }\n}'},
-        {n:'main.go',k:'code',pv:'<span class="k">package</span> main\n\n<span class="k">func</span> main() {\n  run()\n}'},
-        {n:'columns.go',k:'code',pv:'<span class="k">package</span> main\n\n// 三列：上级｜当前｜预览'},
-        {n:'README.md',k:'doc',git:'M',pv:'# goFinder\n\n键盘优先的文件管理器'},
-        {n:'CHANGELOG.md',k:'doc',pv:'# 更新记录\n\n## 0.18.7'},
-        {n:'go.mod',k:'cfg',pv:'module goFinder\n\ngo 1.24'}]},
-      {n:'site',k:'dir',kids:[{n:'index.html',k:'code',pv:'<span class="k">&lt;!doctype html&gt;</span>'}]}]},
-    {n:'Downloads',k:'dir',kids:[
-      {n:'goFinder.dmg',k:'arc',pv:'磁盘映像'},
-      {n:'素材.zip',k:'dir',py:'sc',zip:1,kids:[{n:'封面.png',k:'img',py:'fm',pv:'PNG 图片'},{n:'图标.svg',k:'img',py:'tb',pv:'SVG 图片'}]},
-      {n:'screenshot.png',k:'img',pv:'PNG 图片'}]},
-    {n:'Pictures',k:'dir',kids:[{n:'IMG_0001.jpg',k:'img',pv:'JPEG 图片'},{n:'IMG_0002.jpg',k:'img',pv:'JPEG 图片'}]},
-    {n:'.zshrc',k:'cfg',hid:1,pv:'export EDITOR=vim'}
-  ]};
-  var demo=document.getElementById('demo'); if(!demo)return;
-  var cols=document.getElementById('cols'),pth=document.getElementById('pth'),ttl=document.getElementById('ttl'),msg=document.getElementById('msg'),fbox=document.getElementById('fbox'),finp=document.getElementById('finp');
-  var stack=[T.kids[0]], idx=[0], filt='', fon=false; /* stack: 当前所在目录链（不含根） */
-  function cur(){return stack.length?stack[stack.length-1]:T}
-  function chain(){return [T].concat(stack)}
-  function list(dir,f){var a=dir.kids||[];if(!f)return a;var q=f.toLowerCase();return a.filter(function(x){return x.n.toLowerCase().indexOf(q)>-1||(x.py&&x.py.indexOf(q)===0)||(x.py&&x.py.indexOf(q)>-1)})}
-  function esc(s){return s.replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
-  function row(x,cls,i){var g=x.k==='dir'?'dir':'f '+x.k;var gt=x.git?'<span class="git '+x.git+'">'+x.git+'</span>':'';return '<div class="row '+(cls||'')+(x.hid?' hid':'')+'" data-i="'+i+'"><i class="g '+g+'"></i><span class="n">'+esc(x.n)+'</span>'+gt+'</div>'}
-  function render(){
-    var d=cur(), items=list(d,filt), i=Math.min(idx[stack.length-1]||0,Math.max(items.length-1,0)); idx[stack.length-1]=i;
-    var ch=chain(), parent=ch.length>1?ch[ch.length-2]:null, left='';
-    if(parent){parent.kids.forEach(function(x,j){left+=row(x,x===d?'dim':'',-1)})}
-    else{left='<div class="empty">~</div>'}
-    var mid=items.length?items.map(function(x,j){return row(x,j===i?'cur':'',j)}).join(''):'<div class="empty">没有匹配项</div>';
-    var sel=items[i], right='';
-    if(sel){ if(sel.k==='dir'){right=(sel.kids||[]).map(function(x){return row(x,'',-1)}).join('')||'<div class="empty">空文件夹</div>'} else {right='<div class="pv">'+(sel.pv||esc(sel.n))+'</div>'} }
-    cols.innerHTML='<div class="col">'+left+'</div><div class="col focus">'+mid+'</div><div class="col">'+right+'</div>';
-    var p=ch.map(function(x){return esc(x.n)+(x.zip?'!':'')}).join('/').replace('~/','~/');
-    pth.innerHTML='<b>'+p+'</b>'; ttl.textContent=d.n;
-    var m='';
-    if(filt){m='<span class="flt">过滤：'+esc(filt)+'</span> · '+items.length+' 项'}
-    else if(sel){m=esc(sel.n)+(sel.k==='dir'?' · '+((sel.kids||[]).length)+' 项':'')}
-    msg.innerHTML=m;
-  }
-  function move(n){var items=list(cur(),filt);if(!items.length)return;var i=(idx[stack.length-1]||0)+n;idx[stack.length-1]=Math.max(0,Math.min(items.length-1,i));render()}
-  function enter(){var items=list(cur(),filt),sel=items[idx[stack.length-1]||0];if(sel&&sel.k==='dir'){stack.push(sel);idx[stack.length-1]=0;filt='';finp.value='';render()}}
-  function up(){if(stack.length>1){var from=stack.pop();var p=cur();idx[stack.length-1]=Math.max(0,(p.kids||[]).indexOf(from));filt='';finp.value='';render()}}
-  function openF(){fon=true;fbox.classList.add('on');finp.focus()}
-  function closeF(clear){fon=false;fbox.classList.remove('on');if(clear){filt='';finp.value=''}render();demo.focus()}
-  demo.addEventListener('focus',function(){demo.classList.add('live')});
-  demo.addEventListener('click',function(e){var r=e.target.closest&&e.target.closest('.row');if(r&&r.dataset.i>-1&&r.parentNode===cols.children[1]){idx[stack.length-1]=+r.dataset.i;render()}if(!fon)demo.focus()});
-  demo.addEventListener('dblclick',function(e){if(e.target.closest&&e.target.closest('.row'))enter()});
-  demo.addEventListener('keydown',function(e){
-    if(fon)return;
-    var k=e.key, used=true;
-    if(k==='ArrowDown')move(1);else if(k==='ArrowUp')move(-1);else if(k==='ArrowRight'||k==='Enter')enter();else if(k==='ArrowLeft')up();
-    else if(k==='f'&&!e.metaKey&&!e.ctrlKey)openF();
-    else if(k==='Escape'&&filt){filt='';finp.value='';render()}
-    else used=false;
-    if(used)e.preventDefault();
-  });
-  finp.addEventListener('input',function(){filt=finp.value;idx[stack.length-1]=0;render()});
-  finp.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();closeF(false)}else if(e.key==='Escape'){e.preventDefault();closeF(true)}e.stopPropagation()});
-  render();
 })();
 </script>
 </body>
