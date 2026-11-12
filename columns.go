@@ -559,7 +559,9 @@ func (a *app) updateFocusZone(c *ui.Context) {
 	switch {
 	case a.wantSidebar:
 		a.focusZone = "sidebar"
-	case !a.wantFocus && a.sb.show && a.sb.h.FocusWithin(c):
+	case !a.wantFocus && a.focusZone == "sidebar" && a.sb.show && a.sb.h.FocusWithin(c):
+		// Only Tab enters the sidebar; a click leaves the outline on the
+		// files (user, 2026-11-12).
 		a.focusZone = "sidebar"
 	default:
 		a.focusZone = fmt.Sprintf("pane%d", a.active)

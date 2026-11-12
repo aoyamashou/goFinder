@@ -7,7 +7,7 @@ goFinder：轻量、键盘优先的 macOS 文件管理器。用 [MyGo](https://m
 ## 总规则
 
 - **资源优先**：低内存、低 CPU、响应快，界面朴素即可。不引入第三方库或动画，MyGo 插件只允许 SF Symbols（侧边栏图标）和 updater（`native.Plugin`，自动更新）；图标和列表用本机已装的 `JetBrainsMono Nerd Font Mono`（`internal/icons`，不打包字体，缺字体时只在用户点击后下载两个 ttf，没装时回退为文字符号），预览按需加载。
-- **键位是 Yazi 单键风格**：不含 hjkl，也没有多键序列，只有 `c c`、`n n` 两个同键双击；方向键移动；⌘ 组合键作为第二键位，供菜单使用。
+- **键位是 Yazi 单键风格**：不含 hjkl，也没有多键序列，只有 `c c`、`n n`、`s s` 三个同键双击；方向键移动；⌘ 组合键作为第二键位，供菜单使用。
 - 新增或修改快捷键只改 `actions.go`（`actions()` 和 `defaultKeys()`）。状态栏键帽提示（`hints.go`）、`?` 速查表、设置的快捷键页、右键菜单、标题栏按钮提示里的快捷键都从这里读取；每个动作的第一个键就是提示里显示的那个。用户的 `config.json` 自定义命令和 `keymap.json` 由 `buildKeymap` 叠加上去。新动作还要放进 `menu.go` 的 `menuBar`（`TestMenuCoversActions` 会检查），菜单项的快捷键也从键位表生成。
 - 改 MyGo UI 代码前，先看 `.agents/skills/mygo-maintenance/SKILL.md`。API 以锁定版本的本地源码为准：`go list -m -f '{{.Dir}}' github.com/egoist/mygo`，其中 `docs/`、`ui/doc.go`、`ui/api_gen.go` 是本地文档和接口定义。
 

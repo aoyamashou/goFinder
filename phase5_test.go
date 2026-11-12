@@ -119,13 +119,14 @@ func TestFocusBorderFollows(t *testing.T) {
 	if a.focusZone != "pane1" {
 		t.Fatalf("dual: focus %q", a.focusZone)
 	}
-	// A click in the sidebar takes the keyboard there.
+	// A click in the sidebar leaves the outline on the pane it came from
+	// (user, 2026-11-12).
 	if err := tt.Click("桌面"); err != nil {
 		t.Fatal(err)
 	}
 	tt.Frame()
 	tt.Frame()
-	if a.focusZone != "sidebar" {
+	if a.focusZone != "pane1" {
 		t.Fatalf("sidebar click: focus %q", a.focusZone)
 	}
 }

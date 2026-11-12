@@ -98,7 +98,7 @@ func defaultKeys() map[string][]string {
 		"go.downloads": {"Cmd+Alt+L"},
 		"go.documents": {"Cmd+Shift+O"},
 		"go.apps":      {"Cmd+Shift+A"},
-		"fav.add":      {"s"},
+		"fav.add":      {"s s"},
 		"fav.remove":   {"Cmd+Ctrl+Backspace"},
 
 		"filter":      {"f"},
@@ -115,7 +115,7 @@ func defaultKeys() map[string][]string {
 		"newfolder": {"n", "Cmd+Shift+N"},
 		"copypath":  {"c c", "Cmd+Alt+C"},
 		"reveal":    {"Cmd+Alt+R"},
-		"terminal":  {";", "Cmd+Alt+T"},
+		"terminal":  {"t", "Cmd+Alt+T"},
 		"editor":    {"e"},
 		"agent":     {"a", "Cmd+Alt+A"},
 		"settings":  {"Cmd+,"},
@@ -131,7 +131,7 @@ func defaultKeys() map[string][]string {
 		"sidebar":        {"Cmd+Ctrl+S"},
 		"workspace":      {"w"},
 
-		"shelf.add":   {"Cmd+Alt+S"},
+		"shelf.add":   {"s", "Cmd+Alt+S"},
 		"shelf":       {"Cmd+Alt+B"},
 		"shelf.copy":  {"Cmd+Ctrl+V"},
 		"shelf.move":  {"Cmd+Ctrl+M"},

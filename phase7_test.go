@@ -54,9 +54,9 @@ func TestYaziKeys(t *testing.T) {
 	tt.Frame()
 	a.popOpen = false
 	tt.Frame()
-	press(0, ui.KeySemicolon)
+	press(0, ui.KeyT)
 	if len(fs.openedWith) != 1 || fs.openedWith[0][0] != "Terminal" {
-		t.Fatalf("; : %v", fs.openedWith)
+		t.Fatalf("t: %v", fs.openedWith)
 	}
 	press(ui.Cmd, ui.KeyA)
 	if a.tab().sel.Len() != len(a.tab().t.Entries()) {

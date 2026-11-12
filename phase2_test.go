@@ -176,9 +176,10 @@ func TestSidebarNavigation(t *testing.T) {
 		t.Fatalf("config not saved: %s %v", b, err)
 	}
 
-	// s adds the current folder; it saves and shows.
+	// s s adds the current folder; it saves and shows.
 	a.navigate(a.tab(), filepath.Join(root, "alpha"))
 	tt.Frame()
+	tt.Key(0, ui.KeyS)
 	tt.Key(0, ui.KeyS)
 	tt.Frame()
 	if got, _ := store.Load(); !slices.Equal(got, []string{filepath.Join(root, "alpha")}) {
@@ -193,6 +194,11 @@ func TestSidebarNavigation(t *testing.T) {
 	tt.Frame()
 	if a.tab().t.Dir != filepath.Join(root, "alpha") {
 		t.Fatalf("click favorite went to %s", a.tab().t.Dir)
+	}
+	// The outline stays on the files the click came from.
+	tt.Frame()
+	if a.focusZone != "pane0" || a.sb.h.FocusWithin(nil) {
+		t.Fatalf("focus after a sidebar click: %q", a.focusZone)
 	}
 	if err := tt.Click("USBDISK"); err != nil {
 		t.Fatal(err)

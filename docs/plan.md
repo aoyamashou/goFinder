@@ -1393,6 +1393,27 @@ UX：
 **验证**
 - `TestWorkspaceRenameDelete`、`TestDemoNamesMigrate`、`TestDemoWorkspaces`；`go test ./...`、`go vet ./...`、`go tool mygo vet .` 通过。
 
+### 阶段 18 后修订十一：s / s s / t 键位、点侧边栏不移焦点框、状态栏两行重排
+> 来源：本开发会话（2026-11-12），用户提出。
+
+**要改什么**
+1. 加入暂存架 `s`（保留 ⌥⌘S），收藏当前文件夹 `s s`，在终端打开 `t`（替代 `;`，保留 ⌥⌘T）；右键菜单和设置的快捷键页随键位表更新。
+2. 点侧边栏时，青色焦点框留在用户离开的窗格，不移到侧边栏。
+3. 状态栏两行改为：
+   - 导航时：↑↓ 移动、→ 打开、← 返回、tab 切换窗口、` 回到起点、, 排序、. 隐藏文件、Space 预览、f 过滤、t 终端、a 智能体、e 编辑器、w 工作区、? 帮助；
+   - 选中后：c c 拷贝路径、c 拷贝、x 剪切、v 粘贴、s 暂存、n 新文件夹、n n 新文件、↩ 重命名、d 删除、s s 收藏。
+
+**实现**
+- `actions.go` 的 `defaultKeys`；`hints.go` 的 `hintLines` 与短标题 `hintTitles`，`Tab` 在提示里写作 `tab`。
+- 焦点：`updateFocusZone` 只在焦点区原本就是侧边栏（由 `Tab` 进入）时才继续算侧边栏；`sidebar()` 发现侧边栏因点击拿到焦点时置 `wantFocus`，把键盘焦点还给窗格。
+- `CLAUDE.md` 总规则的同键双击加上 `s s`。
+
+**边界**
+- 不改 `Tab` 进入侧边栏后的键盘导航；其他键位不变。
+
+**验证**
+- `TestSidebarNavigation`（点收藏后焦点仍在 pane0）、`TestFocusBorderFollows`（双栏点侧边栏后仍在 pane1）、`TestDefaultHintsOrder`、`TestYaziKeys`；`go test ./...`、`go vet ./...`、`go tool mygo vet .` 通过。
+
 ## 测试和验证
 - **纯逻辑包写单元测试，用 `go test ./...` 运行**：
   - `keymap`：按键解析、上下文过滤、用户覆盖、冲突检测；

@@ -353,9 +353,14 @@ func (a *app) sidebar(c *ui.Context) {
 		// An item was chosen since the last pass: go there.
 		want = a.sb.sel
 		a.navigate(ts, sidebarDir(a.sb.sel))
-		if a.sb.h.FocusWithin(c) {
-			a.wantFocus = false // the keyboard stays in the sidebar
+		if a.focusZone == "sidebar" && a.sb.h.FocusWithin(c) {
+			a.wantFocus = false // reached by Tab: the keyboard stays in the sidebar
 		}
+	}
+	// A click puts the keyboard in the sidebar; it, and the outline, go
+	// back to the files the user left (user, 2026-11-12).
+	if !a.wantSidebar && a.focusZone != "sidebar" && a.sb.h.FocusWithin(c) {
+		a.wantFocus = true
 	}
 	if a.wantSidebar {
 		a.sb.h.Focus(c)

@@ -16,6 +16,7 @@ var hintTitles = map[string]string{
 	"rename": "重命名", "trash": "删除", "newfolder": "新文件夹", "newfile": "新文件",
 	"quicklook": "预览", "help": "帮助", "hidden": "隐藏文件", "sortmenu": "排序", "addr": "前往", "settings": "设置",
 	"agent": "智能体", "go.start": "回到起点", "open": "打开", "up": "返回", "terminal": "终端",
+	"pane.switch": "切换窗口", "editor": "编辑器", "workspace": "工作区", "shelf.add": "暂存", "fav.add": "收藏",
 }
 
 // hintsMax is how many hints a held modifier shows before "… ? 全部".
@@ -68,8 +69,8 @@ func hintItem(c *ui.Context, keys, title string) {
 // set them (2026-11-12): going about, then acting on the items chosen.
 // "@move" is the arrows' ↑↓, which the list itself handles.
 var hintLines = [2][]string{
-	{"@move", "open", "up", "go.start", "sortmenu", "hidden", "quicklook", "filter", "terminal", "agent", "editor", "fav.add", "workspace", "help"},
-	{"copy", "copypath", "cut", "paste", "newfolder", "newfile", "rename", "trash"},
+	{"@move", "open", "up", "pane.switch", "go.start", "sortmenu", "hidden", "quicklook", "filter", "terminal", "agent", "editor", "workspace", "help"},
+	{"copypath", "copy", "cut", "paste", "shelf.add", "newfolder", "newfile", "rename", "trash", "fav.add"},
 }
 
 // statusHints is line (0 or 1) of the status bar's hints: the common keys
@@ -136,6 +137,10 @@ func (a *app) hintLine(c *ui.Context, ids []string) {
 		if title == "" {
 			title = a.actionTitle(id)
 		}
-		hintItem(c, keys[0].String(), title)
+		k := keys[0].String()
+		if keys[0].Key == "Tab" && keys[0].Mods == 0 {
+			k = "tab" // as the user wrote it (2026-11-12), not ⇥
+		}
+		hintItem(c, k, title)
 	}
 }
