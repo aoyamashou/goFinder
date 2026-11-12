@@ -1415,7 +1415,7 @@ UX：
 - `TestSidebarNavigation`（点收藏后焦点仍在 pane0）、`TestFocusBorderFollows`（双栏点侧边栏后仍在 pane1）、`TestDefaultHintsOrder`、`TestYaziKeys`；`go test ./...`、`go vet ./...`、`go tool mygo vet .` 通过。
 
 ### 阶段 18 后修订十二：统一界面用词，提示里的快捷键改从键位表读取
-> 来源：本开发会话（2026-11-12），用户确认梳理结果后提出。
+> 来源：本开发会话（2026-11-12），用户确认梳理结果后提出。已实现：commit 3df949c。
 
 **要改什么**
 1. 「拷贝」一律改「复制」（复制、复制路径、复制到此、已复制……，菜单栏「编辑」里的也是）。
