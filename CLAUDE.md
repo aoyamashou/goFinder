@@ -27,6 +27,7 @@ go tool mygo build -skip-installer    # 打包到 build/darwin-arm64/goFinder.ap
 - **发版**（自动更新，见 `docs/plan.md` 阶段 18）：改 `version` 并在 `CHANGELOG.md` 加 `## <版本>` 一节，然后：
   ```bash
   MYGO_UPDATER_PRIVATE_KEY="$(cat ~/Library/Application\ Support/mygo/update-keys/mygo-update.key)" go tool mygo build -skip-installer -upload   # 签名并上传到 draft release
+  scripts/unsign-dmg.sh --upload   # DMG 改为不签名（自签的 DMG 会被系统拒绝打开），替换 release 上的 DMG 和 SHA256SUMS
   gh release edit v<版本> --draft=false --latest   # 发布后已安装的应用才能检查到
   ```
   私钥只在本机，绝不进仓库；不带私钥的 `mygo build` 照常打包，只是不生成更新文件。
