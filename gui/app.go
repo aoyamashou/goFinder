@@ -865,6 +865,30 @@ func (a *app) goHomeSub(sub string) {
 	a.navigate(a.tab(), filepath.Join(home, sub))
 }
 
+// moveCursor matches a list's plain Up/Down choice. ListState's private
+// Shift anchor cannot be reset here; native Shift+arrows keep that anchor.
+func (a *app) moveCursor(ts *tabState, delta int) {
+	if a.modalOpen() || a.focusZone == "sidebar" {
+		return
+	}
+	es := ts.t.Entries()
+	if len(es) == 0 {
+		return
+	}
+	to := 0
+	if ts.cursor >= 0 && ts.cursor < len(es) {
+		to = ts.cursor + delta
+		if to < 0 || to >= len(es) {
+			ts.list.ScrollIntoView(ts.cursor)
+			return
+		}
+	}
+	ts.cursor = to
+	ts.sel.Clear()
+	ts.sel.Add(es[to].Path)
+	ts.list.ScrollIntoView(to)
+}
+
 // run runs the action id on the active tab.
 func (a *app) run(id string) {
 	p, ts := a.pane(), a.tab()
@@ -878,6 +902,10 @@ func (a *app) run(id string) {
 		}
 	}
 	switch id {
+	case "cursor.up":
+		a.moveCursor(ts, -1)
+	case "cursor.down":
+		a.moveCursor(ts, 1)
 	case "open":
 		if e, ok := ts.cursorEntry(); ok {
 			a.openEntry(ts, e)

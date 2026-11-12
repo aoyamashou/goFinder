@@ -16,7 +16,7 @@ goFinder：轻量、键盘鼠标都优先的 macOS 文件管理器。用 [MyGo](
 ## 总规则
 
 - **资源优先**：低内存、低 CPU、响应快，界面朴素即可。不引入第三方库或动画，MyGo 插件只允许 SF Symbols（侧边栏和按钮图标）和 updater（自动更新）；图标和列表用本机已装的 `JetBrainsMono Nerd Font Mono`（`internal/icons`，不打包字体，缺字体时只在用户点击后下载两个 ttf，没装时回退为文字符号），预览按需加载。
-- **键位是 Yazi 单键风格**：不含 hjkl，也没有多键序列，只有 `c c`、`n n`、`s s` 三个同键双击（400 ms 内）；方向键移动；⌘ 组合键作为第二键位，供菜单使用。
+- **键位是 Yazi 单键风格**：默认方向键，可选 Vim 键位 `h/j/k/l`（设置 › 快捷键，默认关闭，开启后方向键仍可用）；没有多键序列，只有 `c c`、`n n`、`s s` 三个同键双击（400 ms 内）；⌘ 组合键作为第二键位，供菜单使用。↑↓ 由列表原生处理，不可改键；`cursor.up/down` 用于额外移动键。
 - 新增或修改快捷键只改 `gui/actions.go`（`actions()` 和 `defaultKeys()`）。状态栏键帽提示（`hints.go`）、`?` 速查表、设置的快捷键页、右键菜单、标题栏按钮提示里的快捷键都从这里读取；每个动作的第一个键就是提示里显示的那个。用户的 `config.json` 自定义命令和 `keymap.json` 由 `buildKeymap` 叠加上去。新动作还要放进 `menu.go` 的 `menuBar`（`TestMenuCoversActions` 会检查）。
 - **界面用词统一**（2026-11-12 定）：用「复制」不用「拷贝」；`?` 叫「速查表」；`` ` `` 叫「回到起点」、右键文件夹「设为起点」；`Tab` 叫「切换窗格」；`Space` 叫「快速查看」。提示里出现的快捷键一律从键位表读，不写死。
 - 改界面前先读 `docs/design-system.md`，颜色、字号、间距用 `tok()`/`px()` 取 token，不写死数值；品牌青 `signal` 只做点缀，每屏最多 3 处。
@@ -52,7 +52,7 @@ go tool mygo build -skip-installer    # 打包到 build/darwin-arm64/goFinder.ap
 - **改动直接 commit 并 push 到 `origin main`**（不走 PR）。推送用 `git --no-replace-objects push origin main`。
 - 提交日志用中文，写清需求或问题、实现思路；不加任何 AI 署名行（Co-Authored-By 等）。
 - 公开仓库从提交 41200b5 开始；更早的历史只在用户本机的 `history-local` 分支，用 `git replace --graft` 接上（只在本机生效，**不要推送 `refs/replace`**）。所以文档里记的部分旧 commit 号在 GitHub 上查不到，这是正常的。
-- 改功能或修 bug 后，在 `docs/plan.md` 的「## 测试和验证」之前加一节 `### 阶段 18 后修订N：标题`（下一个是**修订十五**），写来源、要改什么、实现、边界、验证；提交后再用一个文档提交在该节「来源」行末尾补「已实现：commit xxxxxxx。」。
+- 改功能或修 bug 后，在 `docs/plan.md` 的「## 测试和验证」之前加一节 `### 阶段 18 后修订N：标题`（下一个是**修订十六**），写来源、要改什么、实现、边界、验证；提交后再用一个文档提交在该节「来源」行末尾补「已实现：commit xxxxxxx。」。
 - 版本号在 `mygo.json` 的 `version`，格式 `0.阶段.修订`：完成新阶段时中间位改成阶段号、末位归 0；阶段之后的小修复末位 +1。关于页会显示构建的 commit 和时间。
 - **打 tag 和发版由用户决定**，没有明确要求不打 tag、不发 Release。用户说「发版」时：
   1. 改 `mygo.json` 的 `version`，在 `CHANGELOG.md` 顶部加 `## <版本>` 一节（面向用户的中文说明），提交并推送；
@@ -97,6 +97,7 @@ go tool mygo build -skip-installer    # 打包到 build/darwin-arm64/goFinder.ap
 - `README.md`：面向用户的介绍（截图、特点、与访达的性能对比、安装、键位、配置）；实现细节不写在这里。README 由用户提供，改动前先问。
 - `CHANGELOG.md`：每个版本面向用户的更新记录，发版时更新。
 - `docs/plan.md`：分阶段计划与每次修订的记录（架构、默认键位、资源原则、各阶段范围与验证方式）。
+- `Codex/vim-keybindings-prd.md`：Issue #2 可选 Vim 键位的需求、审查结论、验收与已知限制。
 - `docs/design-system.md`（及 `gui/design-tokens.json`，由 `theme.go` 嵌入）：设计系统——颜色、字体、间距、圆角、尺寸 token 与组件规范；改界面前先读。
 - `docs/debug-ids.md`：设置 › 关于里「Debug 编号」的编号表，与 `gui/debug.go` 的 `debugIDs` 保持一致（`TestDebugIDsDoc` 检查）。用户沟通时常说「N 号元素」。
 - `docs/website.md`：官网（gofinder.ryou.im）的目录、部署方式、设计依据与内容边界；官网源码在 `site/`，用 Cloudflare CLI `cf deploy` 部署。
@@ -104,8 +105,8 @@ go tool mygo build -skip-installer    # 打包到 build/darwin-arm64/goFinder.ap
 
 ## 交接现状（2026-11-12）
 
-- **当前版本 0.18.8**，已发布为 GitHub 最新 Release（tag 指向 64a1ec6）。之后只有 README 截图提交 99eae72，代码与 0.18.8 一致。
-- 阶段 0–18 及修订一至十四全部完成，没有进行中的代码任务。
+- **当前发布版本 0.18.8**（tag 指向 64a1ec6）。修订十五的可选 Vim 键位已实现并验证，尚未发版，版本号保持不变。
+- 阶段 0–18 及修订一至十五全部完成，没有进行中的代码任务。
 - **MyGo 官方 Showcase**：用户提交的 egoist/mygo#1749 因冲突被作者关闭，内容并入 egoist/mygo#1751（保留作者署名，截至交接时尚未合并）。合并后可以删掉用户 fork（aoyamashou/mygo）上的 `showcase-gofinder` 分支。
 - 用户用自动更新测试新版本，所以发版后的问题通常来自真实安装的应用；修复后照常提交，等用户决定何时发版。
 - 已知的测试注意点：

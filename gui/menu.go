@@ -21,7 +21,7 @@ var menuBar = []struct {
 	{"文件", []string{"newfile", "newfolder", "-", "open", "reveal", "terminal", "agent", "@agentmenu", "editor", "-", "rename", "copypath", "trash"}},
 	{"编辑", []string{"@undo", "@redo", "-", "@cut", "@copy", "@paste", "@selectAll", "-", "filter", "select.none"}},
 	{"显示", []string{"layout.columns", "layout.dual", "layout.rows", "-", "quicklook", "preview", "sidebar", "shelf", "-", "@sort", "sortmenu", "hidden", "refresh", "addr"}},
-	{"前往", []string{"back", "forward", "up", "-", "go.start", "go.home", "go.desktop", "go.downloads", "go.documents", "go.apps", "-", "fav.add", "fav.remove"}},
+	{"前往", []string{"cursor.up", "cursor.down", "-", "back", "forward", "up", "-", "go.start", "go.home", "go.desktop", "go.downloads", "go.documents", "go.apps", "-", "fav.add", "fav.remove"}},
 	{"暂存架", []string{"shelf.add", "shelf.copy", "shelf.move", "shelf.clear"}},
 	{"窗口", []string{"@minimize", "@zoom", "-", "ws.next", "ws.prev", "@ws", "workspace", "-", "pane.switch"}},
 	{"帮助", []string{"help"}},

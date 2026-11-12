@@ -67,7 +67,7 @@ func hintItem(c *ui.Context, keys, title string) {
 
 // hintLines are the status bar's two lines of common keys, as the user
 // set them (2026-11-12): going about, then acting on the items chosen.
-// "@move" is the arrows' ↑↓, which the list itself handles.
+// "@move" shows extra movement bindings, or the list's native ↑↓.
 var hintLines = [2][]string{
 	{"@move", "open", "up", "pane.switch", "go.start", "sortmenu", "hidden", "quicklook", "filter", "terminal", "agent", "editor", "workspace", "help"},
 	{"copypath", "copy", "cut", "paste", "shelf.add", "newfolder", "newfile", "rename", "trash", "fav.add"},
@@ -126,7 +126,12 @@ func (a *app) statusHints(c *ui.Context, line int) {
 func (a *app) hintLine(c *ui.Context, ids []string) {
 	for _, id := range ids {
 		if id == "@move" {
-			hintItem(c, "↑↓", "移动")
+			up, down := a.km.KeysFor("cursor.up"), a.km.KeysFor("cursor.down")
+			keys := "↑↓"
+			if len(up) > 0 && len(down) > 0 {
+				keys = up[0].String() + " " + down[0].String()
+			}
+			hintItem(c, keys, "移动")
 			continue
 		}
 		keys := a.km.KeysFor(id)

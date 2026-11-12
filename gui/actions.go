@@ -15,6 +15,8 @@ import (
 // Actions with Hint show in the status bar when no modifier is held.
 func actions() []keymap.Action {
 	as := []keymap.Action{
+		{ID: "cursor.up", Title: "光标上移", Group: "浏览"},
+		{ID: "cursor.down", Title: "光标下移", Group: "浏览"},
 		{ID: "open", Title: "打开 / 进入", Group: "浏览"},
 		{ID: "up", Title: "上级目录", Group: "浏览"},
 		{ID: "back", Title: "后退", Group: "浏览"},
@@ -77,20 +79,22 @@ func actions() []keymap.Action {
 	return as
 }
 
-// defaultKeys are the built-in bindings. keymap.json in the data folder
-// overrides them per action. The first key is Yazi's single key (no hjkl,
-// no sequences but the double taps "c c" and "n n"), the one the hints
-// show; the ⌘ key after it is the one the menu bar can take.
-func defaultKeys() map[string][]string {
+// defaultKeys are the mode's built-in bindings: arrows by default, with
+// optional Vim h/j/k/l. Up/Down stay native list keys, outside the keymap.
+// keymap.json overrides bindings per action. The first key is shown in
+// hints; sequences are limited to the double taps "c c", "n n", "s s".
+func defaultKeys(vim bool) map[string][]string {
 	m := map[string][]string{
-		"open":     {"Right", "Cmd+Down"},
-		"up":       {"Left", "Cmd+Up"},
-		"back":     {"Cmd+[", "Back"},
-		"forward":  {"Cmd+]", "Forward"},
-		"refresh":  {"Cmd+R"},
-		"hidden":   {".", "Cmd+Shift+."},
-		"sortmenu": {","},
-		"addr":     {"g", "Cmd+L"},
+		"cursor.up":   {},
+		"cursor.down": {},
+		"open":        {"Right", "Cmd+Down"},
+		"up":          {"Left", "Cmd+Up"},
+		"back":        {"Cmd+[", "Back"},
+		"forward":     {"Cmd+]", "Forward"},
+		"refresh":     {"Cmd+R"},
+		"hidden":      {".", "Cmd+Shift+."},
+		"sortmenu":    {","},
+		"addr":        {"g", "Cmd+L"},
 
 		"go.start":     {"`"},
 		"go.home":      {"Cmd+Shift+H"},
@@ -142,6 +146,12 @@ func defaultKeys() map[string][]string {
 	for i := 1; i <= 9; i++ {
 		m[fmt.Sprintf("ws.%d", i)] = []string{fmt.Sprint(i), fmt.Sprintf("Cmd+%d", i)}
 	}
+	if vim {
+		m["cursor.up"] = []string{"k"}
+		m["cursor.down"] = []string{"j"}
+		m["up"] = append([]string{"h"}, m["up"]...)
+		m["open"] = append([]string{"l"}, m["open"]...)
+	}
 	return m
 }
 
@@ -182,6 +192,21 @@ const cmdPrefix = "cmd."
 // what could not be applied, for the status bar and the cheat sheet.
 func buildKeymap(cfg config, kmPath string) (*keymap.Keymap, map[string][]string, []string) {
 	var warns []string
+	file := map[string][]string{}
+	if kmPath != "" {
+		var err error
+		if file, err = keymap.ReadOverrides(kmPath); err != nil {
+			warns = append(warns, "keymap.json 读取失败，未使用："+err.Error())
+		}
+	}
+	km, w := keymapWithOverrides(cfg, file)
+	return km, file, append(warns, w...)
+}
+
+// keymapWithOverrides also rebuilds a mode from the in-memory overrides,
+// without racing a keymap.json write still running in the background.
+func keymapWithOverrides(cfg config, file map[string][]string) (*keymap.Keymap, []string) {
+	var warns []string
 	acts := actions()
 	cmdKeys := map[string][]string{}
 	for _, cm := range cfg.Commands {
@@ -203,22 +228,15 @@ func buildKeymap(cfg config, kmPath string) (*keymap.Keymap, map[string][]string
 			cmdKeys[id] = cm.Keys
 		}
 	}
-	km, err := keymap.New(acts, defaultKeys())
+	km, err := keymap.New(acts, defaultKeys(cfg.VimKeys))
 	if err != nil {
 		panic(err) // the built-in table is wrong
 	}
 	for _, w := range km.Override(cmdKeys) {
 		warns = append(warns, "config.json 命令快捷键："+w)
 	}
-	file := map[string][]string{}
-	if kmPath != "" {
-		var err error
-		if file, err = keymap.ReadOverrides(kmPath); err != nil {
-			warns = append(warns, "keymap.json 读取失败，未使用："+err.Error())
-		}
-		for _, w := range km.Override(file) {
-			warns = append(warns, "keymap.json："+w)
-		}
+	for _, w := range km.Override(file) {
+		warns = append(warns, "keymap.json："+w)
 	}
 	for _, list := range []struct {
 		name string
@@ -231,7 +249,21 @@ func buildKeymap(cfg config, kmPath string) (*keymap.Keymap, map[string][]string
 		}
 	}
 	warns = append(warns, chromeWarnings(cfg, func(id string) bool { _, ok := km.Action(id); return ok })...)
-	return km, file, warns
+	return km, warns
+}
+
+func (a *app) setVimKeys(vim bool) {
+	a.cfg.VimKeys = vim
+	a.recording, a.recEat, a.taps = "", false, keymap.Taps{}
+	km, warns := keymapWithOverrides(a.cfg, a.kmFile)
+	a.km = km
+	a.applyMenu()
+	a.status = "已切换为方向键预设"
+	if vim {
+		a.status = "已启用 Vim 键位"
+	}
+	a.setWarnings(warns)
+	a.saveConfig()
 }
 
 // keymapPath is keymap.json in the data folder.

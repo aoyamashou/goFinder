@@ -266,6 +266,7 @@ type config struct {
 	Editor      string `json:"editor"`
 	ShowHidden  bool   `json:"showHidden"`
 	ShowSidebar bool   `json:"showSidebar"`
+	VimKeys     bool   `json:"vimKeys"` // optional h/j/k/l; arrows always work
 	// ContextMenu lists action IDs in order, "-" a separator.
 	ContextMenu []string  `json:"contextMenu"`
 	Commands    []command `json:"commands"`

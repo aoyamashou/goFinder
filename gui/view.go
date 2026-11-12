@@ -106,6 +106,14 @@ func (a *app) dispatch(c *ui.Context) {
 		if ch.Mods&(keymap.Cmd|keymap.Ctrl|keymap.Alt) == 0 && plainBlocked {
 			continue
 		}
+		// Extra navigation keys act only on the current file list, never
+		// a sidebar, side column, dialog or menu. Native Left/Right keep
+		// their existing sidebar behavior.
+		fileNav := b.Action == "cursor.up" || b.Action == "cursor.down" ||
+			(ch.Mods == 0 && (b.Action == "up" || b.Action == "open") && ch.Key != "Left" && ch.Key != "Right")
+		if fileNav && (a.modalOpen() || !a.tab().list.FocusWithin(c)) {
+			continue
+		}
 		if ch.Mods == 0 && ch.Key == "Enter" {
 			continue // the list takes ↩ as Submitted: see enterKey
 		}
@@ -525,7 +533,12 @@ func (a *app) keyList(c *ui.Context, edit bool) {
 				ui.Text(c, group).Bold().Padding(px("space-2"), 0, px("space-0.5"), 0)
 			}
 			ui.Row(c.Key("hr:"+h.ID)).Gap(px("space-1.5")).Padding(px("space-0.5"), px("space-1")).AlignItems(ui.Center).Children(func() {
-				ui.Text(c, h.Title).SingleLine().Grow(1).Shrink(1)
+				ui.Column(c).Grow(1).Shrink(1).Children(func() {
+					ui.Text(c, h.Title).SingleLine()
+					if edit && (h.ID == "cursor.up" || h.ID == "cursor.down") {
+						uiCaption(c, "方向键始终可用", "muted")
+					}
+				})
 				if edit && a.recording == h.ID {
 					ui.Text(c, "请按下新的按键…").TextColor(tok(c, "selection"))
 					if ui.Button(c.Key("unbind"), "清除").Tooltip("不用快捷键").Clicked() {
@@ -709,6 +722,10 @@ func (a *app) settingsFooter(c *ui.Context) {
 // settingsPage is the body of the settings' page.
 func (a *app) settingsPage(c *ui.Context) {
 	if a.setPage == 1 {
+		ui.Checkbox(c.Key("set.vimKeys"), &a.cfg.VimKeys, "Vim 键位").OnChange(func() {
+			a.setVimKeys(a.cfg.VimKeys)
+		})
+		uiCaption(c, "使用 h/j/k/l 导航，方向键仍可用。自定义快捷键优先。", "muted")
 		a.keyList(c, true)
 		uiCaption(c, "改键即时写入数据目录的 keymap.json；同键双击（如 \"c c\"）可在该文件里设置", "muted")
 		return
