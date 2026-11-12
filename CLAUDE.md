@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-goFinder：轻量、键盘优先的 macOS 文件管理器。用 [MyGo](https://mygo.egoist.dev/docs)（Go 桌面框架，不是新语言）的原生 UI 写成，纯 Go、无 cgo、不用 WebView。
+goFinder：轻量、键盘鼠标都优先的 macOS 文件管理器。用 [MyGo](https://mygo.egoist.dev/docs)（Go 桌面框架，不是新语言）的原生 UI 写成，纯 Go、无 cgo、不用 WebView。
 
 ## 总规则
 
