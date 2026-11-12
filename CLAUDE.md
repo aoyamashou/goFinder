@@ -22,7 +22,6 @@ go test -race ./...
 go test -run '^$' -bench Open10k ./internal/pane   # 打开 1 万文件目录的性能基准
 go test -run '^$' -bench 10k .                      # 界面层：进入 1 万文件目录、空闲帧、光标移动
 go tool mygo build -skip-installer    # 打包到 build/darwin-arm64/goFinder.app，用 Apple_self_dev 签名
-osascript -e 'quit app id "io.github.aoyamashou.gofinder"'; rm -rf /Applications/goFinder.app && ditto build/darwin-arm64/goFinder.app /Applications/goFinder.app && open /Applications/goFinder.app   # 安装并打开
 ```
 
 - **发版**（自动更新，见 `docs/plan.md` 阶段 18）：改 `version` 并在 `CHANGELOG.md` 加 `## <版本>` 一节，然后：
@@ -33,7 +32,7 @@ osascript -e 'quit app id "io.github.aoyamashou.gofinder"'; rm -rf /Applications
   私钥只在本机，绝不进仓库；不带私钥的 `mygo build` 照常打包，只是不生成更新文件。
 - 仓库公开在 github.com/aoyamashou/goFinder（2026-11-12 起），提交后推送 `origin main`；提交内容不得含邮箱、密钥等个人信息。公开仓库从提交 41200b5 开始，之前的历史只留在本机：分支 `history-local`，并用 `git replace --graft` 接在 41200b5 之后（只在本机生效，不推送 `refs/replace`），所以本机 `git log` 能看到完整历史，文档里记的旧 commit 号在 GitHub 上查不到。
 - 版本号在 `mygo.json` 的 `version`，格式 `0.阶段.修订`：完成一个新阶段时把中间位改成阶段号、末位归 0，阶段之后的小修复末位 +1；关于页还会显示构建的 commit 和时间。
-- **每次打包后**都用上面最后一条命令：退出正在运行的 goFinder，用新版本覆盖 `/Applications/goFinder.app` 并打开（用户要求，2026-11-12）。
+- **改动直接 commit 并 push**；**打 tag 和发版由用户决定**，未经用户明确要求不打 tag、不发布 Release。用户本机的 `/Applications/goFinder.app` 只通过自动更新升级（模拟普通用户），不要再用 `ditto` 覆盖安装（用户要求，2026-11-12）。
 
 ## 架构
 
