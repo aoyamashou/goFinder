@@ -98,7 +98,7 @@ func defaultKeys() map[string][]string {
 		"go.downloads": {"Cmd+Alt+L"},
 		"go.documents": {"Cmd+Shift+O"},
 		"go.apps":      {"Cmd+Shift+A"},
-		"fav.add":      {"Cmd+Ctrl+T"},
+		"fav.add":      {"s"},
 		"fav.remove":   {"Cmd+Ctrl+Backspace"},
 
 		"filter":      {"f"},
@@ -116,7 +116,7 @@ func defaultKeys() map[string][]string {
 		"copypath":  {"c c", "Cmd+Alt+C"},
 		"reveal":    {"Cmd+Alt+R"},
 		"terminal":  {";", "Cmd+Alt+T"},
-		"editor":    {"Cmd+Alt+E"},
+		"editor":    {"e"},
 		"agent":     {"a", "Cmd+Alt+A"},
 		"settings":  {"Cmd+,"},
 
@@ -129,7 +129,7 @@ func defaultKeys() map[string][]string {
 		"layout.rows":    {"Cmd+Alt+4"},
 		"preview":        {"Cmd+Alt+P"},
 		"sidebar":        {"Cmd+Ctrl+S"},
-		"workspace":      {"Cmd+Alt+W"},
+		"workspace":      {"w"},
 
 		"shelf.add":   {"Cmd+Alt+S"},
 		"shelf":       {"Cmd+Alt+B"},
@@ -379,11 +379,12 @@ func fromUIMods(m ui.Modifiers) keymap.Mods {
 func (a *app) menuItem(m *ui.Menu, id, title string) *ui.MenuItem {
 	it := m.Item(title)
 	// The action's first key, as the status bar shows it: a single key
-	// before its ⌘ one. A double tap ("c c") has no Shortcut form, so it
-	// is the item's trailing text, at the end as the shortcuts are.
+	// before its ⌘ one. A key alone (lower case, as the user asked,
+	// 2026-11-12: a Shortcut would show "C") and a double tap ("c c") are
+	// the item's trailing text, at the end as the shortcuts are.
 	if keys := a.km.KeysFor(id); len(keys) > 0 {
 		ch := keys[0]
-		if k, ok := uiKeys[ch.Key]; ok && !ch.Double {
+		if k, ok := uiKeys[ch.Key]; ok && !ch.Double && ch.Mods != 0 {
 			it.Shortcut(toUIMods(ch.Mods), k)
 		} else {
 			it.Trailing(ch.String())

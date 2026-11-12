@@ -68,7 +68,7 @@ func hintItem(c *ui.Context, keys, title string) {
 // set them (2026-11-12): going about, then acting on the items chosen.
 // "@move" is the arrows' ↑↓, which the list itself handles.
 var hintLines = [2][]string{
-	{"@move", "open", "up", "go.start", "sortmenu", "hidden", "quicklook", "filter", "terminal", "agent", "help"},
+	{"@move", "open", "up", "go.start", "sortmenu", "hidden", "quicklook", "filter", "terminal", "agent", "editor", "fav.add", "workspace", "help"},
 	{"copy", "copypath", "cut", "paste", "newfolder", "newfile", "rename", "trash"},
 }
 

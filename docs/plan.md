@@ -1371,6 +1371,28 @@ UX：
 **验证**
 - `go test ./...`、`go vet ./...`、`go tool mygo vet .` 通过；`TestChromeShots` 截图核对标题栏布局。
 
+### 阶段 18 后修订十：工作区重命名与删除、中文演示工作区、e/s/w 单键、菜单单键小写
+> 来源：本开发会话（2026-11-12），用户提出。
+
+**要改什么**
+1. 三个演示工作区改为：默认工作区（三列，Home）、下载（左右双栏，下载）、文档（上下双栏，文稿）。
+2. 工作区对话框加「重命名」「删除」按钮；右键工作区按钮也有这两项。默认工作区只能改名，不能删除。
+3. 去掉 Agent 菜单里三个 Agent 前的图标。
+4. 在编辑器中打开 `e`、收藏当前文件夹 `s`、工作区 `w`，各只保留这一个默认键；它们的提示加进状态栏第一行，`?` 速查表随键位表更新。
+5. 右键菜单里的单键快捷键显示为小写。
+
+**实现**
+- `config.json` 新增 `defaultWorkspace`（不能删除的那个）。已建过演示工作区（`workspacesSeeded`）而 `defaultWorkspace` 为空时，一次性把 Home/Download/Documents 改名为默认工作区/下载/文档（`migrateDemoNames`），缺默认工作区时补建。
+- `workflow.go`：`renameWorkspace`（重名拒绝，同步顺序、默认、当前）、`deleteWorkspace`（移到废纸篓，默认的拒绝）、`workspaceMenu`（按钮的右键菜单）；对话框加按钮行，默认工作区的「删除」禁用并有提示。重命名复用通用输入对话框 `dlgWsRename`。
+- `actions.go`：`defaultKeys` 改 `editor`/`fav.add`/`workspace`；`menuItem` 只给带修饰键的键用 `Shortcut`，单键改成小写尾注。
+- `hints.go`：第一行加 `editor`、`fav.add`、`workspace`。
+
+**边界**
+- 不改工作区文件格式和其他键位；删除只移到废纸篓。
+
+**验证**
+- `TestWorkspaceRenameDelete`、`TestDemoNamesMigrate`、`TestDemoWorkspaces`；`go test ./...`、`go vet ./...`、`go tool mygo vet .` 通过。
+
 ## 测试和验证
 - **纯逻辑包写单元测试，用 `go test ./...` 运行**：
   - `keymap`：按键解析、上下文过滤、用户覆盖、冲突检测；

@@ -408,8 +408,8 @@ func (a *app) agentDir(ts *tabState) string {
 }
 
 // agentsMenu adds "open in terminal" (term, or nothing when nil) and one
-// item per enabled agent, each with its symbol; the default agent shows
-// the key of the agent action. dir is read when an item is chosen.
+// item per enabled agent, with no icon (the user's word, 2026-11-12); the
+// default agent shows the key of the agent action. dir is read when an item is chosen.
 func (a *app) agentsMenu(m *ui.Menu, dir func() string, term func()) {
 	if term != nil && a.menuItem(m, "terminal", a.actionTitle("terminal")).Chosen() {
 		term()
@@ -422,14 +422,6 @@ func (a *app) agentsMenu(m *ui.Menu, dir func() string, term func()) {
 			it = a.menuItem(m, "agent", title)
 		} else {
 			it = m.Item(title)
-		}
-		if sfsymbols.Available() && ag.Symbol != "" {
-			it.Content(func(x ui.MenuItemContent) {
-				ui.Row(x.Context).Gap(6).AlignItems(ui.Center).Children(func() {
-					sfsymbols.Symbol(x.Context, ag.Symbol).Color(tok(x.Context, "signal"))
-					ui.Text(x.Context, title).SingleLine()
-				})
-			})
 		}
 		if it.Chosen() {
 			a.openAgent(ag, dir())

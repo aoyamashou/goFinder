@@ -299,6 +299,10 @@ type config struct {
 	// were made, so ones deleted stay deleted.
 	Workspaces       []string `json:"workspaces,omitempty"`
 	WorkspacesSeeded bool     `json:"workspacesSeeded,omitempty"`
+	// DefaultWorkspace is the workspace that cannot be deleted, only
+	// renamed (the first demo one). "" with WorkspacesSeeded is a config
+	// of the English demo names, which migrateDemoNames renames.
+	DefaultWorkspace string `json:"defaultWorkspace,omitempty"`
 	// Version is the config's format.
 	Version int `json:"version"`
 }

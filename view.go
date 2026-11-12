@@ -596,11 +596,11 @@ func (a *app) dialog(c *ui.Context) {
 		a.trashView(c)
 		return
 	}
-	title := map[int]string{dlgRename: "重命名", dlgNewFile: "新建文件", dlgNewFolder: "新建文件夹"}[a.dlg]
+	title := map[int]string{dlgRename: "重命名", dlgNewFile: "新建文件", dlgNewFolder: "新建文件夹", dlgWsRename: "重命名工作区"}[a.dlg]
 	ui.Modal(c, &a.dlgOpen, func() {
 		dc := ui.Column(c).Width(360).Gap(10)
 		defer func() {
-			a.dbg(c, dc, map[int]string{dlgRename: "dlg.rename", dlgNewFile: "dlg.newfile", dlgNewFolder: "dlg.newfolder"}[a.dlg])
+			a.dbg(c, dc, map[int]string{dlgRename: "dlg.rename", dlgNewFile: "dlg.newfile", dlgNewFolder: "dlg.newfolder", dlgWsRename: "dlg.workspace"}[a.dlg])
 		}()
 		dc.Children(func() {
 			ui.Text(c, title).Bold()

@@ -176,10 +176,10 @@ func TestSidebarNavigation(t *testing.T) {
 		t.Fatalf("config not saved: %s %v", b, err)
 	}
 
-	// ⌃⌘T adds the current folder; it saves and shows.
+	// s adds the current folder; it saves and shows.
 	a.navigate(a.tab(), filepath.Join(root, "alpha"))
 	tt.Frame()
-	tt.Key(ui.Cmd|ui.Ctrl, ui.KeyT)
+	tt.Key(0, ui.KeyS)
 	tt.Frame()
 	if got, _ := store.Load(); !slices.Equal(got, []string{filepath.Join(root, "alpha")}) {
 		t.Fatalf("favorites saved %v", got)

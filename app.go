@@ -132,6 +132,7 @@ const (
 	dlgSettings
 	dlgWorkspace
 	dlgTrash
+	dlgWsRename
 )
 
 // blankTemplate is the new-file dialog's choice of no template.
@@ -261,8 +262,7 @@ type app struct {
 	dnd dndState
 
 	// The workspace dialog: saved names, and the one chosen.
-	wsNames []string
-	wsPick  string
+	wsPick string
 	// The workspaces switched with 1–9, [ and ]: the saved ones by name,
 	// the one on screen ("" for none: goFinder starts in none), its index
 	// for the strip, and a switch on its way (one at a time).
@@ -618,6 +618,10 @@ func (a *app) submitDialog() {
 		a.cfg.ConfirmTrash = a.setConfirm
 		a.saveConfig()
 		a.status = fmt.Sprintf("终端：%s，编辑器：%s", a.cfg.Terminal, a.cfg.Editor)
+		return
+	}
+	if a.dlg == dlgWsRename {
+		a.renameWorkspace(a.dlgTarget, name)
 		return
 	}
 	if ts == nil || name == "" {

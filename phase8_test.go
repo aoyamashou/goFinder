@@ -231,7 +231,7 @@ func TestDrawnMenus(t *testing.T) {
 		t.Fatalf("menu %q", menu)
 	}
 	// Drawn: its items are elements of the window, keys beside them.
-	for _, k := range []string{"拷贝", "C", "X", "V", "D", "↩", "移到废纸篓"} {
+	for _, k := range []string{"拷贝", "c", "x", "v", "d", "↩", "移到废纸篓"} {
 		if !tt.HasText(k) {
 			t.Fatalf("drawn menu lacks %q: %q", k, tt.Texts())
 		}

@@ -77,7 +77,7 @@ func TestShelf(t *testing.T) {
 func TestWorkspaceSaveRestore(t *testing.T) {
 	a, tt, _, root := setup(t)
 	a.dataDir = t.TempDir()
-	a.cfg.WorkspacesSeeded = true // no demo workspaces here
+	a.cfg.WorkspacesSeeded, a.cfg.DefaultWorkspace = true, "写代码" // no demo workspaces here
 	alpha := filepath.Join(root, "alpha")
 	a.navigate(a.tab(), alpha)
 	a.tab().sort = ui.SortOrder{Column: "size", Descending: true}
@@ -86,7 +86,7 @@ func TestWorkspaceSaveRestore(t *testing.T) {
 
 	save := func(name string) {
 		t.Helper()
-		tt.Key(ui.Cmd|ui.Alt, ui.KeyW)
+		tt.Key(0, ui.KeyW)
 		tt.Frame()
 		if !a.dlgOpen || a.dlg != dlgWorkspace {
 			t.Fatalf("⌘⌥W dialog: open %v", a.dlgOpen)
@@ -99,7 +99,7 @@ func TestWorkspaceSaveRestore(t *testing.T) {
 			t.Fatalf("not saved: %v cur %q (%s)", err, a.wsCur, a.status)
 		}
 	}
-	tt.Key(ui.Cmd|ui.Alt, ui.KeyW)
+	tt.Key(0, ui.KeyW)
 	tt.Frame()
 	if !tt.HasText("还没有保存的工作区") {
 		t.Fatalf("empty dialog %q", tt.Texts())
@@ -154,7 +154,7 @@ func TestWorkspaceSaveRestore(t *testing.T) {
 		t.Fatalf("9: cur %q status %q", a.wsCur, a.status)
 	}
 	// From the dialog.
-	tt.Key(ui.Cmd|ui.Alt, ui.KeyW)
+	tt.Key(0, ui.KeyW)
 	tt.Frame()
 	a.wsPick = "写代码"
 	tt.Frame()
@@ -254,33 +254,142 @@ func TestDemoWorkspaces(t *testing.T) {
 	workspace.Write(a.wsPath("Aa"), workspace.State{Layout: "columns", Panes: []workspace.Pane{{Tabs: []workspace.Tab{{Dir: home}}}}})
 	a.listWorkspaces()
 	tt.Frame()
-	if !slices.Equal(a.wsList, []string{"Home", "Download", "Documents", "Aa"}) || !a.cfg.WorkspacesSeeded ||
-		!loadConfig(a.dataDir).WorkspacesSeeded {
-		t.Fatalf("list %v seeded %v", a.wsList, a.cfg.WorkspacesSeeded)
+	if !slices.Equal(a.wsList, []string{"默认工作区", "下载", "文档", "Aa"}) || !a.cfg.WorkspacesSeeded ||
+		!loadConfig(a.dataDir).WorkspacesSeeded || loadConfig(a.dataDir).DefaultWorkspace != "默认工作区" {
+		t.Fatalf("list %v seeded %v default %q", a.wsList, a.cfg.WorkspacesSeeded, a.cfg.DefaultWorkspace)
 	}
-	if err := tt.Click("Download"); err != nil {
+	if err := tt.Click("文档"); err != nil {
 		t.Fatal(err)
 	}
 	tt.Frame()
+	tt.Key(0, ui.Key2)
+	tt.Frame()
 	dl := filepath.Join(home, "Downloads")
-	if a.wsCur != "Download" || a.layout != layoutDual || a.panes[0].tab().t.Dir != dl || a.panes[1].tab().t.Dir != dl {
+	if a.wsCur != "下载" || a.layout != layoutDual || a.panes[0].tab().t.Dir != dl || a.panes[1].tab().t.Dir != dl {
 		t.Fatalf("Download: cur %q layout %d %s", a.wsCur, a.layout, a.panes[0].tab().t.Dir)
 	}
 	tt.Key(0, ui.Key3)
 	tt.Frame()
 	doc := filepath.Join(home, "Documents")
-	if a.wsCur != "Documents" || a.layout != layoutRows || a.panes[1].tab().t.Dir != doc {
+	if a.wsCur != "文档" || a.layout != layoutRows || a.panes[1].tab().t.Dir != doc {
 		t.Fatalf("3: cur %q layout %d", a.wsCur, a.layout)
 	}
 	tt.Key(0, ui.Key1)
 	tt.Frame()
-	if a.wsCur != "Home" || a.layout != layoutColumns || a.tab().t.Dir != home {
+	if a.wsCur != "默认工作区" || a.layout != layoutColumns || a.tab().t.Dir != home {
 		t.Fatalf("1: cur %q dir %s", a.wsCur, a.tab().t.Dir)
 	}
 	// Deleted, not made again.
-	os.Remove(a.wsPath("Download"))
+	os.Remove(a.wsPath("下载"))
 	a.listWorkspaces()
-	if slices.Contains(a.wsList, "Download") {
+	if slices.Contains(a.wsList, "下载") {
 		t.Fatalf("made again: %v", a.wsList)
+	}
+}
+
+// The dialog and a workspace button's menu rename and delete; the
+// default workspace is renamed but never deleted.
+func TestWorkspaceRenameDelete(t *testing.T) {
+	home := t.TempDir()
+	a, tt, fs, _ := setup(t)
+	a.sb.home, a.dataDir = home, t.TempDir()
+	a.listWorkspaces()
+	tt.Frame()
+	tt.Key(0, ui.Key3) // 文档
+	tt.Frame()
+	// The dialog first (a click right after a drawn menu is the menu's):
+	// 删除 is off on the default, and moves the others to the Trash.
+	tt.Key(0, ui.KeyW)
+	tt.Frame()
+	a.wsPick = "默认工作区"
+	tt.Frame()
+	if b, ok := tt.AccessByRole(ui.RoleButton, "删除"); !ok || !b.Disabled {
+		t.Fatalf("删除 on the default: %v %+v", ok, b)
+	}
+	a.wsPick = "下载"
+	tt.Frame()
+	b, ok := tt.AccessByRole(ui.RoleButton, "删除")
+	if !ok || b.Disabled {
+		t.Fatalf("删除: %v %+v", ok, b)
+	}
+	tt.ClickAt(b.Bounds.X+b.Bounds.W/2, b.Bounds.Y+b.Bounds.H/2)
+	tt.Frame()
+	if slices.Contains(a.wsList, "下载") || len(fs.trashed) != 1 || slices.Contains(loadConfig(a.dataDir).Workspaces, "下载") {
+		t.Fatalf("deleted: %v trashed %v status %q", a.wsList, fs.trashed, a.status)
+	}
+	r, ok := tt.AccessByRole(ui.RoleButton, "重命名")
+	if !ok {
+		t.Fatalf("no 重命名: %q", tt.Texts())
+	}
+	tt.ClickAt(r.Bounds.X+r.Bounds.W/2, r.Bounds.Y+r.Bounds.H/2)
+	tt.Frame()
+	if a.dlg != dlgWsRename || a.dlgTarget != a.wsPick {
+		t.Fatalf("dialog rename: %d %q", a.dlg, a.dlgTarget)
+	}
+	a.dlgOpen = false
+	tt.Frame()
+
+	// The menu of a button: 重命名… opens the rename dialog.
+	if err := tt.RightClick("文档"); err != nil {
+		t.Fatal(err)
+	}
+	if m := menuLabels(tt); !slices.Contains(m, "重命名…") || !slices.Contains(m, "删除") {
+		t.Fatalf("menu %q", m)
+	}
+	if err := tt.ChooseMenuItem("重命名…"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if !a.dlgOpen || a.dlg != dlgWsRename || a.dlgText != "文档" {
+		t.Fatalf("dialog %v %d %q", a.dlgOpen, a.dlg, a.dlgText)
+	}
+	a.dlgText = "我的文档"
+	a.submitDialog()
+	tt.Frame()
+	if !slices.Equal(a.wsList, []string{"默认工作区", "我的文档"}) || a.wsCur != "我的文档" ||
+		!slices.Equal(loadConfig(a.dataDir).Workspaces, a.wsList) {
+		t.Fatalf("renamed: %v cur %q", a.wsList, a.wsCur)
+	}
+	if _, err := os.Stat(a.wsPath("我的文档")); err != nil {
+		t.Fatal(err)
+	}
+	// A taken name is refused.
+	a.renameWorkspace("我的文档", "默认工作区")
+	if !strings.Contains(a.status, "已有") || !slices.Contains(a.wsList, "我的文档") {
+		t.Fatalf("taken: %q %v", a.status, a.wsList)
+	}
+	// The default: renamed, and stays the default; never deleted.
+	a.renameWorkspace("默认工作区", "主页")
+	if a.cfg.DefaultWorkspace != "主页" || loadConfig(a.dataDir).DefaultWorkspace != "主页" || a.wsList[0] != "主页" {
+		t.Fatalf("default renamed: %q %v", a.cfg.DefaultWorkspace, a.wsList)
+	}
+	a.deleteWorkspace("主页")
+	if !slices.Contains(a.wsList, "主页") || len(fs.trashed) != 1 || !strings.Contains(a.status, "不能删除") {
+		t.Fatalf("default deleted: %v %q", a.wsList, a.status)
+	}
+}
+
+// 0.18.4's demo workspaces (Home, Download, Documents) take the Chinese
+// names, in place; Home becomes the default.
+func TestDemoNamesMigrate(t *testing.T) {
+	home := t.TempDir()
+	a, tt, _, _ := setup(t)
+	a.sb.home, a.dataDir = home, t.TempDir()
+	st := workspace.State{Layout: "columns", Panes: []workspace.Pane{{Tabs: []workspace.Tab{{Dir: home}}}}}
+	os.MkdirAll(filepath.Join(a.dataDir, "workspaces"), 0o755)
+	for _, n := range []string{"Home", "Download", "Test1"} {
+		workspace.Write(a.wsPath(n), st)
+	}
+	a.cfg.WorkspacesSeeded, a.cfg.Workspaces, a.wsCur = true, []string{"Home", "Download", "Test1"}, "Download"
+	a.listWorkspaces()
+	tt.Frame()
+	if !slices.Equal(a.wsList, []string{"默认工作区", "下载", "Test1"}) || a.cfg.DefaultWorkspace != "默认工作区" || a.wsCur != "下载" {
+		t.Fatalf("migrated: %v default %q cur %q", a.wsList, a.cfg.DefaultWorkspace, a.wsCur)
+	}
+	// Once only: a later Home stays Home.
+	workspace.Write(a.wsPath("Home"), st)
+	a.listWorkspaces()
+	if !slices.Contains(a.wsList, "Home") {
+		t.Fatalf("migrated again: %v", a.wsList)
 	}
 }

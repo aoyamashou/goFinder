@@ -48,7 +48,7 @@ func TestMenuAccelerators(t *testing.T) {
 		}
 	})
 	cases := map[string]string{
-		"workspace": "Cmd+Alt+W",
+		"workspace": "", // w alone carries no Cmd
 		"go.home":   "Cmd+Shift+H",
 		"settings":  "Cmd+,",
 		"hidden":    "", // first key ., its ⇧⌘. is the window's alone

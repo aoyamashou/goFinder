@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 
 	"github.com/egoist/mygo/transfer"
 	"github.com/egoist/mygo/ui"
@@ -288,23 +289,116 @@ func (a *app) wsPath(name string) string {
 	return workspace.Path(filepath.Join(a.dataDir, "workspaces"), name)
 }
 
-// workspaceDialog lists the saved workspaces off the main thread.
+// workspaceDialog shows the saved workspaces (wsList), the one on screen
+// chosen.
 func (a *app) workspaceDialog() {
 	a.openDialog(dlgWorkspace, nil, "", "")
-	a.wsNames, a.wsPick = nil, ""
-	if a.dataDir == "" {
+	a.wsPick = a.wsCur
+	if a.wsPick == "" && len(a.wsList) > 0 {
+		a.wsPick = a.wsList[0]
+	}
+}
+
+// workspaceRenameDialog asks for workspace name's new name.
+func (a *app) workspaceRenameDialog(name string) {
+	a.openDialog(dlgWsRename, nil, name, name)
+}
+
+// renameWorkspace renames workspace old to name, keeping its place in
+// the order; the default and the one on screen follow it.
+func (a *app) renameWorkspace(old, name string) {
+	name = workspace.CleanName(name)
+	if name == "" || old == "" || a.dataDir == "" {
+		a.status = "请输入工作区名称"
 		return
 	}
-	dir := filepath.Join(a.dataDir, "workspaces")
+	if name == old {
+		return
+	}
+	from, to := a.wsPath(old), a.wsPath(name)
+	order := slices.Clone(a.wsList)
 	a.async(func() {
-		names := workspace.List(dir)
+		var err error
+		if _, e := os.Stat(to); e == nil && !strings.EqualFold(old, name) {
+			err = fmt.Errorf("已有名为「%s」的工作区", name)
+		} else {
+			err = os.Rename(from, to)
+		}
 		a.post(func() {
-			a.wsNames = names
-			if len(names) > 0 && a.wsPick == "" {
-				a.wsPick = names[0]
+			if err != nil {
+				a.status = "无法重命名工作区：" + err.Error()
+				return
 			}
+			if i := slices.Index(order, old); i >= 0 {
+				order[i] = name
+			}
+			a.cfg.Workspaces = order
+			if a.cfg.DefaultWorkspace == old {
+				a.cfg.DefaultWorkspace = name
+			}
+			if a.wsCur == old {
+				a.wsCur = name
+			}
+			if a.wsPick == old {
+				a.wsPick = name
+			}
+			a.wsList = order
+			a.saveConfig()
+			a.status = "已把工作区「" + old + "」重命名为「" + name + "」"
+			a.listWorkspaces()
 		})
 	})
+}
+
+// deleteWorkspace moves workspace name's file to the Trash. The default
+// workspace cannot be deleted, only renamed.
+func (a *app) deleteWorkspace(name string) {
+	if name == "" || a.dataDir == "" {
+		return
+	}
+	if name == a.cfg.DefaultWorkspace {
+		a.status = "默认工作区「" + name + "」不能删除，只能重命名"
+		return
+	}
+	p := a.wsPath(name)
+	a.async(func() {
+		err := a.sys.Trash(p)
+		a.post(func() {
+			if err != nil {
+				a.status = "无法删除工作区：" + err.Error()
+				return
+			}
+			a.cfg.Workspaces = slices.DeleteFunc(slices.Clone(a.cfg.Workspaces), func(n string) bool { return n == name })
+			a.wsList = slices.DeleteFunc(slices.Clone(a.wsList), func(n string) bool { return n == name })
+			if a.wsCur == name {
+				a.wsCur = ""
+			}
+			if a.wsPick == name {
+				a.wsPick = ""
+				if len(a.wsList) > 0 {
+					a.wsPick = a.wsList[0]
+				}
+			}
+			a.saveConfig()
+			a.status = "已删除工作区「" + name + "」（已移到废纸篓）"
+			a.listWorkspaces()
+		})
+	})
+}
+
+// workspaceMenu is a workspace's menu: rename, and delete unless it is
+// the default.
+func (a *app) workspaceMenu(m *ui.Menu, name string) {
+	if m.Item("重命名…").Chosen() {
+		a.workspaceRenameDialog(name)
+	}
+	del := m.Item("删除").Disabled(name == a.cfg.DefaultWorkspace)
+	if name == a.cfg.DefaultWorkspace {
+		del.Tooltip("默认工作区不能删除，只能重命名")
+	}
+	if del.Chosen() {
+		a.deleteWorkspace(name)
+	}
 }
 
 // listWorkspaces reads the saved workspaces' names off the main thread,
@@ -316,20 +410,44 @@ func (a *app) listWorkspaces() {
 	}
 	dir := filepath.Join(a.dataDir, "workspaces")
 	seed, home := !a.cfg.WorkspacesSeeded, a.sb.home
+	migrate := a.cfg.WorkspacesSeeded && a.cfg.DefaultWorkspace == ""
 	if home == "" {
 		home, _ = os.UserHomeDir()
 	}
 	order := slices.Clone(a.cfg.Workspaces)
 	a.async(func() {
 		var made []string
+		var renamed map[string]string
 		if seed && home != "" {
-			made = seedWorkspaces(dir, home)
+			made = seedWorkspaces(dir, home, demoWorkspaces)
+		}
+		if migrate && home != "" {
+			renamed = migrateDemoNames(dir)
+			seedWorkspaces(dir, home, demoWorkspaces[:1]) // the default, if it was gone
 		}
 		names := workspace.List(dir)
 		a.post(func() {
-			if seed {
+			switch {
+			case seed:
 				a.cfg.WorkspacesSeeded = true
+				a.cfg.DefaultWorkspace = demoWorkspaces[0].name
 				a.cfg.Workspaces = append(made, slices.DeleteFunc(slices.Clone(a.cfg.Workspaces), func(n string) bool { return slices.Contains(made, n) })...)
+			case migrate:
+				def := demoWorkspaces[0].name
+				a.cfg.DefaultWorkspace = def
+				for i, n := range a.cfg.Workspaces {
+					if r, ok := renamed[n]; ok {
+						a.cfg.Workspaces[i] = r
+					}
+				}
+				if !slices.Contains(a.cfg.Workspaces, def) {
+					a.cfg.Workspaces = append([]string{def}, a.cfg.Workspaces...)
+				}
+				if r, ok := renamed[a.wsCur]; ok {
+					a.wsCur = r
+				}
+			}
+			if seed || migrate {
 				order = slices.Clone(a.cfg.Workspaces)
 				a.saveConfig()
 			}
@@ -339,19 +457,40 @@ func (a *app) listWorkspaces() {
 }
 
 // demoWorkspaces are the workspaces of the first launch, as the user set
-// them (2026-11-12): home in three columns; Downloads side by side;
-// Documents one above the other.
+// them (2026-11-12): the default one, home in three columns; Downloads
+// side by side; Documents one above the other. The first is the default
+// workspace, which cannot be deleted.
 var demoWorkspaces = []struct{ name, layout, sub string }{
-	{"Home", "columns", ""},
-	{"Download", "dual", "Downloads"},
-	{"Documents", "rows", "Documents"},
+	{"默认工作区", "columns", ""},
+	{"下载", "dual", "Downloads"},
+	{"文档", "rows", "Documents"},
 }
 
-// seedWorkspaces writes the demo workspaces into dir, leaving any of the
-// same name alone, and returns their names.
-func seedWorkspaces(dir, home string) []string {
+// oldDemoNames are the demo workspaces' names of 0.18.4, and their new
+// ones.
+var oldDemoNames = []struct{ old, new string }{{"Home", "默认工作区"}, {"Download", "下载"}, {"Documents", "文档"}}
+
+// migrateDemoNames renames the demo workspaces of 0.18.4 in dir to their
+// Chinese names, where the new name is free, and returns old → new.
+func migrateDemoNames(dir string) map[string]string {
+	out := map[string]string{}
+	for _, d := range oldDemoNames {
+		from, to := workspace.Path(dir, d.old), workspace.Path(dir, d.new)
+		if _, err := os.Stat(to); err == nil {
+			continue
+		}
+		if os.Rename(from, to) == nil {
+			out[d.old] = d.new
+		}
+	}
+	return out
+}
+
+// seedWorkspaces writes demos into dir, leaving any of the same name
+// alone, and returns their names.
+func seedWorkspaces(dir, home string, demos []struct{ name, layout, sub string }) []string {
 	var names []string
-	for _, d := range demoWorkspaces {
+	for _, d := range demos {
 		names = append(names, d.name)
 		p := workspace.Path(dir, d.name)
 		if _, err := os.Stat(p); err == nil {
@@ -499,6 +638,7 @@ func (a *app) workspaceButtons(c *ui.Context) {
 			s.Children(func() {
 				ui.Text(c, name).FontSize(fontCaption).SingleLine().TextColor(col)
 			})
+			s.ContextMenu(func(m *ui.Menu) { a.workspaceMenu(m, name) })
 			if s.Clicked() {
 				a.switchWorkspace(name)
 				a.wantFocus = true
@@ -520,14 +660,33 @@ func (a *app) workspaceView(c *ui.Context) {
 		defer func() { a.dbg(c, wc, "dlg.workspace") }()
 		wc.Children(func() {
 			ui.Text(c, "工作区").Bold()
-			if len(a.wsNames) == 0 {
+			if len(a.wsList) == 0 {
 				ui.Text(c, "还没有保存的工作区").FontSize(12).TextColor(t.TextMuted)
 			} else {
+				if !slices.Contains(a.wsList, a.wsPick) {
+					a.wsPick = a.wsList[0]
+				}
 				ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
-					ui.Select(c.Key("wspick"), &a.wsPick, a.wsNames).Label("工作区").Grow(1)
+					ui.Select(c.Key("wspick"), &a.wsPick, a.wsList).Label("工作区").Grow(1)
 					if ui.PrimaryButton(c.Key("wsrestore"), "切换").Clicked() {
 						a.dlgOpen = false
 						a.switchWorkspace(a.wsPick)
+					}
+				})
+				isDef := a.wsPick == a.cfg.DefaultWorkspace
+				ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
+					if ui.Button(c.Key("wsrename"), "重命名").Clicked() {
+						a.workspaceRenameDialog(a.wsPick)
+					}
+					del := ui.Button(c.Key("wsdelete"), "删除").Disabled(isDef)
+					if isDef {
+						del.Tooltip("默认工作区不能删除，只能重命名")
+					}
+					if del.Clicked() {
+						a.deleteWorkspace(a.wsPick)
+					}
+					if isDef {
+						uiCaption(c, "默认工作区", "muted")
 					}
 				})
 			}
