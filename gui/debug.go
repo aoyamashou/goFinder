@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/egoist/mygo"
-	"github.com/egoist/mygo/plugins/updater"
 	"github.com/egoist/mygo/ui"
 )
 
@@ -165,49 +164,4 @@ func buildInfo() string {
 		out += " · " + t.Local().Format("2006-01-02 15:04")
 	}
 	return out
-}
-
-func (a *app) aboutPage(c *ui.Context) {
-	bundle := a.bundleID
-	if bundle == "" {
-		bundle = fallbackBundleID
-	}
-	row := func(label, value string) {
-		ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
-			ui.Text(c, label).Width(72).TextColor(tok(c, "muted"))
-			ui.Text(c, value).Font("").FontSize(12).SingleLine().Shrink(1).MinWidth(0)
-		})
-	}
-	ui.Text(c, "goFinder").Bold()
-	row("版本", appVersion())
-	if b := buildInfo(); b != "" {
-		row("构建", b)
-	}
-	if a.updates {
-		ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
-			ui.Text(c, "更新").Width(72).TextColor(tok(c, "muted"))
-			if v := updater.AvailableVersion(); v != "" {
-				ui.Text(c, "有新版本 "+v).TextColor(tok(c, "signal"))
-			}
-			if ui.Button(c.Key("about.update"), "检查更新…").Clicked() {
-				updater.CheckForUpdates()
-			}
-		})
-	}
-	row("MyGo", mygoVersion())
-	row("Bundle ID", bundle)
-	if a.dataDir != "" {
-		ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
-			ui.Text(c, "数据目录").Width(72).TextColor(tok(c, "muted"))
-			if ui.Button(c.Key("about.datadir"), a.dataDir).Tooltip("点击复制路径").Clicked() {
-				if a.hasSvc {
-					a.svc.WriteClipboard(a.dataDir)
-				}
-				a.status = "已复制数据目录路径"
-			}
-		})
-	}
-	ui.Divider(c)
-	ui.Checkbox(c.Key("about.debug"), &a.debugOn, "Debug 编号")
-	uiCaption(c, "开启后界面各元素左上角显示固定编号，沟通时说编号即可；只在本次运行有效，编号表见 docs/debug-ids.md", "muted")
 }

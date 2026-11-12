@@ -76,6 +76,7 @@ goFinder 是键盘优先的 macOS 文件管理器（Finder 替代品）。这套
 - 文件列表：Nerd Font 字形（参照 Yazi 与 nerd-fonts 的 seti/dev/md），按类别用 `type-*` 着色；光标所在的文件夹换成“打开的文件夹”字形。
 - 标题栏、状态栏：SF Symbols，`ink`；Agent 按钮用三道光字形，`signal`。
 - 不用 emoji，不用彩色插画（应用图标除外，见下）。
+- 唯一的照片：设置 › 关于页的作者头像，94px，圆角 8，放在作者区右侧。
 
 ### 应用图标
 

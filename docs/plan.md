@@ -1455,6 +1455,23 @@ UX：
 
 **验证**：`go build ./...`、`go vet ./...`、`go tool mygo vet .`、`go tool mygo vet ./gui`、`go test ./...` 通过；`go tool mygo build -skip-installer` 打包成功，签名为 Apple_self_dev。
 
+### 阶段 18 后修订十四：关于页加入 AboutKit 的内容
+> 来源：本开发会话（2026-11-12），用户提出。
+
+**要改什么**：参考作者的关于模块 AboutKit（github.com/aoyamashou/AboutKit，Swift），把其中的内容按 goFinder 设计系统写进设置 › 关于页，不照搬代码。
+
+**实现**（`gui/about.go`，`aboutPage` 从 `debug.go` 移出）
+- 页头：「goFinder」与「版本 X」，右侧「项目仓库」链接按钮（github.com/aoyamashou/goFinder）。
+- 简介一段；作者区：「本应用由Claude Code提携 Corndog 开发。」、别名一行、四个链接按钮（作者网站、X 主页、小红书、GitHub，SF Symbols 或字形图标，悬停显示网址），右侧 94px 圆角头像（`gui/author.jpg`，`go:embed`，只解码一次）。
+- 「版本信息」：原有的构建、更新、MyGo、Bundle ID、数据目录（版本已在页头，不重复）。
+- 「致谢开源项目」：MyGo、Yazi、Nerd Fonts、JetBrains Mono，名字带下划线可点开，后接「作者 · 协议 · 用途」（`muted`）。
+- 「声明」，最后保留原有的 Debug 编号开关。
+- 链接一律通过 `system.OpenURL` 打开，测试里由 `fakeSys` 记录。
+
+**边界**：不放应用图标（设计系统 §8）；不改 Debug 编号机制；AboutKit 的 Debug 按钮与独立关于窗口不搬。
+
+**验证**：`TestAboutPage` 检查各区块文字、头像解码、点开链接的网址；`MYGO_SHOTS` 截图核对浅色和深色；`go vet`、`mygo vet`、`go test ./...` 通过，打包成功。
+
 ## 测试和验证
 - **纯逻辑包写单元测试，用 `go test ./...` 运行**：
   - `keymap`：按键解析、上下文过滤、用户覆盖、冲突检测；

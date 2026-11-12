@@ -250,6 +250,10 @@ func TestChromeShots(t *testing.T) {
 		save("settings")
 		a.setPage = 2
 		save("agents")
+		a.setPage = pageAbout
+		save("about")
+		tt.Scroll(550, 400, 0, 2000)
+		save("about-end")
 	}
 }
 
@@ -778,10 +782,25 @@ func TestAboutPage(t *testing.T) {
 	}
 	tt.Frame()
 	tt.Frame()
-	for _, s := range []string{"版本", "MyGo", mygoVersion(), "Bundle ID", fallbackBundleID, a.dataDir} {
+	for _, s := range []string{"版本 " + appVersion(), "MyGo", mygoVersion(), "Bundle ID", fallbackBundleID, a.dataDir,
+		"项目仓库", "作者网站", "X 主页", "小红书", "GitHub", "致谢开源项目", "Yazi", "声明"} {
 		if !tt.HasText(s) {
 			t.Errorf("about lacks %q: %q", s, tt.Texts())
 		}
+	}
+	if authorAvatar() == nil {
+		t.Error("the avatar does not decode")
+	}
+	sys := a.sys.(*fakeSys)
+	for _, l := range []string{"项目仓库", "小红书", "Yazi"} {
+		if err := tt.Click(l); err != nil {
+			t.Fatal(err)
+		}
+		tt.Frame()
+	}
+	want := []string{repoURL, "https://xhslink.cn/o/2M9LOaUzn01", "https://github.com/sxyazi/yazi"}
+	if !slices.Equal(sys.urls, want) {
+		t.Errorf("opened %q, want %q", sys.urls, want)
 	}
 	if err := tt.Click(a.dataDir); err != nil {
 		t.Fatal(err)
@@ -789,6 +808,8 @@ func TestAboutPage(t *testing.T) {
 	if a.status != "已复制数据目录路径" || tt.Clipboard() != a.dataDir {
 		t.Errorf("copy: %q %q", a.status, tt.Clipboard())
 	}
+	tt.Scroll(550, 400, 0, 2000)
+	tt.Frame()
 	if err := tt.Click("Debug 编号"); err != nil {
 		t.Fatal(err)
 	}

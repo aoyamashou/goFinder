@@ -52,6 +52,7 @@ go tool mygo build -skip-installer    # 打包到 build/darwin-arm64/goFinder.ap
   - `view.go`：布局、文件列表、地址栏、状态栏、对话框，以及 `dispatch`（每帧把键位表转成 `c.Shortcut` 调用）；
   - `columns.go`：Yazi 式三列（上级｜当前｜第 4 栏）、文件行（图标+名称+Git 字母）、列宽计算、长名中间截断、焦点边框；
   - `preview.go`：第 3 栏预览（文本、图片、QuickLook 缩略图：`system.Thumbnail` 调 `qlmanage`，150ms 延迟、3s 超时、缓存在 `Caches/<id>/ql/`）；
+  - `about.go`：设置 › 关于页（项目仓库、作者与链接、头像 `author.jpg`、致谢开源项目、声明，内容取自 AboutKit）；
   - `inspector.go`：检查器（动作 `preview`，默认关闭的窄第 4 栏，只显示属性）；`font.go`：列表字体检测与一键下载（`fontNotice`、设置「通用」页）；
   - `sidebar.go`：侧边栏（Finder 个人收藏、位置、自有收藏夹，SF Symbols 图标）及收藏夹同步；
   - `dnd.go`：文件拖放（拖出用 `DragDataFrom`+`transfer.FileData`，任何元素用 `acceptDrop(e, dir)` 成为拖入目标，复制/移动按 `fsops` 的 Finder 规则）；
