@@ -310,7 +310,7 @@ footer{margin-top:72px;padding-bottom:12px}
   <nav>
     <a class="wm" href="#top" aria-label="goFinder 首页">goFinder<i>.</i></a>
     <div class="links">
-      <a href="#features">特点</a><a href="#perf">性能</a><a href="#keys">键位</a><a href="#faq">问题</a>
+      <a href="#perf">性能</a><a href="#features">特点</a><a href="#keys">键位</a><a href="#faq">问题</a>
       <a class="keep" href="https://github.com/aoyamashou/goFinder">GitHub</a>
     </div>
     <a class="btn sm" href="https://github.com/aoyamashou/goFinder/releases/latest">下载最新版</a>
@@ -333,8 +333,44 @@ footer{margin-top:72px;padding-bottom:12px}
 
   </section>
 
+  <!-- 性能 -->
+  <h2 id="perf" class="rv">小，而且快</h2>
+  <section aria-label="性能">
+    <div class="mosaic">
+      <div class="tile big rv" data-ui style="--i:0">
+        <div class="win">
+          <div class="tb"><div class="dots"><b></b><b></b><b></b></div><div class="path"><b>~</b>/big-folder</div><div class="ttl">10 000 项</div></div>
+          <div class="cols" style="grid-template-columns:1fr 1.6fr 1.6fr">
+            <div class="col"><div class="row dim"><i class="g dir"></i><span class="n">big-folder</span></div><div class="row"><i class="g dir"></i><span class="n">dev</span></div></div>
+            <div class="col focus">
+              <div class="row"><i class="g f img"></i><span class="n">IMG_0001.jpg</span></div><div class="row"><i class="g f img"></i><span class="n">IMG_0002.jpg</span></div><div class="row"><i class="g f img"></i><span class="n">IMG_0003.jpg</span></div><div class="row cur"><i class="g f img"></i><span class="n">IMG_0004.jpg</span></div><div class="row"><i class="g f img"></i><span class="n">IMG_0005.jpg</span></div><div class="row"><i class="g f img"></i><span class="n">IMG_0006.jpg</span></div><div class="row"><i class="g f img"></i><span class="n">IMG_0007.jpg</span></div><div class="row"><i class="g f img"></i><span class="n">IMG_0008.jpg</span></div><div class="row"><i class="g f img"></i><span class="n">IMG_0009.jpg</span></div><div class="row"><i class="g f img"></i><span class="n">IMG_0010.jpg</span></div>
+            </div>
+            <div class="col"><div class="pv">JPEG 图片 · 3.2 MB
+4032 × 3024</div></div>
+          </div>
+          <div class="sb"><div class="l1"><span class="dot"></span><span>读取并排序 25 ms · 进入目录到画出第一帧约 45 ms</span></div></div>
+        </div>
+      </div>
+      <div class="tile fig alt rv" style="--i:1"><div class="n">58<small>MB</small></div><p>空闲内存占用，访达是 183 MB，约三分之一。</p></div>
+      <div class="tile fig sig rv" style="--i:2"><div class="n">45<small>ms</small></div><p>进入有 1 万个文件的目录，到画出第一帧。</p></div>
+    </div>
+    <div class="tile tbl rv">
+      <table>
+        <thead><tr><th scope="col">项目</th><th scope="col">goFinder</th><th scope="col">访达</th></tr></thead>
+        <tbody>
+          <tr><td>空闲内存</td><td>58 MB</td><td>183 MB</td></tr>
+          <tr><td>空闲 CPU</td><td>0.08 s（约 0.1%）</td><td>0.22 s（约 0.4%）</td></tr>
+          <tr><td>1 万个文件：内存</td><td>71–72 MB</td><td>约 240 MB</td></tr>
+          <tr><td>1 万个文件：CPU</td><td>约 0.4 s，从启动到显示</td><td>1.3–2.1 s，打开后 10 秒内</td></tr>
+          <tr><td>启动</td><td>冷启动 530–550 ms</td><td>新窗口 294–312 ms</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">冷启动比访达开新窗口慢约 0.2 秒：访达是系统应用，常驻后台，没有冷启动。界面朴素是因为一切从省出发：不用 WebView，不加载系统文件图标，只给屏幕上看得到的文件夹开文件监听，Quick Look 等光标停下来才生成预览。</p>
+  </section>
+
   <!-- 特点 -->
-  <h2 id="features" class="rv">手不离键盘</h2>
+  <h2 id="features" class="rv">键盘鼠标都优先</h2>
   <section class="feats" aria-label="特点">
     <article class="tile cell rv" style="--i:0">
       <div class="tx"><h3>边打边过滤，认拼音首字母</h3><p>按 f 后立即过滤，1 万个文件也没有延迟。输入 mxcx 就能找到「模型查询.txt」。</p></div>
@@ -377,42 +413,6 @@ footer{margin-top:72px;padding-bottom:12px}
         <div class="sep"></div>
         <div class="del">移到废纸篓<span class="kb">d</span></div></div></div>
     </article>
-  </section>
-
-  <!-- 性能 -->
-  <h2 id="perf" class="rv">小，而且快</h2>
-  <section aria-label="性能">
-    <div class="mosaic">
-      <div class="tile big rv" data-ui style="--i:0">
-        <div class="win">
-          <div class="tb"><div class="dots"><b></b><b></b><b></b></div><div class="path"><b>~</b>/big-folder</div><div class="ttl">10 000 项</div></div>
-          <div class="cols" style="grid-template-columns:1fr 1.6fr 1.6fr">
-            <div class="col"><div class="row dim"><i class="g dir"></i><span class="n">big-folder</span></div><div class="row"><i class="g dir"></i><span class="n">dev</span></div></div>
-            <div class="col focus">
-              <div class="row"><i class="g f img"></i><span class="n">IMG_0001.jpg</span></div><div class="row"><i class="g f img"></i><span class="n">IMG_0002.jpg</span></div><div class="row"><i class="g f img"></i><span class="n">IMG_0003.jpg</span></div><div class="row cur"><i class="g f img"></i><span class="n">IMG_0004.jpg</span></div><div class="row"><i class="g f img"></i><span class="n">IMG_0005.jpg</span></div><div class="row"><i class="g f img"></i><span class="n">IMG_0006.jpg</span></div><div class="row"><i class="g f img"></i><span class="n">IMG_0007.jpg</span></div><div class="row"><i class="g f img"></i><span class="n">IMG_0008.jpg</span></div><div class="row"><i class="g f img"></i><span class="n">IMG_0009.jpg</span></div><div class="row"><i class="g f img"></i><span class="n">IMG_0010.jpg</span></div>
-            </div>
-            <div class="col"><div class="pv">JPEG 图片 · 3.2 MB
-4032 × 3024</div></div>
-          </div>
-          <div class="sb"><div class="l1"><span class="dot"></span><span>读取并排序 25 ms · 进入目录到画出第一帧约 45 ms</span></div></div>
-        </div>
-      </div>
-      <div class="tile fig alt rv" style="--i:1"><div class="n">58<small>MB</small></div><p>空闲内存占用，访达是 183 MB，约三分之一。</p></div>
-      <div class="tile fig sig rv" style="--i:2"><div class="n">45<small>ms</small></div><p>进入有 1 万个文件的目录，到画出第一帧。</p></div>
-    </div>
-    <div class="tile tbl rv">
-      <table>
-        <thead><tr><th scope="col">项目</th><th scope="col">goFinder</th><th scope="col">访达</th></tr></thead>
-        <tbody>
-          <tr><td>空闲内存</td><td>58 MB</td><td>183 MB</td></tr>
-          <tr><td>空闲 CPU</td><td>0.08 s（约 0.1%）</td><td>0.22 s（约 0.4%）</td></tr>
-          <tr><td>1 万个文件：内存</td><td>71–72 MB</td><td>约 240 MB</td></tr>
-          <tr><td>1 万个文件：CPU</td><td>约 0.4 s，从启动到显示</td><td>1.3–2.1 s，打开后 10 秒内</td></tr>
-          <tr><td>启动</td><td>冷启动 530–550 ms</td><td>新窗口 294–312 ms</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="note">冷启动比访达开新窗口慢约 0.2 秒：访达是系统应用，常驻后台，没有冷启动。界面朴素是因为一切从省出发：不用 WebView，不加载系统文件图标，只给屏幕上看得到的文件夹开文件监听，Quick Look 等光标停下来才生成预览。</p>
   </section>
 
   <!-- 键位 -->
