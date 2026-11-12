@@ -31,7 +31,7 @@ osascript -e 'quit app id "io.github.aoyamashou.gofinder"'; rm -rf /Applications
   gh release edit v<版本> --draft=false --latest   # 发布后已安装的应用才能检查到
   ```
   私钥只在本机，绝不进仓库；不带私钥的 `mygo build` 照常打包，只是不生成更新文件。
-- 仓库公开在 github.com/aoyamashou/goFinder（2026-11-12 起），提交后推送 `origin main`；提交内容不得含个人信息（本机用户名、邮箱、密钥）。
+- 仓库公开在 github.com/aoyamashou/goFinder（2026-11-12 起），提交后推送 `origin main`；提交内容不得含邮箱、密钥等个人信息。公开仓库从提交 41200b5 开始，之前的历史只留在本机：分支 `history-local`，并用 `git replace --graft` 接在 41200b5 之后（只在本机生效，不推送 `refs/replace`），所以本机 `git log` 能看到完整历史，文档里记的旧 commit 号在 GitHub 上查不到。
 - 版本号在 `mygo.json` 的 `version`，格式 `0.阶段.修订`：完成一个新阶段时把中间位改成阶段号、末位归 0，阶段之后的小修复末位 +1；关于页还会显示构建的 commit 和时间。
 - **每次打包后**都用上面最后一条命令：退出正在运行的 goFinder，用新版本覆盖 `/Applications/goFinder.app` 并打开（用户要求，2026-11-12）。
 
