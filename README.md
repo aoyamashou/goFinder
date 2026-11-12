@@ -14,6 +14,9 @@
 goFinder 是一个针对键盘鼠标同时使用的用户的，以简洁、高速、低资源占用为设计目标的，将原生访达（Finder）和 [Yazi](https://github.com/sxyazi/yazi) 文件管理器的长处融在了一起的文件管理器。
 
 简单理解就是：goFinder是改用Yazi为主体的Finder，或者说，是加上了鼠标适配，脱离了终端的Yazi。全程由官方直连的Opus 5.5编写，编码水平有保证，连这个Readme也是Opus给你写的，原汁原味。
+
+<p align="center"><img src="docs/images/screenshot.png" alt="goFinder 界面：侧边栏、上下双栏，下方窗格预览图片，底部两行快捷键提示"></p>
+
 ## 特点
 
 - 极小体积，极低内存占用，极低CPU占用，一切追求实用性。
