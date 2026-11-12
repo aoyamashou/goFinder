@@ -227,13 +227,8 @@ func TestCopyPasteAcrossPanes(t *testing.T) {
 	}
 }
 
-func TestTabsAndAddressBar(t *testing.T) {
+func TestAddressBar(t *testing.T) {
 	a, tt, _, root := setup(t)
-	tt.Key(ui.Cmd, ui.KeyT)
-	tt.Frame()
-	if len(a.pane().tabs) != 2 || a.pane().cur != 1 {
-		t.Fatalf("tabs %d cur %d", len(a.pane().tabs), a.pane().cur)
-	}
 	tt.Key(ui.Cmd, ui.KeyL)
 	tt.Frame()
 	if !a.pane().addrEditing {
@@ -245,17 +240,6 @@ func TestTabsAndAddressBar(t *testing.T) {
 	tt.Frame()
 	if a.tab().t.Dir != filepath.Join(root, "beta") || a.pane().addrEditing {
 		t.Fatalf("address went to %s (editing %v)", a.tab().t.Dir, a.pane().addrEditing)
-	}
-	tt.Key(ui.Cmd, ui.Key1)
-	tt.Frame()
-	if a.pane().cur != 0 || a.tab().t.Dir != root {
-		t.Fatalf("⌘1: cur %d dir %s", a.pane().cur, a.tab().t.Dir)
-	}
-	tt.Key(ui.Cmd, ui.Key2)
-	tt.Key(ui.Cmd, ui.KeyW)
-	tt.Frame()
-	if len(a.pane().tabs) != 1 {
-		t.Fatalf("⌘W left %d tabs", len(a.pane().tabs))
 	}
 }
 

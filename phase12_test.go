@@ -34,7 +34,7 @@ func TestDefaultToolbarOrder(t *testing.T) {
 	}
 	a, tt, _, _ := setup(t)
 	var xs []float32
-	for _, n := range []string{"‹ 后退", "前进 ›", "上级目录", "废纸篓", "Workspace…", "显示/隐藏暂存架", "过滤当前文件夹"} {
+	for _, n := range []string{"‹ 后退", "前进 ›", "上级目录", "废纸篓", "工作区…", "显示/隐藏暂存架", "过滤当前文件夹"} {
 		xs = append(xs, tbButton(t, tt, n).Bounds.X)
 	}
 	if !slices.IsSorted(xs) {

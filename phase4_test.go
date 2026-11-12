@@ -122,19 +122,19 @@ func TestRecordKey(t *testing.T) {
 		t.Fatal(err)
 	}
 	tt.Frame()
-	tt.Key(ui.Cmd, ui.KeyT) // ⌘T: new tab's, and must not open a tab
+	tt.Key(ui.Cmd, ui.KeyL) // ⌘L: the address's, and must not open it
 	tt.Frame()
-	if a.recording != "" || len(a.pane().tabs) != 1 {
-		t.Fatalf("recording %q tabs %d", a.recording, len(a.pane().tabs))
+	if a.recording != "" || a.pane().addrEditing {
+		t.Fatalf("recording %q address %v", a.recording, a.pane().addrEditing)
 	}
-	if id, _ := a.km.Lookup(keymap.MustParse("Cmd+T")); id != "refresh" {
-		t.Fatalf("⌘T → %q", id)
+	if id, _ := a.km.Lookup(keymap.MustParse("Cmd+L")); id != "refresh" {
+		t.Fatalf("⌘L → %q", id)
 	}
 	m, err := keymap.ReadOverrides(a.kmPath)
-	if err != nil || !slices.Equal(m["refresh"], []string{"Cmd+T"}) || m["tab.new"] == nil || len(m["tab.new"]) != 0 {
+	if err != nil || !slices.Equal(m["refresh"], []string{"Cmd+L"}) || slices.Contains(m["addr"], "Cmd+L") {
 		t.Fatalf("keymap.json %v %v", m, err)
 	}
-	// Back to the defaults: ⌘R; tab.new keeps having none until reset.
+	// Back to the defaults: ⌘R; addr keeps g alone until reset.
 	if err := tt.Click("改键"); err != nil {
 		t.Fatal(err)
 	}
@@ -262,16 +262,16 @@ func TestDefaultFileViewer(t *testing.T) {
 	}
 }
 
-// A folder the system opens comes up in a new tab; a file, in its folder
-// with the file chosen.
+// A folder the system opens comes up in the active pane (no tabs); a
+// file, in its folder with the file chosen.
 func TestOpenPath(t *testing.T) {
 	a, tt, _, root := setupWith(t, testConfig(), "")
-	a.openPath(filepath.Join(root, "alpha"), true)
+	a.openPath(filepath.Join(root, "alpha"))
 	tt.Frame()
-	if len(a.pane().tabs) != 2 || a.tab().t.Dir != filepath.Join(root, "alpha") {
-		t.Fatalf("tabs %d dir %s", len(a.pane().tabs), a.tab().t.Dir)
+	if a.tab().t.Dir != filepath.Join(root, "alpha") {
+		t.Fatalf("dir %s", a.tab().t.Dir)
 	}
-	a.openPath(filepath.Join(root, "notes.md"), true)
+	a.openPath(filepath.Join(root, "notes.md"))
 	tt.Frame()
 	if a.tab().t.Dir != root || cursorName(a) != "notes.md" {
 		t.Fatalf("file: dir %s cursor %q", a.tab().t.Dir, cursorName(a))

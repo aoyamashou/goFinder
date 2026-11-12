@@ -38,7 +38,6 @@
 | 30 | `addr.capsule` | 地址栏胶囊 | `view.go` `addressBar` |
 | 31 | `addr.crumbs` | 面包屑 | `view.go` `addressBar` |
 | 32 | `addr.git` | Git 分支标记 | `view.go` `addressBar` |
-| 33 | `addr.tabs` | 窗格的标签页条（多于 1 个标签时） | `view.go` `paneHead` |
 | 34 | `addr.filter` | 过滤框 | `app.go` `filterBox` |
 | 40 | `col.parent` | 上级栏 | `columns.go` `parentView` |
 | 41 | `col.current` | 当前栏（文件列表） | `columns.go` `columnsView` |

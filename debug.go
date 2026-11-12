@@ -49,7 +49,6 @@ var debugIDs = map[string]int{
 	"addr.capsule": 30,
 	"addr.crumbs":  31,
 	"addr.git":     32,
-	"addr.tabs":    33,
 	"addr.filter":  34,
 
 	// 三列、检查器、暂存架

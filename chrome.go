@@ -659,6 +659,7 @@ func (a *app) statusBar(c *ui.Context, t *ui.Theme) {
 				uiCaption(c.Key("sb:text"), a.status, "muted").SingleLine().Shrink(1).MinWidth(0)
 			})
 			a.dbg(c, msg, "status.msg")
+			uiCaption(c.Key("sb:start"), a.startLabel(), "muted").SingleLine().Shrink(1).MinWidth(0).Tooltip(a.tip("go.start", "按此键回到起点"))
 			a.fontNotice(c)
 			layoutSel := 0
 			for i, l := range layoutButtons {

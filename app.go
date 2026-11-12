@@ -102,8 +102,7 @@ func paths(es []vfs.Entry) []string {
 }
 
 type paneState struct {
-	tabs []*tabState
-	cur  int
+	ts *tabState // a pane has one folder: workspaces take the place of tabs
 
 	addrEditing bool
 	addrText    string
@@ -123,7 +122,7 @@ type paneState struct {
 	insp    inspState
 }
 
-func (p *paneState) tab() *tabState { return p.tabs[p.cur] }
+func (p *paneState) tab() *tabState { return p.ts }
 
 const (
 	dlgNone = iota
@@ -265,6 +264,13 @@ type app struct {
 	// The workspace dialog: saved names, and the one chosen.
 	wsNames []string
 	wsPick  string
+	// The workspaces switched with 1–9, [ and ]: the saved ones by name,
+	// the one on screen ("" for none: goFinder starts in none), its index
+	// for the strip, and a switch on its way (one at a time).
+	wsList []string
+	wsCur  string
+	wsSel  int
+	wsBusy bool
 
 	git      map[string]*gitRepo // by repository root
 	gitDelay time.Duration       // waits for changes to settle before git runs
@@ -291,7 +297,7 @@ func newApp(km *keymap.Keymap, sys system, cfg config, start string) *app {
 		ag:        newAgentState(),
 	}
 	for i := range a.panes {
-		a.panes[i] = &paneState{tabs: []*tabState{newTabState(start, cfg.ShowHidden)}}
+		a.panes[i] = &paneState{ts: newTabState(start, cfg.ShowHidden)}
 	}
 	return a
 }
@@ -307,6 +313,7 @@ func (a *app) start() {
 	a.loadTemplates()
 	a.loadFavorites()
 	a.loadShelf()
+	a.listWorkspaces()
 }
 
 // setWarnings keeps what the keymap and config.json could not apply, for
@@ -401,18 +408,16 @@ func (a *app) load(ts *tabState) {
 // syncWatches watches the folders on screen and nothing else.
 func (a *app) syncWatches() {
 	for pi, p := range a.panes {
-		for ti, ts := range p.tabs {
-			visible := pi < a.visiblePanes() && ti == p.cur
-			if !visible || ts.watched != ts.t.Dir {
-				if ts.stop != nil {
-					ts.stop()
-					ts.stop, ts.watched = nil, ""
-				}
+		ts, visible := p.ts, pi < a.visiblePanes()
+		if !visible || ts.watched != ts.t.Dir {
+			if ts.stop != nil {
+				ts.stop()
+				ts.stop, ts.watched = nil, ""
 			}
-			if visible && ts.stop == nil && ts.loaded && ts.err == "" && !vfs.InZip(ts.t.Dir) {
-				ts.watched = ts.t.Dir
-				ts.stop = a.sys.Watch(ts.t.Dir, func() { a.post(func() { a.load(ts) }) })
-			}
+		}
+		if visible && ts.stop == nil && ts.loaded && ts.err == "" && !vfs.InZip(ts.t.Dir) {
+			ts.watched = ts.t.Dir
+			ts.stop = a.sys.Watch(ts.t.Dir, func() { a.post(func() { a.load(ts) }) })
 		}
 	}
 }
@@ -720,8 +725,9 @@ func (a *app) runCommand(ts *tabState, id string) {
 }
 
 // openPath shows a folder the system asked the app to open (Dock, "open
-// -a", the default file viewer), or a file in its folder, in a new tab.
-func (a *app) openPath(path string, newTab bool) {
+// -a", the default file viewer), or a file in its folder, in the active
+// pane: goFinder has one window and no tabs.
+func (a *app) openPath(path string) {
 	st, err := os.Stat(path)
 	if err != nil {
 		a.status = "找不到：" + path
@@ -730,9 +736,6 @@ func (a *app) openPath(path string, newTab bool) {
 	dir := path
 	if !st.IsDir() {
 		dir = filepath.Dir(path)
-	}
-	if newTab {
-		a.run("tab.new")
 	}
 	ts := a.tab()
 	moved := ts.t.Go(dir)
@@ -902,8 +905,9 @@ func (a *app) run(id string) {
 			p.addrText += "/"
 		}
 	case "go.start":
-		// The folder 启动时从这里开始 chose, while it is there; else ~.
-		if d := a.cfg.StartDir; d != "" {
+		// The folder 启动时从这里开始 chose for this pane, while it is
+		// there; else ~. The two panes keep their own.
+		if d := *a.startDirOf(a.active); d != "" {
 			if fi, err := os.Stat(d); err == nil && fi.IsDir() {
 				a.navigate(ts, d)
 				break
@@ -994,29 +998,10 @@ func (a *app) run(id string) {
 			a.status = noAgentHint
 		}
 
-	case "tab.new":
-		nt := newTabState(ts.t.Dir, ts.t.ShowHidden)
-		p.tabs = append(p.tabs[:p.cur+1], append([]*tabState{nt}, p.tabs[p.cur+1:]...)...)
-		p.cur++
-		a.load(nt)
-		a.wantFocus = true
-	case "tab.close":
-		if len(p.tabs) > 1 {
-			if ts.stop != nil {
-				ts.stop()
-			}
-			p.tabs = append(p.tabs[:p.cur], p.tabs[p.cur+1:]...)
-			if p.cur >= len(p.tabs) {
-				p.cur = len(p.tabs) - 1
-			}
-			a.wantFocus = true
-		}
-	case "tab.next":
-		p.cur = (p.cur + 1) % len(p.tabs)
-		a.wantFocus = true
-	case "tab.prev":
-		p.cur = (p.cur + len(p.tabs) - 1) % len(p.tabs)
-		a.wantFocus = true
+	case "ws.next":
+		a.stepWorkspace(1)
+	case "ws.prev":
+		a.stepWorkspace(-1)
 	case "pane.switch":
 		// Tab: between the two panes, else between the sidebar and the
 		// files; from the sidebar, back to the files.
@@ -1081,9 +1066,8 @@ func (a *app) run(id string) {
 			return
 		}
 		var n int
-		if _, err := fmt.Sscanf(id, "tab.%d", &n); err == nil && n >= 1 && n <= len(p.tabs) {
-			p.cur = n - 1
-			a.wantFocus = true
+		if _, err := fmt.Sscanf(id, "ws.%d", &n); err == nil && n >= 1 {
+			a.workspaceAt(n)
 		}
 	}
 }

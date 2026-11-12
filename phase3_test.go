@@ -72,51 +72,93 @@ func TestShelf(t *testing.T) {
 	}
 }
 
+// Workspaces take the place of tabs: saved from the dialog, switched with
+// 1–9, [ ] and the strip; the one left is saved as it was.
 func TestWorkspaceSaveRestore(t *testing.T) {
 	a, tt, _, root := setup(t)
 	a.dataDir = t.TempDir()
 	alpha := filepath.Join(root, "alpha")
-	tt.Key(ui.Cmd, ui.KeyT)
-	tt.Frame()
 	a.navigate(a.tab(), alpha)
 	a.tab().sort = ui.SortOrder{Column: "size", Descending: true}
 	tt.Key(ui.Cmd|ui.Alt, ui.Key4)
 	tt.Frame()
-	want := a.snapshot()
 
+	save := func(name string) {
+		t.Helper()
+		tt.Key(ui.Cmd|ui.Alt, ui.KeyW)
+		tt.Frame()
+		if !a.dlgOpen || a.dlg != dlgWorkspace {
+			t.Fatalf("⌘⌥W dialog: open %v", a.dlgOpen)
+		}
+		a.dlgText = name
+		tt.Frame()
+		tt.Key(0, ui.KeyEnter)
+		tt.Frame()
+		if _, err := os.Stat(a.wsPath(name)); err != nil || a.wsCur != name {
+			t.Fatalf("not saved: %v cur %q (%s)", err, a.wsCur, a.status)
+		}
+	}
 	tt.Key(ui.Cmd|ui.Alt, ui.KeyW)
 	tt.Frame()
-	if !a.dlgOpen || a.dlg != dlgWorkspace || !tt.HasText("还没有保存的 Workspace") {
-		t.Fatalf("⌘⌥W dialog: open %v %q", a.dlgOpen, tt.Texts())
+	if !tt.HasText("还没有保存的工作区") {
+		t.Fatalf("empty dialog %q", tt.Texts())
 	}
-	a.dlgText = "写代码"
+	a.dlgOpen = false
 	tt.Frame()
-	tt.Key(0, ui.KeyEnter)
-	tt.Frame()
-	if _, err := os.Stat(a.wsPath("写代码")); err != nil {
-		t.Fatalf("not saved: %v (%s)", err, a.status)
-	}
+	save("写代码")
 
-	// Change everything, then restore from the dialog.
+	// A second one: three columns at the root.
 	tt.Key(ui.Cmd|ui.Alt, ui.Key3)
-	tt.Key(ui.Cmd, ui.KeyW)
+	a.navigate(a.tab(), root)
 	tt.Frame()
+	save("读文档")
+	if !slices.Equal(a.wsList, []string{"写代码", "读文档"}) || !tt.HasText("1 写代码") {
+		t.Fatalf("list %v, strip missing", a.wsList)
+	}
+
+	tt.Key(0, ui.Key1)
+	tt.Frame()
+	got := a.snapshot()
+	if a.wsCur != "写代码" || got.Layout != "rows" || got.Panes[0].Tabs[0] != (workspace.Tab{Dir: alpha, Sort: "size", Desc: true}) {
+		t.Fatalf("1: cur %q %+v", a.wsCur, got)
+	}
+	if a.tab().t.Dir != alpha || !tt.HasText("inside.txt") {
+		t.Fatalf("restored pane not loaded: %s", a.tab().t.Dir)
+	}
+	// Left as it is now, and found so on coming back.
+	a.navigate(a.tab(), root)
+	tt.Frame()
+	tt.Key(0, ui.KeyBracketRight)
+	tt.Frame()
+	if a.wsCur != "读文档" || a.layout != layoutColumns {
+		t.Fatalf("]: cur %q layout %d", a.wsCur, a.layout)
+	}
+	tt.Key(0, ui.KeyBracketLeft)
+	tt.Frame()
+	if a.wsCur != "写代码" || a.tab().t.Dir != root || a.layout != layoutRows {
+		t.Fatalf("[: cur %q dir %s", a.wsCur, a.tab().t.Dir)
+	}
+	tt.Key(ui.Cmd, ui.Key2)
+	tt.Frame()
+	if a.wsCur != "读文档" {
+		t.Fatalf("⌘2: cur %q", a.wsCur)
+	}
+	tt.Key(0, ui.Key9)
+	tt.Frame()
+	if a.wsCur != "读文档" || !strings.Contains(a.status, "没有第 9 个工作区") {
+		t.Fatalf("9: cur %q status %q", a.wsCur, a.status)
+	}
+	// From the dialog.
 	tt.Key(ui.Cmd|ui.Alt, ui.KeyW)
 	tt.Frame()
-	if a.wsPick != "写代码" {
-		t.Fatalf("dialog lists %v", a.wsNames)
-	}
-	if err := tt.Click("恢复"); err != nil {
+	a.wsPick = "写代码"
+	tt.Frame()
+	if err := tt.Click("切换"); err != nil {
 		t.Fatal(err)
 	}
 	tt.Frame()
-	got := a.snapshot()
-	if got.Layout != "rows" || len(got.Panes[0].Tabs) != 2 || got.Panes[0].Cur != 1 ||
-		got.Panes[0].Tabs[1] != (workspace.Tab{Dir: alpha, Sort: "size", Desc: true}) {
-		t.Fatalf("restored %+v, want %+v", got, want)
-	}
-	if a.tab().t.Dir != alpha || !tt.HasText("inside.txt") {
-		t.Fatalf("restored tab not loaded: %s", a.tab().t.Dir)
+	if a.wsCur != "写代码" || a.layout != layoutRows {
+		t.Fatalf("dialog: cur %q", a.wsCur)
 	}
 }
 

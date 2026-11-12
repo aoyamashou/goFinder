@@ -294,6 +294,9 @@ type config struct {
 	// StartDir is the folder the window opens in, set by a folder's
 	// 启动时从这里开始; "" (or a folder gone) is Finder's new-window place.
 	StartDir string `json:"startDir,omitempty"`
+	// StartDir2 is the second pane's (dual and rows layouts): each pane
+	// keeps its own, for 启动时从这里开始 and ` alike.
+	StartDir2 string `json:"startDir2,omitempty"`
 	// Version is the config's format; before 7, the toolbar was off by
 	// default and written as [], which now means the default toolbar.
 	Version int `json:"version"`

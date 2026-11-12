@@ -40,7 +40,10 @@ func (a *app) view(c *ui.Context) {
 			if a.sb.show {
 				a.sidebar(c)
 			}
-			ui.Column(c).Grow(1).Background(t.Background).Children(func() { a.body(c) })
+			ui.Column(c).Grow(1).Background(t.Background).Children(func() {
+				a.workspaceStrip(c)
+				a.body(c)
+			})
 			if a.sh.show {
 				a.shelfView(c)
 			}
@@ -164,20 +167,9 @@ func (a *app) shiftedKey(ev ui.InputEvent) bool {
 	return true
 }
 
-// paneHead is the pane's tabs, when it has several, and its address bar.
+// paneHead is the pane's address bar, and its filter box.
 func (a *app) paneHead(c *ui.Context, pi int) {
 	p := a.panes[pi]
-	if len(p.tabs) > 1 {
-		titles := make([]string, len(p.tabs))
-		for i, tb := range p.tabs {
-			titles[i] = fmt.Sprintf("%d %s", i+1, tb.t.Title())
-		}
-		tabs := ui.Tabs(c, &p.cur, titles...)
-		a.dbg(c, tabs, "addr.tabs", pi)
-		if tabs.Changed() {
-			a.active, a.wantFocus = pi, true
-		}
-	}
 	a.addressBar(c, pi, p, p.tab())
 	// Always one element here, so the ones after it keep their identity
 	// (and the list its focus) as the box comes and goes.
@@ -312,7 +304,7 @@ func (a *app) contextMenu(m *ui.Menu, pi int, ts *tabState, e vfs.Entry) {
 // contextMenuPre is contextMenu, running pre (when not nil) before the
 // item chosen: the third column enters the folder its row is in then.
 func (a *app) contextMenuPre(m *ui.Menu, pi int, ts *tabState, e vfs.Entry, pre func()) {
-	defer a.startHereItem(m, e)
+	defer a.startHereItem(m, pi, e)
 	a.active = pi
 	ids := a.cfg.ContextMenu
 	if ids == nil {

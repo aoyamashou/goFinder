@@ -39,11 +39,11 @@ go tool mygo build -skip-installer    # 打包到 build/darwin-arm64/goFinder.ap
 - `internal/` 是纯逻辑包，不依赖 MyGo，可以单独测试：
   - `keymap`：动作、键位和用户覆盖，是快捷键的唯一来源；`Override` 逐条应用并返回冲突说明（覆盖优先于默认，覆盖之间按动作顺序）；
   - `vfs`：列目录、路径补全、面包屑；`zip.go` 把 zip 当只读文件夹（路径 `/x/a.zip!/sub`，`SplitZip`/`Open`/`Extract`）；
-  - `pane`：单个标签页的位置、历史、排序、过滤和 Quick Select 匹配；
+  - `pane`：一个窗格（无多标签）的位置、历史、排序、过滤和 Quick Select 匹配；
   - `fsops`：复制、移动、重命名、新建。删除只通过 `system.Trash` 移到废纸篓，从不永久删除。从 zip 复制即解压，写入 zip 返回 `vfs.ErrReadOnly`；
   - `templates`：新建文件的模板目录；`favorites`：收藏夹 `Store`、iCloud 路径、迁移和三方合并 `Merge`；
   - `shellcmd`：自定义命令的 `{path}`/`{selection}` 展开（逐个 sh 单引号转义）与运行；
-  - `shelf`：暂存架列表与 `shelf.json`；`workspace`：布局/标签页序列化（`workspaces/*.json`）；`git`：查找仓库根、解析 `git status --porcelain=v2`；`finder`：只读解析 Finder 侧边栏（sfl3/sfl4：bplist + NSKeyedArchiver + bookmark）与新窗口起始位置；
+  - `shelf`：暂存架列表与 `shelf.json`；`workspace`：工作区（布局与各窗格文件夹）序列化（`workspaces/*.json`，`1`–`9`、`[` `]` 切换）；`git`：查找仓库根、解析 `git status --porcelain=v2`；`finder`：只读解析 Finder 侧边栏（sfl3/sfl4：bplist + NSKeyedArchiver + bookmark）与新窗口起始位置；
   - `icons`：文件名/扩展名/属性（目录、链接、可执行、仓库根）→ Nerd Font 字形和颜色（参照 Yazi 与 nerd-fonts），隐藏项变暗；
   - `finfo`：检查器的属性（`Stat`：种类、大小、创建/修改/访问时间、权限、所有者）和文件夹统计（`Count`，有上限）。
 - 根目录的 `package main` 是界面层：
@@ -57,7 +57,7 @@ go tool mygo build -skip-installer    # 打包到 build/darwin-arm64/goFinder.ap
   - `workflow.go`：暂存架面板、Workspace 对话框（启动总在 `~`，不自动恢复会话）；`gitstatus.go`：Git 状态缓存与防抖；
   - `sys.go`：`system` 接口（含 shell 命令、`NSFileViewer` 读写）和 `config.json` 读取。设为默认浏览器会改用户系统设置，只在测试里用 `fakeSys` 验证，不要在本机实际执行。
 - **线程模型**：耗时的读写通过 `a.async` 放到 goroutine，结果通过 `a.post`（即 `win.Update`）回到主线程。`tabState.seq` 和 `previewState.seq` 用来丢弃过期结果。测试里把 `async` 和 `post` 换成同步执行，`system` 换成 `fakeSys`（见 `main_test.go`）。
-- **文件监听**：`syncWatches` 只监听屏幕上可见标签页的目录，使用 `HintsOnly` 模式，收到变化后重新读取目录。
+- **文件监听**：`syncWatches` 只监听屏幕上可见窗格的目录，使用 `HintsOnly` 模式，收到变化后重新读取目录。
 - **用户配置**：放在 `~/Library/Application Support/goFinder/`，包括 `config.json`（终端和编辑器的应用名、是否显示隐藏文件和侧边栏、`contextMenu`、`toolbar`、`commands`）、`keymap.json`（按动作 ID 覆盖键位）、`templates/`、`shelf.json`、`workspaces/`；收藏夹在 iCloud Drive 的 `goFinder/favorites.json`（无 iCloud 时在数据目录）。
 
 ## 文档索引

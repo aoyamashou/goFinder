@@ -217,11 +217,8 @@ func (a *app) snapshot() workspace.State {
 		ShowPreview: a.showPreview, ShowShelf: a.sh.show,
 	}
 	for _, p := range a.panes {
-		wp := workspace.Pane{Cur: p.cur}
-		for _, ts := range p.tabs {
-			wp.Tabs = append(wp.Tabs, workspace.Tab{Dir: ts.t.Dir, Sort: ts.sort.Column, Desc: ts.sort.Descending})
-		}
-		s.Panes = append(s.Panes, wp)
+		ts := p.ts
+		s.Panes = append(s.Panes, workspace.Pane{Tabs: []workspace.Tab{{Dir: ts.t.Dir, Sort: ts.sort.Column, Desc: ts.sort.Descending}}})
 	}
 	return s
 }
@@ -254,25 +251,21 @@ func (a *app) applyState(s workspace.State) {
 		return
 	}
 	for _, p := range a.panes {
-		for _, ts := range p.tabs {
-			if ts.stop != nil {
-				ts.stop()
-			}
+		if p.ts.stop != nil {
+			p.ts.stop()
 		}
 	}
 	hidden := a.cfg.ShowHidden
 	for i := range a.panes {
+		// Files of the days of tabs keep the pane's current one.
 		wp := s.Panes[min(i, len(s.Panes)-1)]
-		p := &paneState{cur: wp.Cur}
-		for _, wt := range wp.Tabs {
-			ts := newTabState(wt.Dir, hidden)
-			if _, ok := sortKeys[wt.Sort]; ok {
-				ts.sort = ui.SortOrder{Column: wt.Sort, Descending: wt.Desc}
-				ts.t.SetSort(sortKeys[wt.Sort], wt.Desc)
-			}
-			p.tabs = append(p.tabs, ts)
+		wt := wp.Tabs[wp.Cur]
+		ts := newTabState(wt.Dir, hidden)
+		if _, ok := sortKeys[wt.Sort]; ok {
+			ts.sort = ui.SortOrder{Column: wt.Sort, Descending: wt.Desc}
+			ts.t.SetSort(sortKeys[wt.Sort], wt.Desc)
 		}
-		a.panes[i] = p
+		a.panes[i] = &paneState{ts: ts}
 	}
 	a.layout = layoutOf(s.Layout)
 	a.active = s.Active
@@ -286,9 +279,7 @@ func (a *app) applyState(s workspace.State) {
 
 func (a *app) loadAll() {
 	for _, p := range a.panes {
-		for _, ts := range p.tabs {
-			a.load(ts)
-		}
+		a.load(p.ts)
 	}
 }
 
@@ -315,10 +306,24 @@ func (a *app) workspaceDialog() {
 	})
 }
 
+// listWorkspaces reads the saved workspaces' names off the main thread.
+func (a *app) listWorkspaces() {
+	if a.dataDir == "" {
+		return
+	}
+	dir := filepath.Join(a.dataDir, "workspaces")
+	a.async(func() {
+		names := workspace.List(dir)
+		a.post(func() { a.wsList = names })
+	})
+}
+
+// saveWorkspace saves the screen as workspace name, which becomes the
+// one on screen.
 func (a *app) saveWorkspace(name string) {
 	name = workspace.CleanName(name)
 	if name == "" || a.dataDir == "" {
-		a.status = "请输入 Workspace 名称"
+		a.status = "请输入工作区名称"
 		return
 	}
 	p, s := a.wsPath(name), a.snapshot()
@@ -326,34 +331,100 @@ func (a *app) saveWorkspace(name string) {
 		err := workspace.Write(p, s)
 		a.post(func() {
 			if err != nil {
-				a.status = "无法保存 Workspace：" + err.Error()
-			} else {
-				a.status = "已保存 Workspace「" + name + "」"
+				a.status = "无法保存工作区：" + err.Error()
+				return
+			}
+			a.wsCur = name
+			a.status = "已保存工作区「" + name + "」"
+			a.listWorkspaces()
+		})
+	})
+}
+
+// workspaceAt switches to the n-th saved workspace (1–9).
+func (a *app) workspaceAt(n int) {
+	if n > len(a.wsList) {
+		a.status = fmt.Sprintf("没有第 %d 个工作区：%s", n, a.keyTip("workspace", "保存当前布局"))
+		return
+	}
+	a.switchWorkspace(a.wsList[n-1])
+}
+
+// stepWorkspace switches to the next (d 1) or previous (d -1) saved
+// workspace, round the list; from none, to the first or the last.
+func (a *app) stepWorkspace(d int) {
+	n := len(a.wsList)
+	if n == 0 {
+		a.status = "还没有工作区：" + a.keyTip("workspace", "保存当前布局")
+		return
+	}
+	i := slices.Index(a.wsList, a.wsCur)
+	switch {
+	case i >= 0:
+		i = (i + d + n) % n
+	case d > 0:
+		i = 0
+	default:
+		i = n - 1
+	}
+	a.switchWorkspace(a.wsList[i])
+}
+
+// switchWorkspace shows workspace name. The one on screen is saved first,
+// as it is, so coming back finds it as it was left, as a tab would; name
+// itself, chosen again, comes back as saved.
+func (a *app) switchWorkspace(name string) {
+	if name == "" || a.dataDir == "" || a.wsBusy {
+		return
+	}
+	save, s := "", a.snapshot()
+	if a.wsCur != "" && a.wsCur != name {
+		save = a.wsPath(a.wsCur)
+	}
+	p := a.wsPath(name)
+	a.wsBusy = true
+	a.async(func() {
+		var werr error
+		if save != "" {
+			werr = workspace.Write(save, s)
+		}
+		ns, err := workspace.Read(p)
+		if err == nil {
+			fixDirs(&ns)
+		}
+		a.post(func() {
+			a.wsBusy = false
+			if err != nil {
+				a.status = "无法切换到工作区「" + name + "」：" + err.Error()
+				a.listWorkspaces()
+				return
+			}
+			a.applyState(ns)
+			a.loadAll()
+			a.wsCur = name
+			a.status = fmt.Sprintf("工作区「%s」", name)
+			if werr != nil {
+				a.status += "（上一个工作区没能保存：" + werr.Error() + "）"
 			}
 		})
 	})
 }
 
-func (a *app) restoreWorkspace(name string) {
-	if name == "" || a.dataDir == "" {
+// workspaceStrip is the saved workspaces, the one on screen chosen, above
+// the panes once there are two or more and one is on screen.
+func (a *app) workspaceStrip(c *ui.Context) {
+	if a.wsCur == "" || len(a.wsList) < 2 {
 		return
 	}
-	p := a.wsPath(name)
-	a.async(func() {
-		s, err := workspace.Read(p)
-		if err == nil {
-			fixDirs(&s)
-		}
-		a.post(func() {
-			if err != nil {
-				a.status = "无法恢复 Workspace：" + err.Error()
-				return
-			}
-			a.applyState(s)
-			a.loadAll()
-			a.status = "已恢复 Workspace「" + name + "」"
-		})
-	})
+	a.wsSel = slices.Index(a.wsList, a.wsCur)
+	titles := make([]string, len(a.wsList))
+	for i, n := range a.wsList {
+		titles[i] = fmt.Sprintf("%d %s", i+1, n)
+	}
+	tabs := ui.Tabs(c.Key("wstabs"), &a.wsSel, titles...)
+	if tabs.Changed() && a.wsSel >= 0 && a.wsSel < len(a.wsList) {
+		a.switchWorkspace(a.wsList[a.wsSel])
+	}
 }
 
 func (a *app) workspaceView(c *ui.Context) {
@@ -362,19 +433,19 @@ func (a *app) workspaceView(c *ui.Context) {
 		wc := ui.Column(c).Width(380).Gap(10)
 		defer func() { a.dbg(c, wc, "dlg.workspace") }()
 		wc.Children(func() {
-			ui.Text(c, "Workspace").Bold()
+			ui.Text(c, "工作区").Bold()
 			if len(a.wsNames) == 0 {
-				ui.Text(c, "还没有保存的 Workspace").FontSize(12).TextColor(t.TextMuted)
+				ui.Text(c, "还没有保存的工作区").FontSize(12).TextColor(t.TextMuted)
 			} else {
 				ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
-					ui.Select(c.Key("wspick"), &a.wsPick, a.wsNames).Label("Workspace").Grow(1)
-					if ui.PrimaryButton(c.Key("wsrestore"), "恢复").Clicked() {
+					ui.Select(c.Key("wspick"), &a.wsPick, a.wsNames).Label("工作区").Grow(1)
+					if ui.PrimaryButton(c.Key("wsrestore"), "切换").Clicked() {
 						a.dlgOpen = false
-						a.restoreWorkspace(a.wsPick)
+						a.switchWorkspace(a.wsPick)
 					}
 				})
 			}
-			ui.Text(c, "把当前布局和标签页保存为：").FontSize(12)
+			ui.Text(c, "把当前布局保存为工作区（按 1–9、[ ] 切换）：").FontSize(12)
 			ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
 				in := ui.TextInput(c.Key("wsname"), &a.dlgText).Label("名称").Placeholder("名称").AutoFocus().Grow(1)
 				if ui.Button(c.Key("wssave"), "保存").Clicked() || in.Submitted() {

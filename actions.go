@@ -52,11 +52,9 @@ func actions() []keymap.Action {
 		{ID: "agent", Title: "在这里打开默认 Agent", Group: "文件", Hint: true},
 		{ID: "settings", Title: "设置（终端、编辑器、默认文件浏览器）", Group: "文件"},
 
-		{ID: "tab.new", Title: "新建标签页", Group: "标签页与窗格"},
-		{ID: "tab.close", Title: "关闭标签页", Group: "标签页与窗格"},
-		{ID: "tab.next", Title: "下一个标签页", Group: "标签页与窗格"},
-		{ID: "tab.prev", Title: "上一个标签页", Group: "标签页与窗格"},
-		{ID: "pane.switch", Title: "切换左右窗格", Group: "标签页与窗格"},
+		{ID: "ws.next", Title: "下一个工作区", Group: "工作区与窗格"},
+		{ID: "ws.prev", Title: "上一个工作区", Group: "工作区与窗格"},
+		{ID: "pane.switch", Title: "切换左右窗格", Group: "工作区与窗格"},
 
 		{ID: "layout.dual", Title: "双栏布局", Group: "布局"},
 		{ID: "layout.columns", Title: "三列布局（上级/当前/预览）", Group: "布局"},
@@ -64,7 +62,7 @@ func actions() []keymap.Action {
 		{ID: "preview", Title: "检查器", Group: "布局"},
 		{ID: "sidebar", Title: "显示/隐藏侧边栏", Group: "布局"},
 		{ID: "toolbar", Title: "显示/隐藏工具栏", Group: "布局"},
-		{ID: "workspace", Title: "保存/恢复 Workspace", Group: "布局"},
+		{ID: "workspace", Title: "保存/恢复工作区", Group: "工作区与窗格"},
 
 		{ID: "shelf.add", Title: "把选中项加入暂存架", Group: "暂存架"},
 		{ID: "shelf", Title: "显示/隐藏暂存架", Group: "暂存架"},
@@ -75,7 +73,7 @@ func actions() []keymap.Action {
 		{ID: "help", Title: "快捷键速查表", Group: "帮助", Hint: true},
 	}
 	for i := 1; i <= 9; i++ {
-		as = append(as, keymap.Action{ID: fmt.Sprintf("tab.%d", i), Title: fmt.Sprintf("第 %d 个标签页", i), Group: "标签页与窗格"})
+		as = append(as, keymap.Action{ID: fmt.Sprintf("ws.%d", i), Title: fmt.Sprintf("第 %d 个工作区", i), Group: "工作区与窗格"})
 	}
 	return as
 }
@@ -123,10 +121,8 @@ func defaultKeys() map[string][]string {
 		"agent":     {"a", "Cmd+Alt+A"},
 		"settings":  {"Cmd+,"},
 
-		"tab.new":     {"Cmd+T"},
-		"tab.close":   {"Cmd+W"},
-		"tab.next":    {"]", "Cmd+Shift+]", "Ctrl+Tab"},
-		"tab.prev":    {"[", "Cmd+Shift+[", "Ctrl+Shift+Tab"},
+		"ws.next":     {"]", "Cmd+Shift+]", "Ctrl+Tab"},
+		"ws.prev":     {"[", "Cmd+Shift+[", "Ctrl+Shift+Tab"},
 		"pane.switch": {"Tab"},
 
 		"layout.dual":    {"Cmd+Alt+2"},
@@ -146,7 +142,7 @@ func defaultKeys() map[string][]string {
 		"help": {"Shift+/"},
 	}
 	for i := 1; i <= 9; i++ {
-		m[fmt.Sprintf("tab.%d", i)] = []string{fmt.Sprint(i), fmt.Sprintf("Cmd+%d", i)}
+		m[fmt.Sprintf("ws.%d", i)] = []string{fmt.Sprint(i), fmt.Sprintf("Cmd+%d", i)}
 	}
 	return m
 }
@@ -166,7 +162,7 @@ var defaultMenu = []string{
 // show their own title.
 var menuTitles = map[string]string{
 	"open": "打开", "copypath": "复制路径", "reveal": "在 Finder 中显示", "shelf.add": "加入暂存架",
-	"workspace": "Workspace…", "settings": "设置…", "back": "‹ 后退", "forward": "前进 ›",
+	"workspace": "工作区…", "settings": "设置…", "back": "‹ 后退", "forward": "前进 ›",
 	"up": "↑ 上级", "layout.dual": "双栏",
 	"layout.columns": "三列", "layout.rows": "上下", "preview": "检查器",
 }

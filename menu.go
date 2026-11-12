@@ -18,12 +18,12 @@ var menuBar = []struct {
 	title string
 	ids   []string
 }{
-	{"文件", []string{"newfile", "newfolder", "tab.new", "-", "open", "reveal", "terminal", "agent", "@agentmenu", "editor", "-", "rename", "copypath", "trash", "-", "tab.close"}},
+	{"文件", []string{"newfile", "newfolder", "-", "open", "reveal", "terminal", "agent", "@agentmenu", "editor", "-", "rename", "copypath", "trash"}},
 	{"编辑", []string{"@undo", "@redo", "-", "@cut", "@copy", "@paste", "@selectAll", "-", "filter", "select.none"}},
 	{"显示", []string{"layout.columns", "layout.dual", "layout.rows", "-", "quicklook", "preview", "sidebar", "toolbar", "shelf", "-", "@sort", "sortmenu", "hidden", "refresh", "addr"}},
 	{"前往", []string{"back", "forward", "up", "-", "go.start", "go.home", "go.desktop", "go.downloads", "go.documents", "go.apps", "-", "fav.add", "fav.remove"}},
 	{"暂存架", []string{"shelf.add", "shelf.copy", "shelf.move", "shelf.clear"}},
-	{"窗口", []string{"@minimize", "@zoom", "-", "tab.next", "tab.prev", "@tabs", "pane.switch", "-", "workspace"}},
+	{"窗口", []string{"@minimize", "@zoom", "-", "ws.next", "ws.prev", "@ws", "workspace", "-", "pane.switch"}},
 	{"帮助", []string{"help"}},
 }
 
@@ -125,12 +125,12 @@ func (a *app) menuItems(ids []string) []*mygo.MenuItem {
 		switch {
 		case id == "-":
 			out = append(out, mygo.Separator())
-		case id == "@tabs":
+		case id == "@ws":
 			var sub []string
 			for i := 1; i <= 9; i++ {
-				sub = append(sub, fmt.Sprintf("tab.%d", i))
+				sub = append(sub, fmt.Sprintf("ws.%d", i))
 			}
-			out = append(out, &mygo.MenuItem{Label: "切换到标签页", Submenu: a.menuItems(sub)})
+			out = append(out, &mygo.MenuItem{Label: "切换到工作区", Submenu: a.menuItems(sub)})
 		case id == "@sort":
 			out = append(out, &mygo.MenuItem{Label: "排序方式", Submenu: a.sortItems()})
 		case id == "@update":

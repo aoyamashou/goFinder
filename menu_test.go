@@ -1,6 +1,7 @@
 package main
 
 import (
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -47,15 +48,15 @@ func TestMenuAccelerators(t *testing.T) {
 		}
 	})
 	cases := map[string]string{
-		"tab.new":  "Cmd+T",
-		"go.home":  "Cmd+Shift+H",
-		"settings": "Cmd+,",
-		"hidden":   "", // first key ., its ⇧⌘. is the window's alone
-		"tab.next": "", // first key ]
-		"open":     "", // first key →, which the list needs
-		"trash":    "", // Cmd+Backspace edits text in fields
-		"copy":     "", // the Edit menu's role holds Cmd+C
-		"help":     "", // ? and F1 carry no Cmd
+		"workspace": "Cmd+Alt+W",
+		"go.home":   "Cmd+Shift+H",
+		"settings":  "Cmd+,",
+		"hidden":    "", // first key ., its ⇧⌘. is the window's alone
+		"ws.next":   "", // first key ]
+		"open":      "", // first key →, which the list needs
+		"trash":     "", // Cmd+Backspace edits text in fields
+		"copy":      "", // the Edit menu's role holds Cmd+C
+		"help":      "", // ? and F1 carry no Cmd
 	}
 	for id, want := range cases {
 		it := byID[id]
@@ -86,11 +87,14 @@ func TestMenuRunsActionsAndFollowsState(t *testing.T) {
 	a.setMenu = func([]*mygo.MenuItem) {}
 	a.applyMenu()
 	tt.Frame()
-	tab := a.menu.items["tab.new"]
-	tab.Click(tab, nil)
+	root := a.tab().t.Dir
+	up := a.menu.items["up"]
+	a.navigate(a.tab(), filepath.Join(root, "alpha"))
 	tt.Frame()
-	if len(a.pane().tabs) != 2 {
-		t.Fatalf("menu New Tab: %d tabs", len(a.pane().tabs))
+	up.Click(up, nil)
+	tt.Frame()
+	if a.tab().t.Dir != root {
+		t.Fatalf("menu Up: %s", a.tab().t.Dir)
 	}
 	a.menu.items["layout.rows"].Click(nil, nil)
 	tt.Frame()
@@ -101,17 +105,18 @@ func TestMenuRunsActionsAndFollowsState(t *testing.T) {
 	// While the cheat sheet is open the items are off, and a click does nothing.
 	tt.Key(ui.Shift, ui.KeySlash)
 	tt.Frame()
-	if a.menu.items["tab.new"].IsEnabled() {
+	if a.menu.items["up"].IsEnabled() {
 		t.Fatal("items enabled under the cheat sheet")
 	}
-	tab.Click(tab, nil)
+	a.navigate(a.tab(), filepath.Join(root, "alpha"))
+	up.Click(up, nil)
 	tt.Frame()
-	if len(a.pane().tabs) != 2 {
+	if a.tab().t.Dir != filepath.Join(root, "alpha") {
 		t.Fatal("menu ran an action behind the cheat sheet")
 	}
 	tt.Key(0, ui.KeyEscape)
 	tt.Frame()
-	if !a.menu.items["tab.new"].IsEnabled() {
+	if !a.menu.items["up"].IsEnabled() {
 		t.Fatal("items stayed disabled after the sheet closed")
 	}
 }

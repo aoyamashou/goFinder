@@ -39,6 +39,9 @@ func main() {
 	}
 
 	a := newApp(km, realSystem{}, cfg, start)
+	if d := cfg.StartDir2; len(os.Args) < 2 && isDir(d) {
+		a.panes[1] = &paneState{ts: newTabState(d, cfg.ShowHidden)} // its own 启动时从这里开始
+	}
 	a.sb.home = home // the sidebar follows Finder's
 	a.updates = true // native.Plugin is used
 	a.kmFile, a.kmPath = kmFile, keymapPath(dataDir)
@@ -71,7 +74,7 @@ func main() {
 	}
 
 	// Folders opened with the app (Dock, "open -a", the default file
-	// viewer) open in a new tab. Those that come before the window is up
+	// viewer) open in the active pane. Those that come before the window is up
 	// wait for it, and take the place of the home folder.
 	var win *mygo.Window
 	var pending []string
@@ -81,7 +84,7 @@ func main() {
 				pending = append(pending, path)
 				return
 			}
-			a.openPath(path, true)
+			a.openPath(path)
 			win.Invalidate()
 		})
 	})
@@ -107,8 +110,8 @@ func main() {
 		a.growWindow = func(dw int) { growRight(win, dw) }
 		a.start()
 		a.detectAgents()
-		for i, p := range pending {
-			a.openPath(p, i > 0)
+		for _, p := range pending {
+			a.openPath(p)
 		}
 		pending = nil
 	})

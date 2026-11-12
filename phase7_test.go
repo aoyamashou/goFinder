@@ -66,19 +66,6 @@ func TestYaziKeys(t *testing.T) {
 	if a.tab().sel.Len() != 0 {
 		t.Fatalf("Esc left %d selected", a.tab().sel.Len())
 	}
-	press(ui.Cmd, ui.KeyT)
-	press(0, ui.KeyBracketLeft)
-	if a.pane().cur != 0 {
-		t.Fatalf("[: tab %d", a.pane().cur)
-	}
-	press(0, ui.KeyBracketRight)
-	if a.pane().cur != 1 {
-		t.Fatalf("]: tab %d", a.pane().cur)
-	}
-	press(0, ui.Key1)
-	if a.pane().cur != 0 {
-		t.Fatalf("1: tab %d", a.pane().cur)
-	}
 	press(0, ui.KeyG)
 	if !a.pane().addrEditing {
 		t.Fatal("g did not open the address")

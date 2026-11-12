@@ -326,10 +326,8 @@ func (a *app) ejectButton(c *ui.Context, path string, onAccent bool) {
 // home first, so nothing of goFinder keeps the volume busy.
 func (a *app) eject(path string) {
 	for _, p := range a.panes {
-		for _, ts := range p.tabs {
-			if d := ts.t.Dir; d == path || strings.HasPrefix(d, path+"/") {
-				a.navigate(ts, a.sb.home)
-			}
+		if d := p.ts.t.Dir; d == path || strings.HasPrefix(d, path+"/") {
+			a.navigate(p.ts, a.sb.home)
 		}
 	}
 	a.syncWatches()
