@@ -378,3 +378,20 @@ func (a *app) inspShelfButtons(c *ui.Context) {
 		}
 	})
 }
+
+// fitInspector widens the window to the right as the inspector shows and
+// narrows it back as it hides, so the columns keep their room.
+func (a *app) fitInspector() {
+	if a.showPreview == a.inspWide {
+		return
+	}
+	a.inspWide = a.showPreview
+	if a.growWindow == nil {
+		return
+	}
+	dw := int(px("inspector-width")) + 1 // and its divider
+	if !a.showPreview {
+		dw = -dw
+	}
+	a.post(func() { a.growWindow(dw) })
+}

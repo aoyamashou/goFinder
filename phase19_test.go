@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"math"
 	"os"
 	"path/filepath"
 	"slices"
@@ -102,5 +103,54 @@ func TestMenuSingleKeys(t *testing.T) {
 	tt.Frame()
 	if !tt.HasText("c c") || tt.HasText("⌥⌘C") {
 		t.Fatalf("menu texts %q", tt.Texts())
+	}
+}
+
+// scrollSettings scrolls the settings page to its end.
+func scrollSettings(tt *ui.Tester) {
+	r, _ := tt.Find("终端和编辑器")
+	tt.Scroll(r.X+20, r.Y+20, 0, 2000)
+	tt.Frame()
+}
+
+// TestSettingsFixedSize: the settings panel is one size on every page,
+// its buttons inside it.
+func TestSettingsFixedSize(t *testing.T) {
+	a, tt, _, _ := setup(t)
+	tt.Key(ui.Cmd, ui.KeyComma)
+	tt.Frame()
+	var tabs []ui.Rect
+	for p := 0; p <= pageAbout; p++ {
+		a.setPage = p
+		tt.Frame()
+		r, ok := tt.Find("完成")
+		if p == 0 {
+			r, ok = tt.Find("保存")
+		}
+		if !ok {
+			t.Fatalf("page %d: no button in %q", p, tt.Texts())
+		}
+		tabs = append(tabs, r)
+	}
+	for p, r := range tabs {
+		if math.Abs(float64(r.Y-tabs[0].Y)) > 2 || r.Y+r.H > 700 {
+			t.Fatalf("page %d: button at %v, page 0's at %v", p, r, tabs[0])
+		}
+	}
+}
+
+// TestInspectorWidensWindow: the inspector widens the window to the right
+// by its width, and hiding it gives the width back.
+func TestInspectorWidensWindow(t *testing.T) {
+	a, tt, _, _ := setup(t)
+	var got []int
+	a.growWindow = func(dw int) { got = append(got, dw) }
+	a.run("preview")
+	tt.Frame()
+	a.run("preview")
+	tt.Frame()
+	w := int(px("inspector-width")) + 1
+	if !slices.Equal(got, []int{w, -w}) {
+		t.Fatalf("grew %v, want %d then %d", got, w, -w)
 	}
 }

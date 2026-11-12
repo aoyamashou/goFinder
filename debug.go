@@ -226,9 +226,4 @@ func (a *app) aboutPage(c *ui.Context) {
 	ui.Divider(c)
 	ui.Checkbox(c.Key("about.debug"), &a.debugOn, "Debug 编号")
 	uiCaption(c, "开启后界面各元素左上角显示固定编号，沟通时说编号即可；只在本次运行有效，编号表见 docs/debug-ids.md", "muted")
-	ui.Row(c).Justify(ui.End).Children(func() {
-		if ui.PrimaryButton(c.Key("aboutdone"), "完成").Clicked() {
-			a.dlgOpen = false
-		}
-	})
 }

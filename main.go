@@ -92,8 +92,8 @@ func main() {
 		a.applyMenu()
 		win = mygo.NewWindow(mygo.WindowOptions{
 			Title:     "goFinder",
-			Width:     1100,
-			Height:    700,
+			Width:     1035, // the size the user tuned (2026-11-12)
+			Height:    692,
 			MinWidth:  480,
 			MinHeight: 320,
 			StateKey:  "main",
@@ -104,6 +104,7 @@ func main() {
 			Content:       ui.View(a.view),
 		})
 		a.post = win.Update
+		a.growWindow = func(dw int) { growRight(win, dw) }
 		a.start()
 		a.detectAgents()
 		for i, p := range pending {
@@ -139,4 +140,27 @@ func startDir(args []string, home, chosen, finderDir string) string {
 		return finderDir
 	}
 	return home
+}
+
+// growRight widens win by dw (narrows it, for a negative dw) to the
+// right, moving it left where the screen's edge leaves no room. A full
+// screen or zoomed window stays as it is.
+func growRight(win *mygo.Window, dw int) {
+	if win.IsFullScreen() || win.IsMaximized() {
+		return
+	}
+	b := win.Bounds()
+	b.Width = max(b.Width+dw, 480)
+	for _, d := range mygo.Screen.Displays() {
+		wa := d.WorkArea
+		if cx := b.X + b.Width/2; cx < wa.X || cx >= wa.X+wa.Width {
+			continue
+		}
+		b.Width = min(b.Width, wa.Width)
+		if over := b.X + b.Width - (wa.X + wa.Width); over > 0 {
+			b.X -= over
+		}
+		break
+	}
+	win.SetBounds(b)
 }

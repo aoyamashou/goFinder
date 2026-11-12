@@ -157,10 +157,14 @@ type app struct {
 	active      int
 	layout      int
 	showPreview bool
-	splitDual   float32
-	splitRows   float32
-	splitPrev   float32
-	wantFocus   bool
+	// inspWide is whether the window was widened for the inspector;
+	// growWindow widens it by dw DIPs to the right (nil in tests).
+	inspWide   bool
+	growWindow func(dw int)
+	splitDual  float32
+	splitRows  float32
+	splitPrev  float32
+	wantFocus  bool
 
 	// The keyboard: wantSidebar asks for the sidebar to take it, and
 	// focusZone is the column that has it, outlined ("sidebar", "pane0",

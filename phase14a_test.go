@@ -57,6 +57,7 @@ func TestCopyKillFinder(t *testing.T) {
 	a, tt, fs, _ := setupWith(t, testConfig(), "")
 	tt.Key(ui.Cmd, ui.KeyComma)
 	tt.Frame()
+	scrollSettings(tt)
 	if err := tt.Click("复制命令"); err != nil {
 		t.Fatal(err)
 	}
@@ -77,6 +78,7 @@ func TestFullDiskAccess(t *testing.T) {
 	if !tt.HasText("未授权") {
 		t.Fatalf("texts %q", tt.Texts())
 	}
+	scrollSettings(tt)
 	if err := tt.Click("打开系统设置"); err != nil {
 		t.Fatal(err)
 	}

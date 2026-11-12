@@ -301,9 +301,4 @@ func (a *app) agentsPage(c *ui.Context) {
 		})
 	})
 	uiCaption(c, "命令在终端里运行，默认带 YOLO 参数（跳过权限确认）；可以改成自己想要的参数。检测只在启动和点刷新时进行", "muted")
-	ui.Row(c).Justify(ui.End).Children(func() {
-		if ui.PrimaryButton(c.Key("agdone"), "完成").Clicked() {
-			a.dlgOpen = false
-		}
-	})
 }

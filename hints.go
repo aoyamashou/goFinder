@@ -80,6 +80,8 @@ func (a *app) statusHints(c *ui.Context, line int) {
 	ui.Row(c).Grow(1).Shrink(1).Gap(px("space-3")).AlignItems(ui.Center).Clip().Children(func() {
 		if line == 1 {
 			if !a.filterOn && held == 0 {
+				// These act on the items chosen.
+				uiCaption(c, "选中后：", "muted").SingleLine().Shrink(0)
 				a.hintLine(c, hintLines[1])
 			}
 			return

@@ -72,6 +72,7 @@ func (a *app) body(c *ui.Context) {
 			ui.Divider(c).Vertical()
 			a.inspectorView(c)
 		}
+		a.fitInspector()
 	})
 }
 
@@ -667,8 +668,10 @@ func commonApps(installed, common []string, cur string) []string {
 
 // settingsView chooses the apps ⌘⌥T and ⌘⌥E open the folder in.
 func (a *app) settingsView(c *ui.Context) {
-	dialogModal(c, &a.dlgOpen, func() {
-		col := ui.Column(c).Width(600).Gap(px("space-3")).ObserveInput(a.recordKey)
+	// One size for every page: the page scrolls in it, its buttons stay
+	// at the bottom, inside the panel even in a short window.
+	dialogModalSized(c, &a.dlgOpen, settingsW, settingsH, func() {
+		col := ui.Column(c).Grow(1).MinHeight(0).Gap(px("space-3")).ObserveInput(a.recordKey)
 		defer func() {
 			a.dbg(c, col, []string{"dlg.set.general", "dlg.set.keys", "dlg.set.agent", "dlg.set.toolbar", "dlg.set.about"}[a.setPage])
 		}()
@@ -677,96 +680,118 @@ func (a *app) settingsView(c *ui.Context) {
 			if ui.Tabs(c.Key("setpage"), &a.setPage, "通用", "快捷键", "Agent", "工具栏", "关于").Changed() {
 				a.recording, a.focusKeyQ = "", a.setPage == 1
 			}
-			if a.setPage == 1 {
-				a.keyList(c, true)
-				uiCaption(c, "改键即时写入数据目录的 keymap.json；同键双击（如 \"c c\"）可在该文件里设置", "muted")
-				ui.Row(c).Justify(ui.End).Children(func() {
-					if ui.PrimaryButton(c.Key("keysdone"), "完成").Clicked() {
-						a.dlgOpen = false
-					}
-				})
-				return
-			}
-			if a.setPage == 2 {
-				a.agentsPage(c)
-				return
-			}
-			if a.setPage == pageToolbar {
-				a.toolbarPage(c)
-				return
-			}
-			if a.setPage == pageAbout {
-				a.aboutPage(c)
-				return
-			}
-			ui.Text(c, "终端和编辑器").Bold()
-			if a.setLoading {
-				uiCaption(c, "正在读取已安装的应用…", "muted")
-			}
-			for _, f := range []struct {
-				label  string
-				v      *string
-				common []string
-			}{{"终端", &a.setTerm, commonTerminals}, {"编辑器", &a.setEditor, commonEditors}} {
-				ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
-					ui.Text(c, f.label).Width(56)
-					ui.Select(c.Key("set"+f.label), f.v, commonApps(a.setApps, f.common, *f.v)).Label(f.label).Grow(1)
-				})
-			}
-			ui.Checkbox(c.Key("set.confirmTrash"), &a.setConfirm, "移到废纸篓前确认（d、⌘⌫）")
-			a.appearanceSettings(c)
-			uiCaption(c, "保存到数据目录的 config.json", "muted")
-			ui.Divider(c)
-			a.fontSettings(c)
-			ui.Divider(c)
-			ui.Text(c, "默认文件浏览器").Bold()
-			cur := "Finder"
-			if a.setViewer != "" {
-				cur = a.setViewer
-			}
-			isMe := a.setViewer != "" && a.setViewer == a.bundleID
-			if isMe {
-				cur = "goFinder（" + a.setViewer + "）"
-			}
-			ui.Text(c, "当前："+cur).FontSize(12)
-			ui.Row(c).Gap(8).Children(func() {
-				if ui.Button(c.Key("viewer.on"), "设为默认").Disabled(a.setLoading || isMe).Clicked() {
-					a.setFileViewer(true)
-				}
-				if ui.Button(c.Key("viewer.off"), "恢复 Finder").Disabled(a.setLoading || a.setViewer == "").Clicked() {
-					a.setFileViewer(false)
-				}
+			ui.Scroll(c.Key("setbody")).Grow(1).MinHeight(0).Children(func() {
+				ui.Column(c).Gap(px("space-3")).Children(func() { a.settingsPage(c) })
 			})
-			ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
-				uiCaption(c, "改的是系统设置 NSFileViewer，注销重新登录（或在终端运行 killall Finder）后生效", "muted").Grow(1)
-				if ui.Button(c.Key("viewer.copy"), "复制命令").Clicked() {
-					a.copyKillFinder()
-				}
-			})
-			ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
-				state := "未授权"
-				if a.fullDisk {
-					state = "已授权"
-				}
-				ui.Text(c, "完全磁盘访问").Bold()
-				ui.Text(c, state).FontSize(12)
-				uiCaption(c, "在列表里打开 goFinder 的开关，然后重启 goFinder", "muted").Grow(1)
-				if ui.Button(c.Key("disk.open"), "打开系统设置").Clicked() {
-					a.openFullDiskSettings()
-				}
-			})
-			ui.Row(c).Gap(8).Justify(ui.End).Children(func() {
-				if ui.Button(c, "取消").Clicked() {
-					a.dlgOpen = false
-				}
-				if ui.PrimaryButton(c, "保存").Clicked() {
-					a.submitDialog()
-				}
-			})
+			a.settingsFooter(c)
 		})
 	})
 	if !a.dlgOpen {
 		a.recording = ""
 		a.wantFocus = true
 	}
+}
+
+// settingsW and settingsH are the settings panel's size, the same on
+// every page.
+const settingsW, settingsH = 640, 600
+
+// settingsFooter is the page's buttons, at the panel's bottom.
+func (a *app) settingsFooter(c *ui.Context) {
+	ui.Row(c.Key("setfoot")).Gap(px("space-2")).Justify(ui.End).Shrink(0).Children(func() {
+		switch a.setPage {
+		case 0:
+			if ui.Button(c, "取消").Clicked() {
+				a.dlgOpen = false
+			}
+			if ui.PrimaryButton(c, "保存").Clicked() {
+				a.submitDialog()
+			}
+			return
+		case pageToolbar:
+			if ui.Button(c.Key("tb.reset"), "恢复默认").Disabled(a.cfg.Toolbar == nil).Clicked() {
+				a.toolbarReset()
+			}
+		}
+		if ui.PrimaryButton(c.Key("setdone"), "完成").Clicked() {
+			a.dlgOpen = false
+		}
+	})
+}
+
+// settingsPage is the body of the settings' page.
+func (a *app) settingsPage(c *ui.Context) {
+	if a.setPage == 1 {
+		a.keyList(c, true)
+		uiCaption(c, "改键即时写入数据目录的 keymap.json；同键双击（如 \"c c\"）可在该文件里设置", "muted")
+		return
+	}
+	if a.setPage == 2 {
+		a.agentsPage(c)
+		return
+	}
+	if a.setPage == pageToolbar {
+		a.toolbarPage(c)
+		return
+	}
+	if a.setPage == pageAbout {
+		a.aboutPage(c)
+		return
+	}
+	ui.Text(c, "终端和编辑器").Bold()
+	if a.setLoading {
+		uiCaption(c, "正在读取已安装的应用…", "muted")
+	}
+	for _, f := range []struct {
+		label  string
+		v      *string
+		common []string
+	}{{"终端", &a.setTerm, commonTerminals}, {"编辑器", &a.setEditor, commonEditors}} {
+		ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
+			ui.Text(c, f.label).Width(56)
+			ui.Select(c.Key("set"+f.label), f.v, commonApps(a.setApps, f.common, *f.v)).Label(f.label).Grow(1)
+		})
+	}
+	ui.Checkbox(c.Key("set.confirmTrash"), &a.setConfirm, "移到废纸篓前确认（d、⌘⌫）")
+	a.appearanceSettings(c)
+	uiCaption(c, "保存到数据目录的 config.json", "muted")
+	ui.Divider(c)
+	a.fontSettings(c)
+	ui.Divider(c)
+	ui.Text(c, "默认文件浏览器").Bold()
+	cur := "Finder"
+	if a.setViewer != "" {
+		cur = a.setViewer
+	}
+	isMe := a.setViewer != "" && a.setViewer == a.bundleID
+	if isMe {
+		cur = "goFinder（" + a.setViewer + "）"
+	}
+	ui.Text(c, "当前："+cur).FontSize(12)
+	ui.Row(c).Gap(8).Children(func() {
+		if ui.Button(c.Key("viewer.on"), "设为默认").Disabled(a.setLoading || isMe).Clicked() {
+			a.setFileViewer(true)
+		}
+		if ui.Button(c.Key("viewer.off"), "恢复 Finder").Disabled(a.setLoading || a.setViewer == "").Clicked() {
+			a.setFileViewer(false)
+		}
+	})
+	ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
+		uiCaption(c, "改的是系统设置 NSFileViewer，注销重新登录（或在终端运行 killall Finder）后生效", "muted").Grow(1)
+		if ui.Button(c.Key("viewer.copy"), "复制命令").Clicked() {
+			a.copyKillFinder()
+		}
+	})
+	ui.Row(c).Gap(8).AlignItems(ui.Center).Children(func() {
+		state := "未授权"
+		if a.fullDisk {
+			state = "已授权"
+		}
+		ui.Text(c, "完全磁盘访问").Bold()
+		ui.Text(c, state).FontSize(12)
+		uiCaption(c, "在列表里打开 goFinder 的开关，然后重启 goFinder", "muted").Grow(1)
+		if ui.Button(c.Key("disk.open"), "打开系统设置").Clicked() {
+			a.openFullDiskSettings()
+		}
+	})
 }

@@ -217,7 +217,7 @@ func TestDefaultHintsOrder(t *testing.T) {
 	_, tt, _, _ := setup(t)
 	lines := [][]string{
 		{"过滤", "回到起点", "启动智能体", "帮助"},
-		{"拷贝", "拷贝路径", "剪切", "粘贴", "新文件夹", "新文件", "重命名", "删除"},
+		{"选中后：", "拷贝", "拷贝路径", "剪切", "粘贴", "新文件夹", "新文件", "重命名", "删除"},
 	}
 	var ys []float64
 	for _, want := range lines {

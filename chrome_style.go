@@ -107,6 +107,17 @@ func faceButton(c *ui.Context, label, textTok string, disabled bool) ui.Element 
 // dialogModal is ui.Modal in the design system's look: an ink scrim with
 // no blur, a bg panel of radius-menu with space-4 inside, no shadow or
 // border.
+// dialogModalSized is dialogModal with its panel w×h, shrunk to fit a
+// smaller window; fn's content should grow into it.
+func dialogModalSized(c *ui.Context, open *bool, w, h float32, fn func()) {
+	ui.DialogBase(c, open, func(backdrop, panel ui.Element) {
+		backdrop.Background(tok(c, "ink").Alpha(0.4))
+		panel.Padding(px("space-4")).Gap(px("space-3")).Radius(px("radius-menu")).
+			Background(tok(c, "bg")).Width(w).Height(h).MaxWidthPercent(90).MaxHeightPercent(90)
+		fn()
+	})
+}
+
 func dialogModal(c *ui.Context, open *bool, fn func()) {
 	ui.DialogBase(c, open, func(backdrop, panel ui.Element) {
 		backdrop.Background(tok(c, "ink").Alpha(0.4))

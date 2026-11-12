@@ -185,14 +185,6 @@ func (a *app) toolbarPage(c *ui.Context) {
 		})
 	})
 	uiCaption(c, "↑↓ 选行，⌘↑ ⌘↓ 移动，⌫ 移除；改动立即写入 config.json", "muted")
-	ui.Row(c).Gap(px("space-2")).Justify(ui.End).Children(func() {
-		if ui.Button(c.Key("tb.reset"), "恢复默认").Disabled(a.cfg.Toolbar == nil).Clicked() {
-			a.toolbarReset()
-		}
-		if ui.PrimaryButton(c.Key("tbdone"), "完成").Clicked() {
-			a.dlgOpen = false
-		}
-	})
 }
 
 // toolbarRow is item i of the current toolbar.
