@@ -106,11 +106,8 @@ func parseTokens(b []byte) (designTokens, error) {
 
 // tokIn is a color token in theme t (light or dark).
 func tokIn(t *ui.Theme, name string) ui.Color {
-	switch name {
-	case "selection", "focus":
-		return t.Accent
-	case "selection-ink":
-		return t.AccentText
+	if name == "focus" {
+		name = "selection"
 	}
 	v, ok := ds.colors[name]
 	if !ok {
@@ -122,8 +119,8 @@ func tokIn(t *ui.Theme, name string) ui.Color {
 	return v.light
 }
 
-// tok is a color token in the frame's theme. "selection" and "focus" are
-// the user's macOS accent (the theme's Accent), not the file's fallback.
+// tok is a color token in the frame's theme. "focus" is "selection", the
+// brand cyan the theme's Accent is too, whatever the macOS accent.
 func tok(c *ui.Context, name string) ui.Color { return tokIn(c.Theme(), name) }
 
 // px is a spacing, radius or size token in DIPs.
@@ -136,7 +133,7 @@ func px(name string) float32 {
 }
 
 // applyTheme sets the window's theme from the tokens over the system's
-// default, which keeps the user's accent, appearance and text scale.
+// default, which keeps the user's appearance and text scale.
 func applyTheme(c *ui.Context) { applyAppearance(c, "system") }
 
 // darkFor tells whether the appearance mode draws dark, sysDark being
@@ -154,7 +151,8 @@ func darkFor(mode string, sysDark bool) bool {
 
 // applyAppearance sets the window's theme from the tokens in the light or
 // dark the mode asks for. Against macOS's own appearance it starts from
-// MyGo's theme of that kind, keeping the user's accent.
+// MyGo's theme of that kind. The accent is the brand cyan, not macOS's
+// (user, 2026-11-12).
 func applyAppearance(c *ui.Context, mode string) {
 	sys := c.Theme()
 	t := *sys
@@ -165,10 +163,8 @@ func applyAppearance(c *ui.Context, mode string) {
 		}
 		t = *base
 		t.FontSize, t.Font = sys.FontSize, sys.Font
-		if acc := c.Preferences().Accent; acc.A != 0 {
-			t.Accent, t.AccentText = acc, sys.AccentText
-		}
 	}
+	t.Accent, t.AccentText = tokIn(&t, "selection"), tokIn(&t, "selection-ink")
 	t.Background = tokIn(&t, "bg")
 	t.Surface = tokIn(&t, "surface-100")
 	t.SurfaceHover = tokIn(&t, "surface-200")

@@ -99,14 +99,19 @@ func TestStatusBarTwoRows(t *testing.T) {
 func TestStatusDoneDot(t *testing.T) {
 	a, tt := themed(t, false)
 	signal := token("signal", false)
-	row := ui.Rect{X: 0, Y: 600, W: 400, H: 100}
-	if n := colorPx(tt, row, signal); n != 0 {
-		t.Fatalf("a dot without a result: %d px", n)
-	}
+	// The status bar's top row, under the list, whose cursor row is the
+	// same cyan (the accent): only the row's own pixels count.
 	a.status = "已拷贝 3 项"
 	tt.Frame()
+	msg, _ := tt.Find("已拷贝 3 项")
+	row := ui.Rect{X: 0, Y: msg.Y - 2, W: 400, H: msg.H + 4}
 	if n := colorPx(tt, row, signal); n < 8 {
 		t.Fatalf("no dot with a result: %d px", n)
+	}
+	a.status = ""
+	tt.Frame()
+	if n := colorPx(tt, row, signal); n != 0 {
+		t.Fatalf("a dot without a result: %d px", n)
 	}
 	a.status = "无法打开：没有权限"
 	tt.Frame()

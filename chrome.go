@@ -184,12 +184,25 @@ func (a *app) titleBar(c *ui.Context) {
 		}
 		a.dbg(c, ui.Row(c.Key("titlebar")).Height(bar.Height).Padding(0, bar.Right+px("space-2"), 0, bar.Left+px("space-2")).
 			AlignItems(ui.Center).Justify(ui.Center).Shrink(0).Background(tok(c, "surface-100")).DragWindow().Children(func() {
-			ui.Text(c, a.windowTitle()).FontSize(12).TextColor(tok(c, "muted")).SingleLine()
+			ui.Text(c, a.windowTitle()).FontSize(12).TextColor(titleColor(c)).SingleLine()
 		}), "titlebar")
 		separatorLine(c.Key("titlebar.sep"))
 		return
 	}
 	a.toolbar(c, ids)
+}
+
+// titleColor is the title strip's text color: brand cyan while goFinder is
+// active (signal-text, the cyan that reads on a light bar too); in the
+// background gray, black in the light theme.
+func titleColor(c *ui.Context) ui.Color {
+	switch {
+	case c.WindowActive():
+		return tok(c, "signal-text")
+	case c.Theme().Dark:
+		return tok(c, "muted")
+	}
+	return tok(c, "ink")
 }
 
 // windowTitle is the title strip's text: the active folder's name.

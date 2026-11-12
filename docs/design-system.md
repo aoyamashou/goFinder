@@ -4,9 +4,9 @@
 > 本文件与 `docs/design-tokens.json` 是唯一事实来源；Artifact「goFinder 设计系统」（https://claude.ai/artifact/LcapwwLodgW55ZtBdYS7b9）只作展示，含组件预览。
 > 状态：待用户确认后套用到软件（阶段 11 第二步）。
 
-> 简洁、高速、实用。灰阶承担一切，系统强调色负责交互，一点青色是品牌。
+> 简洁、高速、实用。灰阶承担一切，品牌青既是强调色也是点缀。
 
-goFinder 是键盘优先的 macOS 文件管理器（Finder 替代品）。这套系统以 Unlocknote.com 设计系统为底，换成桌面应用的密度与 macOS 的规矩：13pt 正文、22px 行高、4px 网格，强调色交给用户的系统设置。
+goFinder 是键盘优先的 macOS 文件管理器（Finder 替代品）。这套系统以 Unlocknote.com 设计系统为底，换成桌面应用的密度与 macOS 的规矩：13pt 正文、22px 行高、4px 网格，强调色固定为品牌青，不跟随 macOS 强调色（2026-11-12）。
 
 ## 1. 原则（按优先级）
 
@@ -21,7 +21,7 @@ goFinder 是键盘优先的 macOS 文件管理器（Finder 替代品）。这套
 | | Unlocknote.com（网站） | goFinder（macOS 应用） |
 |---|---|---|
 | 阅读色 | 黑白 + 五级灰 | 相同：`ink` `muted` `faint` + `surface-100/200` |
-| 交互强调 | 主操作用 `ink` | **跟随用户的 macOS 强调色** `selection` |
+| 交互强调 | 主操作用 `ink` | **固定为品牌青** `selection`（#00DAFC） |
 | 青色 | “解锁信号”，≤3% | **品牌点缀** `signal`，不承担交互状态 |
 | 层次 | 灰阶，不描边不阴影 | 相同，另加一条 `separator` 分栏线 |
 | 形状 | 胶囊 | 胶囊只给路径、分段、键帽；行和按钮用小圆角 `radius-row` `radius-control` |
@@ -34,12 +34,13 @@ goFinder 是键盘优先的 macOS 文件管理器（Finder 替代品）。这套
 
 用色比例：灰阶面 90% · 墨（文字）8% · 强调色 ≤2%（选中行除外）· 青色只几个点。
 
-**系统强调色负责交互（`selection`）**
-- 选中行、有焦点时的光标行：`selection` 底 + `selection-ink` 字（默认蓝上 5.5:1）。运行时读用户的强调色，不写死。
+**品牌青负责交互（`selection`）**
+- 选中行、有焦点时的光标行：`selection` 底（品牌青）+ `selection-ink` 黑字（12.4:1）。不读 macOS 强调色。
 - 列表失去焦点：选中行换成 `selection-inactive`（= `surface-200`），文字仍是 `ink`，图标仍是类型色——**绝不出现白底白字**。
 - 键盘焦点栏：1.5px（`focus-width`）`focus` 边框，与选中行同色。
 - 应用失焦（窗口不在前台）：焦点栏边框改为 `separator`，工具栏、侧边栏的 SF Symbols 改为 `faint`（删除按钮的红色也一样），选中行退成 `selection-inactive`；回到前台后恢复。
 - 主按钮、开关、分段控件的选中段用 `selection`。
+- 标题栏（隐藏工具栏时）的文件夹名：应用在前台时用 `signal-text`（品牌青）；失焦时深色主题用 `muted` 灰，浅色主题用 `ink` 黑。
 
 **品牌青只做点缀（`signal`）**，每屏最多 3 处，只出现在：
 - 字标 **goFinder.** 的句点（关于窗口、设置页页眉）；

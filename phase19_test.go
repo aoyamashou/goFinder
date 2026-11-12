@@ -154,3 +154,36 @@ func TestInspectorWidensWindow(t *testing.T) {
 		t.Fatalf("grew %v, want %d then %d", got, w, -w)
 	}
 }
+
+// TestBrandAccentAndTitle: the accent is the brand cyan, whatever macOS's;
+// the title strip's folder name is cyan while goFinder is active, gray in
+// the background (black in the light theme).
+func TestBrandAccentAndTitle(t *testing.T) {
+	for _, dark := range []bool{true, false} {
+		a, tt := themed(t, dark)
+		a.cfg.ShowToolbar, a.cfg.Appearance = false, "system" // the tester's light or dark
+		tt.SetTitleBar(ui.TitleBar{Height: 28, Left: 80})
+		tt.Frame()
+		tt.Frame()
+		// The focused column's border is the accent.
+		if colorPx(tt, ui.Rect{X: 0, Y: 0, W: 1100, H: 600}, token("selection", dark)) == 0 {
+			t.Errorf("dark=%v: no brand cyan accent", dark)
+		}
+		r, ok := tt.Find(a.windowTitle())
+		if !ok || r.Y > 28 {
+			t.Fatalf("no title strip: %v %v", r, ok)
+		}
+		if colorPx(tt, r, token("signal-text", dark)) == 0 {
+			t.Errorf("dark=%v: title not cyan", dark)
+		}
+		tt.SetWindowActive(false)
+		tt.Frame()
+		off := token("muted", dark)
+		if !dark {
+			off = token("ink", dark)
+		}
+		if colorPx(tt, r, token("signal-text", dark)) != 0 || colorPx(tt, r, off) == 0 {
+			t.Errorf("dark=%v: background title not gray/black", dark)
+		}
+	}
+}

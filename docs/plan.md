@@ -1214,6 +1214,26 @@ UX：
 - `phase9a_test.go`：第二行提示以「选中后：」开头。
 - `go test -race ./...`、`vet`、`mygo vet`。
 
+## 阶段 18 后修订四：强调色固定为品牌青、标题栏路径着色
+
+> 来源：开发会话，2026-11-12，用户提出。
+
+**改动**
+- 强调色不再跟随 macOS，固定为品牌青 `#00DAFC`。
+  - 选中行、焦点框、主按钮、分段控件都用这个颜色，青底上的字一律用黑字（`selection-ink`）。
+  - `theme.go` 的 `applyAppearance` 每帧把 `Accent` 和 `AccentText` 设为这两个 token。
+- 标题栏的文件夹名（隐藏工具栏时显示）：
+  - goFinder 在前台时用品牌青 `signal-text`（浅色主题下是深一些的青，保证看得清）；
+  - 失焦时，深色主题用 `muted` 灰，浅色主题用 `ink` 黑。
+
+**边界**
+- 不改其他 token 和布局。
+
+**验证**
+- `phase19_test.go`：`TestBrandAccentAndTitle`，深色和浅色主题都检查。
+- `phase11b_test.go`：完成小圆点只在状态行里数像素，因为列表的焦点框现在也是青色。
+- `go test -race ./...`、`vet`、`mygo vet`。
+
 ## 测试和验证
 - **纯逻辑包写单元测试，用 `go test ./...` 运行**：
   - `keymap`：按键解析、上下文过滤、用户覆盖、冲突检测；
