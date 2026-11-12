@@ -1456,7 +1456,7 @@ UX：
 **验证**：`go build ./...`、`go vet ./...`、`go tool mygo vet .`、`go tool mygo vet ./gui`、`go test ./...` 通过；`go tool mygo build -skip-installer` 打包成功，签名为 Apple_self_dev。
 
 ### 阶段 18 后修订十四：关于页加入 AboutKit 的内容
-> 来源：本开发会话（2026-11-12），用户提出。
+> 来源：本开发会话（2026-11-12），用户提出。已实现：commit 4f1b51a。
 
 **要改什么**：参考作者的关于模块 AboutKit（github.com/aoyamashou/AboutKit，Swift），把其中的内容按 goFinder 设计系统写进设置 › 关于页，不照搬代码。
 
