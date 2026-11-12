@@ -1,7 +1,7 @@
 {
   "name": "goFinder",
   "identifier": "io.github.aoyamashou.gofinder",
-  "version": "0.18.6",
+  "version": "0.18.7",
   "out": "build",
   "updates": {
     "publicKey": "kHx9kxI0PN4crRVqTZZKi4gHLe1PW+G3eHXoo7WwrE8=",
