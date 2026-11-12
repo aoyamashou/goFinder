@@ -15,7 +15,7 @@ var hintTitles = map[string]string{
 	"filter": "过滤", "copy": "拷贝", "copypath": "拷贝路径", "cut": "剪切", "paste": "粘贴",
 	"rename": "重命名", "trash": "删除", "newfolder": "新文件夹", "newfile": "新文件",
 	"quicklook": "预览", "help": "帮助", "hidden": "隐藏文件", "sortmenu": "排序", "addr": "前往", "settings": "设置",
-	"agent": "启动智能体", "go.start": "回到起点",
+	"agent": "智能体", "go.start": "回到起点", "open": "打开", "up": "返回", "terminal": "终端",
 }
 
 // hintsMax is how many hints a held modifier shows before "… ? 全部".
@@ -65,9 +65,10 @@ func hintItem(c *ui.Context, keys, title string) {
 }
 
 // hintLines are the status bar's two lines of common keys, as the user
-// set them (2026-11-12): looking and going, then editing.
+// set them (2026-11-12): going about, then acting on the items chosen.
+// "@move" is the arrows' ↑↓, which the list itself handles.
 var hintLines = [2][]string{
-	{"quicklook", "filter", "go.start", "agent", "help"},
+	{"@move", "open", "up", "go.start", "sortmenu", "hidden", "terminal", "agent"},
 	{"copy", "copypath", "cut", "paste", "newfolder", "newfile", "rename", "trash"},
 }
 
@@ -93,6 +94,7 @@ func (a *app) statusHints(c *ui.Context, line int) {
 			return
 		}
 		if held == 0 {
+			uiCaption(c, "导航时：", "muted").SingleLine().Shrink(0)
 			a.hintLine(c, hintLines[0])
 			return
 		}
@@ -122,6 +124,10 @@ func (a *app) statusHints(c *ui.Context, line int) {
 // user left without a key is left out.
 func (a *app) hintLine(c *ui.Context, ids []string) {
 	for _, id := range ids {
+		if id == "@move" {
+			hintItem(c, "↑↓", "移动")
+			continue
+		}
 		keys := a.km.KeysFor(id)
 		if len(keys) == 0 {
 			continue

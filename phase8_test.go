@@ -191,8 +191,15 @@ func TestTwoRowStatusBar(t *testing.T) {
 	if !tt.HasText("↩") {
 		t.Fatalf("no ↩ cap: %q", tt.Texts())
 	}
-	// The toolbar's eye remains; the status bar's is gone.
-	if _, ok := tt.Find("隐藏文件"); ok {
+	// The toolbar's eye remains; the status bar's is gone: "隐藏文件" is
+	// the hint alone.
+	n := 0
+	for _, s := range tt.Texts() {
+		if s == "隐藏文件" {
+			n++
+		}
+	}
+	if n != 1 {
 		t.Fatal("the status bar still has the hidden items' switch")
 	}
 	act, _ := a.km.Action("preview")

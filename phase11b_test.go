@@ -63,7 +63,7 @@ func pixel(img *image.RGBA, x, y float32) ui.Color {
 func TestStatusBarTwoRows(t *testing.T) {
 	for _, dark := range []bool{false, true} {
 		a, tt := themed(t, dark)
-		top, ok1 := tt.Find("过滤")
+		top, ok1 := tt.Find("回到起点")
 		if !ok1 {
 			t.Fatalf("no hint row: %q", tt.Texts())
 		}
@@ -155,6 +155,7 @@ func TestTrashDialogDanger(t *testing.T) {
 // The settings header is the wordmark, its period signal.
 func TestSettingsWordmark(t *testing.T) {
 	a, tt := themed(t, false)
+	a.km.Override(map[string][]string{"hidden": {"Cmd+Shift+."}}) // the hints' "." cap would come first
 	a.run("settings")
 	tt.Frame()
 	if !tt.HasText("goFinder") || !tt.HasText(".") {

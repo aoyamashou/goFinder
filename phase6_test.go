@@ -165,7 +165,7 @@ func TestDragOutOfZip(t *testing.T) {
 
 func TestPathBar(t *testing.T) {
 	a, tt, _, root := setup(t)
-	if tt.HasText("✎") || tt.HasText("↑") {
+	if tt.HasText("✎") || slices.Contains(tt.Texts(), "↑") {
 		t.Fatalf("old buttons still there: %q", tt.Texts())
 	}
 	m, ok := tt.Access("展开 " + root)
