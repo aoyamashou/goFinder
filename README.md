@@ -7,6 +7,8 @@
 
 # goFinder
 
+官网：[gofinder.ryou.im](https://gofinder.ryou.im)
+
 > 基于 [MyGo](https://mygo.egoist.dev/docs) 打造的Finder替代品，因为是狗大V做的Finder，中文名为狗方德。
 
 goFinder 是一个针对键盘鼠标同时使用的用户的，以简洁、高速、低资源占用为设计目标的，将原生访达（Finder）和 [Yazi](https://github.com/sxyazi/yazi) 文件管理器的长处融在了一起的文件管理器。
@@ -56,7 +58,7 @@ goFinder 是一个针对键盘鼠标同时使用的用户的，以简洁、高�
 
 ## 安装
 
-- 下载：在 [Releases](https://github.com/aoyamashou/goFinder/releases) 下载 `.dmg`，把 goFinder 拖进「应用程序」文件夹。目前只有 Apple Silicon 版本。启动时，goFinder 会自动检查更新。
+- 下载：在 [官网](https://gofinder.ryou.im) 或 [Releases](https://github.com/aoyamashou/goFinder/releases) 下载 `.dmg`，把 goFinder 拖进「应用程序」文件夹。目前只有 Apple Silicon 版本。启动时，goFinder 会自动检查更新。
 - 字体：列表图标用的是 `JetBrainsMono Nerd Font Mono`。设置里可以一键下载；不装也能用，图标会退回文字符号。
 - 签名：目前用的是自签证书，没有经过 Apple 公证。第一次打开时如果被系统拦下，到「系统设置 › 隐私与安全性」里点「仍要打开」。
 - 解除隔离：如果提示「已损坏」或「无法打开」，可以先解除下载隔离（下载的 `.dmg` 也可以先这样处理再打开）：
