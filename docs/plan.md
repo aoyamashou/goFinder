@@ -1493,6 +1493,7 @@ UX：
 - `gofmt -l gui internal` 无输出；`go vet ./...`、`go tool mygo vet .`、`go tool mygo vet ./gui`、`CGO_ENABLED=0 go test ./...` 通过。
 - `TestVimShots` 生成浅色/深色、关闭/开启共 8 张截图，已逐项检查设置与状态栏；开启状态的 4 张验收截图附在 PRD。
 - 用 `Apple_self_dev` 签名的独立原生测试程序、临时文件与配置验证开关、h/l 进出目录、连续 j 移动及跨屏滚动；测试结束后关闭窗口并清理测试夹具。长按自动重复通过 `ui.Tester.KeyRepeat` 验证，原生窗口未进行物理长按测试。
+- **发布（2026-11-13）**：Claude 代码审查提交 f0a3f88 放行后，经用户明确授权发布 [v0.18.9](https://github.com/aoyamashou/goFinder/releases/tag/v0.18.9)，tag 指向 920a1dd，已设为 Latest。245 项测试、vet 三连及应用签名、DMG、全量/3 个增量包签名和远端附件摘要均通过验证；本机已安装应用未覆盖。
 
 ## 测试和验证
 - **纯逻辑包写单元测试，用 `go test ./...` 运行**：

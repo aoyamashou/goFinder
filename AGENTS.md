@@ -103,9 +103,9 @@ go tool mygo build -skip-installer    # 打包到 build/darwin-arm64/goFinder.ap
 - `docs/website.md`：官网（gofinder.ryou.im）的目录、部署方式、设计依据与内容边界；官网源码在 `site/`，用 Cloudflare CLI `cf deploy` 部署。
 - `.agents/skills/mygo-maintenance/SKILL.md`：MyGo 应用的维护要点（生命周期、身份、线程、测试）。
 
-## 交接现状（2026-11-12）
+## 交接现状（2026-11-13）
 
-- **当前发布版本 0.18.8**（tag 指向 64a1ec6）。修订十五的可选 Vim 键位已实现并验证，尚未发版，版本号保持不变。
+- **当前发布版本 0.18.9**（tag 指向 920a1dd），已设为 GitHub 最新 Release；包含修订十五的可选 Vim 键位。全量及从 0.18.6–0.18.8 升级的增量包均已签名上传，DMG 不签名，应用用 Apple_self_dev 签名。
 - 阶段 0–18 及修订一至十五全部完成，没有进行中的代码任务。
 - **MyGo 官方 Showcase**：用户提交的 egoist/mygo#1749 因冲突被作者关闭，内容并入 egoist/mygo#1751（保留作者署名，截至交接时尚未合并）。合并后可以删掉用户 fork（aoyamashou/mygo）上的 `showcase-gofinder` 分支。
 - 用户用自动更新测试新版本，所以发版后的问题通常来自真实安装的应用；修复后照常提交，等用户决定何时发版。
