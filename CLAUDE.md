@@ -63,6 +63,6 @@ osascript -e 'quit app id "io.github.aoyamashou.gofinder"'; rm -rf /Applications
 
 ## 文档索引
 
-- `README.md`：已完成的功能、配置方法、阶段 0 技术验证结论、后续阶段。
+- `README.md`：面向用户的介绍（特点、与访达的性能对比、安装、键位、配置）；实现细节不写在这里，写进 `docs/plan.md` 的对应阶段。
 - `docs/design-system.md`（及 `docs/design-tokens.json`）：goFinder 设计系统——颜色、字体、间距、圆角、尺寸 token 与组件规范；改界面前先读。
 - `docs/plan.md`：分阶段计划（架构、默认键位、资源原则、各阶段范围与验证方式）。完成一个阶段后在文档开头的状态行标注 commit 号。
