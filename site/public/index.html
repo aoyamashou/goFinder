@@ -279,8 +279,8 @@ footer{margin-top:72px;padding-bottom:12px}
 .s-pane:not(.on) .s-cols .col:nth-child(3){}
 .s-sb{background:var(--s1)}
 .s-l1{display:flex;align-items:center;justify-content:space-between;height:34px;padding:0 16px;font-size:13px;color:var(--muted)}
-.s-l2{display:flex;align-items:center;gap:14px;height:34px;padding:0 16px;font-size:13px;color:var(--muted);overflow:hidden;white-space:nowrap}
-.s-l2 span{display:inline-flex;align-items:center;gap:6px}
+.s-l2{display:flex;align-items:center;gap:12px;height:32px;padding:0 16px;font-size:13px;color:var(--muted);overflow:hidden;white-space:nowrap}
+.s-l2 span{display:inline-flex;align-items:center;gap:6px}.s-l2 b{font-weight:400;margin-right:2px}
 
 /* tablet / phone */
 @media (max-width:1100px){
@@ -294,6 +294,7 @@ footer{margin-top:72px;padding-bottom:12px}
   .faq h2{grid-column:1/13;position:static;margin-bottom:0}
   .faq .list{grid-column:1/13;margin-top:24px}
   .cta{grid-template-columns:1fr}
+  .s-l2{flex-wrap:wrap;height:auto;min-height:32px;padding:6px 16px;white-space:normal;gap:8px 12px}
   .cta .fl,.cta .fr2{display:none}
   nav .links a:not(.keep){display:none}
 }
@@ -398,7 +399,7 @@ footer{margin-top:72px;padding-bottom:12px}
 ## 安装
 
 下载后拖进「应用程序」文件夹。</div></div></div></div><div class="s-pane"><div class="s-path"><span class="path"><b>Users</b> › <b>user</b> › <b>Documents</b></span></div><div class="s-cols"><div class="col "><div class="row "><i class="g dir"></i><span class="n">Applications</span></div><div class="row "><i class="g dir"></i><span class="n">Desktop</span></div><div class="row dim"><i class="g dir"></i><span class="n">Documents</span></div><div class="row "><i class="g dir"></i><span class="n">Downloads</span></div><div class="row "><i class="g dir"></i><span class="n">Library</span></div><div class="row "><i class="g dir"></i><span class="n">Movies</span></div><div class="row "><i class="g dir"></i><span class="n">Music</span></div><div class="row "><i class="g dir"></i><span class="n">Pictures</span></div><div class="row "><i class="g dir"></i><span class="n">Projects</span></div></div><div class="col "><div class="row dim"><i class="g dir"></i><span class="n">项目 A</span></div><div class="row "><i class="g dir"></i><span class="n">笔记</span></div><div class="row "><i class="g dir"></i><span class="n">合同</span></div><div class="row "><i class="g dir"></i><span class="n">报告</span></div><div class="row "><i class="g dir"></i><span class="n">照片整理</span></div><div class="row "><i class="g dir"></i><span class="n">备份</span></div><div class="row "><i class="g dir"></i><span class="n">教程</span></div><div class="row "><i class="g dir"></i><span class="n">草稿</span></div><div class="row "><i class="g dir"></i><span class="n">素材库</span></div></div><div class="col "><div class="row "><i class="g dir"></i><span class="n">子文件夹 A</span></div><div class="row "><i class="g dir"></i><span class="n">子文件夹 B</span></div><div class="row "><i class="g f doc"></i><span class="n">说明.md</span></div></div></div></div></div></div>
-      <div class="s-sb"><div class="s-l1"><span>上：~　下：~/Documents</span><span class="seg"><span>三列</span><span>左右</span><span class="on">上下</span></span></div><div class="s-l2"><span><kbd class="kc">⇧⌘.</kbd>隐藏文件</span><span><kbd class="kc">⇧⌘H</kbd>主目录</span><span><kbd class="kc">⇧⌘D</kbd>桌面</span><span><kbd class="kc">⇧⌘O</kbd>文稿</span><span><kbd class="kc">⇧⌘A</kbd>应用程序</span><span><kbd class="kc">⇧⌘N</kbd>新文件夹</span><span><kbd class="kc">⇧⌘]</kbd>下一个工作区</span><span><kbd class="kc">⇧⌘[</kbd>上一个工作区</span></div></div>
+      <div class="s-sb"><div class="s-l1"><span>上：~　下：~/Documents</span><span class="seg"><span>三列</span><span>左右</span><span class="on">上下</span></span></div><div class="s-l2"><b>导航时：</b><span><kbd class="kc">↑↓</kbd>移动</span><span><kbd class="kc">→</kbd>打开</span><span><kbd class="kc">←</kbd>返回</span><span><kbd class="kc">tab</kbd>切换窗口</span><span><kbd class="kc">`</kbd>回到起点</span><span><kbd class="kc">,</kbd>排序</span><span><kbd class="kc">.</kbd>隐藏文件</span><span><kbd class="kc">Space</kbd>预览</span><span><kbd class="kc">f</kbd>过滤</span><span><kbd class="kc">t</kbd>终端</span><span><kbd class="kc">a</kbd>智能体</span><span><kbd class="kc">e</kbd>编辑器</span><span><kbd class="kc">w</kbd>工作区</span><span><kbd class="kc">?</kbd>帮助</span></div><div class="s-l2"><b>选中后：</b><span><kbd class="kc">c c</kbd>拷贝路径</span><span><kbd class="kc">c</kbd>拷贝</span><span><kbd class="kc">x</kbd>剪切</span><span><kbd class="kc">v</kbd>粘贴</span><span><kbd class="kc">s</kbd>暂存</span><span><kbd class="kc">n</kbd>新文件夹</span><span><kbd class="kc">n n</kbd>新文件</span><span><kbd class="kc">↩</kbd>重命名</span><span><kbd class="kc">d</kbd>删除</span><span><kbd class="kc">s s</kbd>收藏</span></div></div>
     </div>
   </section>
 
