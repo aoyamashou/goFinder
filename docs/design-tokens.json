@@ -1,0 +1,86 @@
+{
+  "name": "goFinder",
+  "version": 1,
+  "color": {
+    "themes": [{"id": "light", "name": "浅色"}, {"id": "dark", "name": "深色"}],
+    "tokens": [
+      {"name": "bg", "value": {"light": "#ffffff", "dark": "#141516"}, "usage": "文件列表区（上级栏、当前栏、预览栏、检查器）的底色，占窗口面积最大。"},
+      {"name": "sidebar", "value": {"light": "#f2f4f5", "dark": "#1b1d1f"}, "usage": "侧边栏底色，仅在窗口没有 VibrancySidebar 材质时使用；有材质时侧边栏透明。"},
+      {"name": "surface-100", "value": {"light": "#f2f4f5", "dark": "#1b1d1f"}, "usage": "一级面：工具栏、两行状态栏、路径胶囊、过滤输入框、检查器值的悬停底。靠它和 bg 分层，不加描边、不加阴影。"},
+      {"name": "surface-200", "value": {"light": "#e7eaec", "dark": "#26292c"}, "usage": "二级面：行悬停、按钮按下、分段控件底、键帽底、失焦时的选中行。ink 在其上 16.4:1（深色 13.6:1）。"},
+      {"name": "separator", "value": {"light": "#d5dadf", "dark": "#34383c"}, "usage": "全应用唯一的“线”：栏与栏之间、两行状态栏之间、工具栏与内容之间的 1px 分隔。装饰性，不承载含义，故不要求 3:1。"},
+      {"name": "ink", "value": {"light": "#0a0a0a", "dark": "#f5f7f8"}, "usage": "文件名、标题、正文、图标默认色，读在 bg、surface-100、surface-200 上（≥13.6:1）。"},
+      {"name": "muted", "value": {"light": "#5b6168", "dark": "#9aa1a8"}, "usage": "次要文字：检查器字段名、状态栏结果句、侧边栏分组名、键帽旁的动作名。在 bg/surface-100/surface-200 上 ≥5.2:1。"},
+      {"name": "faint", "value": {"light": "#80878e", "dark": "#6f767d"}, "usage": "第三级：隐藏文件名、禁用项、占位文字、Git 未跟踪标记。对 bg 3.6:1（深色 4.0:1），只用于非关键信息，不做正文。"},
+      {"name": "selection", "value": {"light": "#0a64d6", "dark": "#0a64d6"}, "usage": "系统强调色：选中行、光标行（列表有焦点时）、主按钮、开关与分段的选中态。运行时读用户的 macOS 强调色，这里是默认蓝的回退值。上面的字用 selection-ink（5.5:1）。"},
+      {"name": "selection-ink", "value": {"light": "#ffffff", "dark": "#ffffff"}, "usage": "selection 底上的文字与字形。"},
+      {"name": "selection-inactive", "value": {"light": "{surface-200}", "dark": "{surface-200}"}, "usage": "列表失去键盘焦点时的选中行底色，文字保持原色（ink），图标保持类型色。"},
+      {"name": "focus", "value": {"light": "{selection}", "dark": "{selection}"}, "usage": "键盘焦点所在栏的 1.5px 边框（侧边栏、当前栏、双栏中的活动栏）。跟随系统强调色，与选中行同色，对 bg ≥3:1。"},
+      {"name": "signal", "value": {"light": "#00dafc", "dark": "#00dafc"}, "usage": "品牌青，只做点缀、不承担交互状态：字标 goFinder. 的句点、Agent（交给 AI）的三道光、“已完成”小圆点、过滤生效标记。每屏 ≤3 处。上面的字用 signal-ink。"},
+      {"name": "signal-ink", "value": {"light": "#000000", "dark": "#000000"}, "usage": "青底上的文字，12.4:1。青底永远配黑字，不配白字。"},
+      {"name": "signal-text", "value": {"light": "#00718a", "dark": "#00dafc"}, "usage": "需要青色“文字”时用：Agent 菜单项里的“默认”标签、状态栏“过滤：xx”。浅色 5.6:1；深色下 #00DAFC 在 bg 上 10.8:1。"},
+      {"name": "signal-soft", "value": {"light": "#e0f9fe", "dark": "#00262d"}, "usage": "青色浅底：设置 › Agent 页里默认 Agent 那一行的底，配 signal-text。"},
+      {"name": "danger", "value": {"light": "#b42318", "dark": "#ff6b6b"}, "usage": "删除（移到废纸篓）菜单项与确认按钮文字、错误提示、Git 冲突。在 bg 上 6.6:1。永远配文字，不单靠颜色。"},
+      {"name": "warning", "value": {"light": "#ffb020", "dark": "#ffb020"}, "usage": "琥珀填充：缺字体提示的小圆点。只做填充，上面的字用 ink 的浅色值 #0a0a0a。"},
+      {"name": "warning-text", "value": {"light": "#8a5a00", "dark": "#ffb020"}, "usage": "琥珀文字：Git 已修改标记 M、“部分完成”。浅色 5.9:1，深色 10.0:1。"},
+      {"name": "git-added", "value": {"light": "#1a7f37", "dark": "#3fb950"}, "usage": "Git 新增标记 A。永远是字母 + 颜色，不靠色相区分（与 danger 同在时字母不同）。"},
+      {"name": "git-modified", "value": {"light": "{warning-text}", "dark": "{warning-text}"}, "usage": "Git 已修改标记 M、含改动的文件夹的 •。"},
+      {"name": "git-untracked", "value": {"light": "{muted}", "dark": "{muted}"}, "usage": "Git 未跟踪标记 ?。"},
+      {"name": "git-conflict", "value": {"light": "{danger}", "dark": "{danger}"}, "usage": "Git 冲突标记 U。"},
+      {"name": "type-folder", "value": {"light": "#1f6feb", "dark": "#58a6ff"}, "usage": "文件列表字形：文件夹（含打开态）、.app、Git 仓库根。对 bg 4.6:1（深色 7.2:1）。"},
+      {"name": "type-code", "value": {"light": "#bc4c00", "dark": "#ffa657"}, "usage": "字形：源代码与脚本（go、ts、py、sh…）。"},
+      {"name": "type-doc", "value": {"light": "#57606a", "dark": "#adb5bd"}, "usage": "字形：文档、文本、Markdown、PDF、表格、演示文稿。"},
+      {"name": "type-image", "value": {"light": "#bf3989", "dark": "#f778ba"}, "usage": "字形：图片与设计稿。"},
+      {"name": "type-media", "value": {"light": "#8250df", "dark": "#bc8cff"}, "usage": "字形：视频与音频。"},
+      {"name": "type-archive", "value": {"light": "#9a6700", "dark": "#e3b341"}, "usage": "字形：压缩包、磁盘映像、安装包。"},
+      {"name": "type-exec", "value": {"light": "#1a7f37", "dark": "#3fb950"}, "usage": "字形：可执行文件（有 x 权限的普通文件）。"},
+      {"name": "type-config", "value": {"light": "#6e7781", "dark": "#8b949e"}, "usage": "字形：配置、锁文件、证书与密钥、日志、隐藏的点文件。对 bg 4.6:1（深色 5.9:1）。"}
+    ]
+  },
+  "type": {
+    "fonts": [],
+    "families": {
+      "ui": "-apple-system, \"SF Pro Text\", \"PingFang SC\", \"Hiragino Sans\", \"Hiragino Sans GB\", system-ui, sans-serif",
+      "mono": "\"JetBrainsMono Nerd Font Mono\", \"JetBrainsMono Nerd Font\", \"SF Mono\", ui-monospace, Menlo, monospace"
+    },
+    "groups": [
+      {"name": "Brand", "family": "ui", "styles": [
+        {"name": "wordmark", "fontSize": "28px", "lineHeight": 1, "fontWeight": 800, "letterSpacing": "-0.035em", "sample": "goFinder.", "usage": "关于窗口、设置页页眉的字标；句点用 signal。只有这里用 800。"}
+      ]},
+      {"name": "UI", "family": "ui", "styles": [
+        {"name": "title", "fontSize": "15px", "lineHeight": "20px", "fontWeight": 600, "letterSpacing": "-0.01em", "sample": "将 3 个项目移到废纸篓？", "usage": "对话框标题、设置分页标题、检查器文件名。"},
+        {"name": "body", "fontSize": "13px", "lineHeight": "18px", "fontWeight": 400, "sample": "在这里打开 Claude", "usage": "菜单项、按钮、设置项、侧边栏项、检查器值。"},
+        {"name": "body-strong", "fontSize": "13px", "lineHeight": "18px", "fontWeight": 600, "sample": "已安装 · 5 个", "usage": "设置里的分组标题、对话框主按钮文字。"},
+        {"name": "caption", "fontSize": "11px", "lineHeight": "14px", "fontWeight": 400, "sample": "2026-11-11 14:41 · 348.8 KB", "usage": "检查器字段名、状态栏结果句、提示文字。"},
+        {"name": "section", "fontSize": "11px", "lineHeight": "14px", "fontWeight": 700, "letterSpacing": "0.02em", "sample": "个人收藏", "usage": "侧边栏分组名，muted。"}
+      ]},
+      {"name": "Mono", "family": "mono", "styles": [
+        {"name": "list", "fontSize": "14px", "lineHeight": "22px", "fontWeight": 400, "sample": "  screenshots     main.go", "usage": "文件列表（上级、当前、子项）。默认 14，可在设置中调整为 13–18；字形比文字大 3pt；行高取 1.25 倍字号，不低于 row-height 22px。"},
+        {"name": "path", "fontSize": "13px", "lineHeight": "18px", "fontWeight": 400, "sample": "~ ▸ dev ▸ goFinder", "usage": "路径胶囊里的各级目录名、过滤输入框。"},
+        {"name": "keycap", "fontSize": "11px", "lineHeight": "16px", "fontWeight": 600, "sample": "n n", "usage": "状态栏、速查表、菜单右侧的键帽字母。"}
+      ]}
+    ]
+  },
+  "spacing": {"tokens": [
+    {"name": "space-0.5", "value": "2px", "usage": "字形与文件名之间以外的最小间隙：键帽内上下、Git 字母与文件名。"},
+    {"name": "space-1", "value": "4px", "usage": "键帽之间、图标按钮内边距、分段控件内边距。"},
+    {"name": "space-1.5", "value": "6px", "usage": "列表行左右内边距、字形与文件名间距、侧边栏项图标与文字间距。"},
+    {"name": "space-2", "value": "8px", "usage": "工具栏按钮间距、状态栏左右内边距、提示组内间距。"},
+    {"name": "space-3", "value": "12px", "usage": "提示组之间、检查器字段之间、对话框元素之间。"},
+    {"name": "space-4", "value": "16px", "usage": "对话框、设置页、菜单的外边距；工具栏按钮分组之间。"}
+  ]},
+  "radius": {"tokens": [
+    {"name": "radius-row", "value": "5px", "usage": "文件列表行、侧边栏项、检查器值悬停底。"},
+    {"name": "radius-control", "value": "6px", "usage": "按钮、输入框、工具栏图标按钮。"},
+    {"name": "radius-menu", "value": "10px", "usage": "右键菜单、下拉、对话框、暂存架面板。"},
+    {"name": "radius-pill", "value": "999px", "usage": "路径胶囊、分段控件、键帽、“已完成”圆点——从 Unlocknote 继承的胶囊形状。"}
+  ]},
+  "size": {"tokens": [
+    {"name": "row-height", "value": "22px", "usage": "文件列表、侧边栏、菜单项的行高。"},
+    {"name": "toolbar-height", "value": "38px", "usage": "工具栏高度（含上下 space-1）。"},
+    {"name": "statusbar-row", "value": "22px", "usage": "两行状态栏每一行的高度。"},
+    {"name": "sidebar-width", "value": "190px", "usage": "侧边栏宽度。"},
+    {"name": "inspector-width", "value": "280px", "usage": "检查器（第 4 栏）固定宽度。"},
+    {"name": "focus-width", "value": "1.5px", "usage": "键盘焦点栏边框宽度。"}
+  ]}
+}

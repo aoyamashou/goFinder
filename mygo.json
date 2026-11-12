@@ -1,0 +1,29 @@
+{
+  "name": "goFinder",
+  "identifier": "io.github.aoyamashou.gofinder",
+  "version": "0.18.0",
+  "out": "build",
+  "updates": {
+    "publicKey": "kHx9kxI0PN4crRVqTZZKi4gHLe1PW+G3eHXoo7WwrE8=",
+    "github": "aoyamashou/goFinder"
+  },
+  "macos": {
+    "signingIdentity": "Apple_self_dev",
+    "infoPlist": {
+      "CFBundleDocumentTypes": [
+        {
+          "CFBundleTypeName": "Folder",
+          "CFBundleTypeRole": "Viewer",
+          "LSHandlerRank": "Alternate",
+          "LSItemContentTypes": ["public.folder"]
+        },
+        {
+          "CFBundleTypeName": "Item",
+          "CFBundleTypeRole": "Viewer",
+          "LSHandlerRank": "None",
+          "LSItemContentTypes": ["public.item"]
+        }
+      ]
+    }
+  }
+}
