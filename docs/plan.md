@@ -1394,7 +1394,7 @@ UX：
 - `TestWorkspaceRenameDelete`、`TestDemoNamesMigrate`、`TestDemoWorkspaces`；`go test ./...`、`go vet ./...`、`go tool mygo vet .` 通过。
 
 ### 阶段 18 后修订十一：s / s s / t 键位、点侧边栏不移焦点框、状态栏两行重排
-> 来源：本开发会话（2026-11-12），用户提出。
+> 来源：本开发会话（2026-11-12），用户提出。已实现：commit 3eb01b6。
 
 **要改什么**
 1. 加入暂存架 `s`（保留 ⌥⌘S），收藏当前文件夹 `s s`，在终端打开 `t`（替代 `;`，保留 ⌥⌘T）；右键菜单和设置的快捷键页随键位表更新。
