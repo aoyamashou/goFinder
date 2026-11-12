@@ -15,6 +15,7 @@ import (
 // view builds the window. It is plain on purpose: default widgets, no
 // icons or animation, so it stays light and quick.
 func (a *app) view(c *ui.Context) {
+	defer a.endHot()
 	a.svc, a.hasSvc = c.Services(), true
 	a.syncWatches()
 	a.syncMenu()
@@ -227,7 +228,8 @@ func (a *app) table(c *ui.Context, pi int, ts *tabState) {
 		l, room := a.fileList(c.Key(ts), &ts.list, es, focused)
 		l = l.Rows(func(r ui.ListRow) {
 			e, cur := es[r.Index], r.Index == ts.cursor
-			look := lookOf(cur, r.Selected(), r.ListFocused() && c.WindowActive())
+			// While a side column's row menu shows, that row has the accent.
+			look := lookOf(cur, r.Selected(), r.ListFocused() && c.WindowActive() && a.menuHot == "")
 			row := a.fileRow(r.Context, e, look, cur && e.IsDir, gitMark(gst, groot, e), room)
 			a.dropRow(row, &ts.list, e)
 			ts.hits = append(ts.hits, rowHit{e.Path, row.Bounds()})
@@ -343,6 +345,7 @@ func (a *app) contextMenuPre(m *ui.Menu, pi int, ts *tabState, e vfs.Entry, pre 
 			it.Danger()
 		}
 		if it.Chosen() {
+			a.dropHot()
 			if pre != nil {
 				pre()
 			}

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -54,6 +55,10 @@ type system interface {
 	FullDiskAccess() bool
 	// OpenURL opens a URL scheme, such as System Settings' panes.
 	OpenURL(url string) error
+	// Eject ejects the volume mounted at path, as Finder's eject button
+	// (diskutil eject, unmount for a share). It blocks: call it off the
+	// main thread.
+	Eject(path string) error
 }
 
 type realSystem struct{}
@@ -153,6 +158,22 @@ func (realSystem) FullDiskAccess() bool {
 }
 
 func (realSystem) OpenURL(u string) error { return exec.Command("open", u).Run() }
+
+func (realSystem) Eject(p string) error {
+	out, err := exec.Command("diskutil", "eject", p).CombinedOutput()
+	if err == nil {
+		return nil
+	}
+	if out2, err2 := exec.Command("diskutil", "unmount", p).CombinedOutput(); err2 == nil {
+		return nil // a network share, which only unmounts
+	} else if len(out2) > 0 {
+		out = out2
+	}
+	if msg := strings.TrimSpace(string(out)); msg != "" {
+		return errors.New(msg)
+	}
+	return err
+}
 
 func (realSystem) RunShell(dir, cmd string) (string, error) { return shellcmd.Run(dir, cmd) }
 

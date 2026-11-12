@@ -15,6 +15,7 @@ var hintTitles = map[string]string{
 	"filter": "过滤", "copy": "拷贝", "copypath": "拷贝路径", "cut": "剪切", "paste": "粘贴",
 	"rename": "重命名", "trash": "删除", "newfolder": "新文件夹", "newfile": "新文件",
 	"quicklook": "预览", "help": "帮助", "hidden": "隐藏文件", "sortmenu": "排序", "addr": "前往", "settings": "设置",
+	"agent": "启动智能体", "go.start": "回到起点",
 }
 
 // hintsMax is how many hints a held modifier shows before "… ? 全部".

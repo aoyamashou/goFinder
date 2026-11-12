@@ -24,7 +24,7 @@ func actions() []keymap.Action {
 		{ID: "sortmenu", Title: "排序方式…", Group: "浏览"},
 		{ID: "addr", Title: "前往（输入路径）", Group: "浏览"},
 
-		{ID: "go.start", Title: "启动位置", Group: "跳转"},
+		{ID: "go.start", Title: "启动位置", Group: "跳转", Hint: true},
 		{ID: "go.home", Title: "主目录", Group: "跳转"},
 		{ID: "go.desktop", Title: "桌面", Group: "跳转"},
 		{ID: "go.downloads", Title: "下载", Group: "跳转"},
@@ -49,7 +49,7 @@ func actions() []keymap.Action {
 		{ID: "reveal", Title: "在 Finder 中显示", Group: "文件"},
 		{ID: "terminal", Title: "在终端中打开", Group: "文件"},
 		{ID: "editor", Title: "在编辑器中打开", Group: "文件"},
-		{ID: "agent", Title: "在这里打开默认 Agent", Group: "文件"},
+		{ID: "agent", Title: "在这里打开默认 Agent", Group: "文件", Hint: true},
 		{ID: "settings", Title: "设置（终端、编辑器、默认文件浏览器）", Group: "文件"},
 
 		{ID: "tab.new", Title: "新建标签页", Group: "标签页与窗格"},

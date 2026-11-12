@@ -387,12 +387,13 @@ func (a *app) parentView(c *ui.Context, pi int, cw float32) {
 		Padding(2, 0).Font(a.listFont()).FontSize(float32(a.listSize())).LineHeight(listLineHeight).
 		Border(borderW, ui.Color{}).FocusRing(false).Rows(func(r ui.ListRow) {
 		e := es[r.Index]
-		look := lookOf(false, r.Selected(), r.ListFocused() && c.WindowActive())
+		look := a.hotLook(e.Path, lookOf(false, r.Selected(), r.ListFocused() && c.WindowActive()))
 		row := a.fileRow(r.Context, e, look, r.Index == ps.sel && e.IsDir, "", room)
 		a.dropRow(row, &ps.list, e)
 		// A right-click acts on its row, as Finder's does: a command chosen
 		// goes up to dir with the cursor on it.
 		row.ContextMenu(func(m *ui.Menu) {
+			a.hotMenu(e.Path)
 			a.contextMenuPre(m, pi, ts, e, func() { a.pvEnterNow(pi, ts, dir, e.Name, es) })
 		})
 	}).Label("上级文件夹").ContextMenu(func(m *ui.Menu) { a.blankMenu(m, pi, dir) })
@@ -457,12 +458,13 @@ func (a *app) previewBody(c *ui.Context, p *paneState, e vfs.Entry) {
 		l := ui.List(c.Key("children"), st, len(es)).Grow(1).Padding(2, 0).
 			Font(a.listFont()).FontSize(float32(a.listSize())).LineHeight(listLineHeight).
 			Border(borderW, ui.Color{}).FocusRing(false).Rows(func(r ui.ListRow) {
-			row := a.fileRow(r.Context, es[r.Index], lookPlain, false, "", room)
+			row := a.fileRow(r.Context, es[r.Index], a.hotLook(es[r.Index].Path, lookPlain), false, "", room)
 			a.dropRow(row, st, es[r.Index])
 			ce := es[r.Index]
 			row.ContextMenu(func(m *ui.Menu) {
 				// A command chosen enters the folder with the cursor on the
 				// item, so it acts on it as in the current column.
+				a.hotMenu(ce.Path)
 				a.contextMenuPre(m, pi, ts, ce, func() { a.pvEnterNow(pi, ts, e.Path, ce.Name, es) })
 			})
 		}).Label("子项").ContextMenu(func(m *ui.Menu) { a.blankMenu(m, pi, e.Path) })

@@ -28,6 +28,8 @@ type fakeSys struct {
 	quickStops      int        // how many were ended
 	fullDisk        bool
 	urls            []string // OpenURL calls
+	ejected         []string // Eject calls
+	ejectErr        error
 }
 
 func (f *fakeSys) Open(p string) error { f.opened = append(f.opened, p); return nil }
@@ -66,6 +68,11 @@ func (f *fakeSys) QuickLook(paths []string) func() {
 	return func() { f.quickStops++ }
 }
 func (f *fakeSys) FullDiskAccess() bool { return f.fullDisk }
+func (f *fakeSys) Eject(p string) error {
+	f.ejected = append(f.ejected, p)
+	return f.ejectErr
+}
+
 func (f *fakeSys) OpenURL(u string) error {
 	f.urls = append(f.urls, u)
 	return nil

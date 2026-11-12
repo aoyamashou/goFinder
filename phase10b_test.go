@@ -122,11 +122,13 @@ func TestAgentKey(t *testing.T) {
 		t.Fatalf("fallback: %v %q", got, a.status)
 	}
 
-	// `a` is no default hint of the status bar.
+	// `a` and ` are default hints of the status bar.
+	hints := map[string]bool{"agent": true, "go.start": true}
 	for _, h := range a.km.Hints(0) {
-		if h.ID == "agent" {
-			t.Fatalf("agent in the default hints: %+v", h)
-		}
+		delete(hints, h.ID)
+	}
+	if len(hints) > 0 {
+		t.Fatalf("missing from the default hints: %v", hints)
 	}
 }
 

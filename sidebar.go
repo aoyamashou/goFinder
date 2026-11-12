@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 
 	"github.com/egoist/mygo/plugins/sfsymbols"
 	"github.com/egoist/mygo/ui"
@@ -291,6 +292,62 @@ func (a *app) sidebarItem(c *ui.Context, id string, kind finder.Kind, label stri
 	})
 }
 
+// ejectButton is a volume's ⏏ at the end of its sidebar item, as
+// Finder's; onAccent draws it over the chosen item's accent.
+func (a *app) ejectButton(c *ui.Context, path string, onAccent bool) {
+	const s = 14
+	b := ui.ButtonBase(c).Key("eject").Width(s + 4).Height(s + 4).Radius(px("radius-control")).
+		Label("推出").Tooltip("推出")
+	col := tok(c, "muted")
+	switch {
+	case !c.WindowActive():
+		col = tok(c, "faint")
+	case onAccent:
+		col = tok(c, "selection-ink")
+	case b.Hovered():
+		col = tok(c, "ink")
+	}
+	if b.Clicked() {
+		a.eject(path)
+	}
+	if !sfsymbols.Available() {
+		b.Width(0).TextColor(col).Children(func() { ui.Text(c, "⏏").FontSize(11) })
+		return
+	}
+	b.Draw(func(p *ui.Painter, r ui.Rect) {
+		box := ui.Rect{X: r.X + (r.W-s)/2, Y: r.Y + (r.H-s)/2, W: s, H: s}
+		if src, ok := sfsymbols.Image("eject", int(s*max(p.Scale(), 1)+0.5), col, sfsymbols.Options{Natural: true}); ok {
+			p.Image(src, box, ui.Contain)
+		}
+	})
+}
+
+// eject ejects the volume at path off the main thread. Tabs inside it go
+// home first, so nothing of goFinder keeps the volume busy.
+func (a *app) eject(path string) {
+	for _, p := range a.panes {
+		for _, ts := range p.tabs {
+			if d := ts.t.Dir; d == path || strings.HasPrefix(d, path+"/") {
+				a.navigate(ts, a.sb.home)
+			}
+		}
+	}
+	a.syncWatches()
+	name := filepath.Base(path)
+	a.status = "正在推出“" + name + "”…"
+	a.async(func() {
+		err := a.sys.Eject(path)
+		a.post(func() {
+			if err != nil {
+				a.status = "无法推出“" + name + "”：" + err.Error()
+			} else {
+				a.status = "已推出“" + name + "”"
+			}
+			a.loadLocations()
+		})
+	})
+}
+
 func (a *app) sidebar(c *ui.Context) {
 	ts := a.tab()
 	want := a.sidebarID(ts.t.Dir)
@@ -320,7 +377,16 @@ func (a *app) sidebar(c *ui.Context) {
 				muted("（无）")
 			}
 			for _, it := range a.sb.locs {
-				a.acceptDrop(a.sidebarItem(c, "l:"+it.Path, it.Kind, it.Name, focused), it.Path).Tooltip(it.Path)
+				e := a.acceptDrop(a.sidebarItem(c, "l:"+it.Path, it.Kind, it.Name, focused), it.Path).Tooltip(it.Path)
+				if it.Kind == finder.Volume {
+					p := it.Path
+					e.Children(func() { a.ejectButton(c, p, focused && a.sb.sel == "l:"+p) })
+					e.ContextMenu(func(m *ui.Menu) {
+						if m.Item("推出“" + it.Name + "”").Chosen() {
+							a.eject(p)
+						}
+					})
+				}
 			}
 		}), "sidebar.locs")
 		a.dbg(c, ui.SidebarSection(c, "收藏夹", &a.sb.open[2], func() {

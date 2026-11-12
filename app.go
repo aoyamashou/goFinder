@@ -204,7 +204,10 @@ type app struct {
 	// templates it offers, listed off the main thread.
 	pop     string
 	popOpen bool
-	popTpls []string
+	// menuHot is the side-column row a right-click menu shows for (rightclick.go).
+	menuHot           string
+	hotSeen, hotNudge bool
+	popTpls           []string
 
 	helpOpen  bool
 	helpQuery string
