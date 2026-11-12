@@ -55,31 +55,6 @@ func TestRightClickThirdRow(t *testing.T) {
 	}
 }
 
-// TestFilterButtonToggles: the lit filter button turns the filter off.
-func TestFilterButtonToggles(t *testing.T) {
-	a, tt, _, _ := setup(t)
-	if err := tt.Click("过滤当前文件夹"); err != nil {
-		t.Fatal(err)
-	}
-	tt.Frame()
-	if !a.filterOn {
-		t.Fatal("filter not on")
-	}
-	tt.Type("rep")
-	tt.Frame()
-	tt.Frame()
-	if a.tab().t.Filter != "rep" {
-		t.Fatalf("filter %q", a.tab().t.Filter)
-	}
-	if err := tt.Click("过滤当前文件夹"); err != nil {
-		t.Fatal(err)
-	}
-	tt.Frame()
-	if a.filterOn || a.tab().t.Filter != "" {
-		t.Fatalf("filterOn %v filter %q", a.filterOn, a.tab().t.Filter)
-	}
-}
-
 // TestMouseBackForward: a mouse's side buttons and a trackpad's swipes go
 // back and forward.
 func TestMouseBackForward(t *testing.T) {

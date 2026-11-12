@@ -16,17 +16,10 @@ import (
 	"gofinder/internal/vfs"
 )
 
-// The window's chrome, as QSpace's: the toolbar above the panes, the
-// status bar under them, and the menu of a column's blank space.
-
-// defaultToolbar is the toolbar when config.json does not list one. Items
-// are action IDs, "-" a gap, and the toolbar's own: "@new" (a menu of new
-// files and folders), "@sort" (a menu of sort orders), "@flex" (pushes
-// what follows to the end).
-var defaultToolbar = []string{
-	"back", "forward", "up", "-", "@new", "@sort", "hidden", "-",
-	"trash", "-", "terminal", "agent", "@flex", "workspace", "shelf", "filter",
-}
+// The window's chrome: the title bar (the Agent button, the workspaces,
+// the folder's name) above the panes, the status bar under them, and the
+// menu of a column's blank space. There is no toolbar (removed at the
+// user's word, 2026-11-12).
 
 // defaultBlankMenu is the menu of a column's blank space when config.json
 // does not list one: "@new" is the new-file submenu, "@sort" the sort
@@ -36,9 +29,8 @@ var defaultBlankMenu = []string{
 	"@sort", "hidden", "refresh", "-", "copypath",
 }
 
-// chromeItems are the toolbar's and the blank menu's own items, beside
-// action IDs.
-var chromeItems = map[string]bool{"-": true, "@new": true, "@sort": true, "@flex": true, agentsItem: true}
+// chromeItems are the blank menu's own items, beside action IDs.
+var chromeItems = map[string]bool{"-": true, "@new": true, "@sort": true, agentsItem: true}
 
 // agentsItem is the menu placeholder that expands to "open in terminal"
 // and one item per enabled agent, at the top level of the menu.
@@ -47,20 +39,8 @@ const agentsItem = "@agents"
 // noAgentHint is the status bar's word when no agent is enabled.
 const noAgentHint = "没有启用的 Agent，去设置 › Agent 启用"
 
-// actionSymbols are the SF Symbols of the actions a toolbar may show;
-// others show their title.
-var actionSymbols = map[string]string{
-	"back": "chevron.left", "forward": "chevron.right", "up": "arrow.up",
-	"@new": "plus", "@sort": "arrow.up.arrow.down",
-	"hidden": "eye", "filter": "line.3.horizontal.decrease.circle", "shelf": "tray.full", "terminal": "terminal", "agent": "sparkles",
-	"editor": "chevron.left.forwardslash.chevron.right", "refresh": "arrow.clockwise",
-	"preview": "sidebar.right", "sidebar": "sidebar.left", "toolbar": "menubar.rectangle", "copy": "doc.on.doc",
-	"cut": "scissors", "paste": "doc.on.clipboard", "trash": "trash",
-	"newfile": "doc.badge.plus", "newfolder": "folder.badge.plus", "rename": "pencil",
-	"reveal": "folder", "workspace": "square.on.square", "copypath": "link",
-	"layout.columns": "rectangle.split.3x1", "layout.dual": "rectangle.split.2x1",
-	"layout.rows": "rectangle.split.1x2", "settings": "gearshape", "help": "questionmark.circle",
-}
+// actionSymbols are the SF Symbols of the title bar's buttons.
+var actionSymbols = map[string]string{"agent": "sparkles", "workspace": "square.on.square"}
 
 // tip is what hovering an action's button says: its name and first key.
 func (a *app) tip(id, title string) string {
@@ -70,25 +50,13 @@ func (a *app) tip(id, title string) string {
 	return title
 }
 
-// toolbarTips say what a toolbar button does, in a sentence: the tip is
-// "name · this · first key". Buttons with none fall back to tip.
+// toolbarTips say what a title bar button does, in a sentence: the tip
+// is "name · this · first key". Buttons with none fall back to tip.
 var toolbarTips = map[string]string{
-	"back": "回到上一个位置", "forward": "前往下一个位置", "up": "进入上级文件夹",
-	"@new": "新建文件、文件夹或从模板新建", "@sort": "选择文件的排序方式",
-	"hidden": "显示或隐藏以点开头的隐藏文件", "filter": "只显示名称包含输入文字的项",
-	"shelf": "显示或隐藏暂存架", "terminal": "在当前文件夹打开终端", "agent": "在当前文件夹启动 Agent",
-	"editor": "用编辑器打开当前文件夹", "refresh": "重新读取当前文件夹",
-	"preview": "显示或隐藏检查器（文件属性）", "sidebar": "显示或隐藏侧边栏", "toolbar": "显示或隐藏工具栏",
-	"copy": "拷贝选中项", "cut": "剪切选中项", "paste": "粘贴到当前文件夹",
-	"trash": "删除选中项（可在废纸篓恢复）", "newfile": "在当前文件夹新建文件",
-	"newfolder": "在当前文件夹新建文件夹", "rename": "重命名选中项",
-	"reveal": "在 Finder 中显示选中项", "workspace": "把当前布局保存为工作区，或切换工作区（1–9、[ ]）",
-	"copypath": "拷贝选中项的路径", "layout.columns": "切换为三列布局（上级/当前/预览）",
-	"layout.dual": "切换为左右双栏布局", "layout.rows": "切换为上下分栏布局",
-	"settings": "打开设置", "help": "查看全部快捷键",
+	"agent": "在当前文件夹启动 Agent", "workspace": "把当前布局保存为工作区，或切换工作区（1–9、[ ]）",
 }
 
-// toolbarTip is the tip of a toolbar button: "name · what it does · key".
+// toolbarTip is the tip of a title bar button: "name · what it does · key".
 func (a *app) toolbarTip(id, title string) string {
 	desc, ok := toolbarTips[id]
 	if !ok {
@@ -149,47 +117,27 @@ func (a *app) symButtonTint(c *ui.Context, sym, label, tip string, on, disabled 
 	})
 }
 
-// toolbarLabel is a toolbar button's name (and its text without SF
-// Symbols). The menus' words for up and trash stay theirs alone.
-func toolbarLabel(title, id string) string {
-	switch id {
-	case "up":
-		return "上级目录"
-	case "trash":
-		return "废纸篓"
-	}
-	return title
-}
-
-// toolbarIDs is config.json's toolbar, or the default one; an empty list
-// hides the toolbar.
-func (a *app) toolbarIDs() []string {
-	if a.cfg.Toolbar == nil {
-		return defaultToolbar
-	}
-	return a.cfg.Toolbar
-}
-
-// toolbar is a row of buttons above the panes, acting on the active pane.
-//
-// The window has no system title bar: this row is it, under the window
-// controls (c.TitleBar), and drags the window. With the toolbar hidden
-// (the default) it is a plain strip with the folder's name.
+// titleBar is the strip under the window controls (c.TitleBar), dragging
+// the window: the Agent button, the workspaces' buttons, then the active
+// folder's name. Its tips show at once.
 func (a *app) titleBar(c *ui.Context) {
-	ids := a.toolbarIDs()
-	if !a.cfg.ShowToolbar || len(ids) == 0 {
-		bar := c.TitleBar()
-		if bar.Height == 0 {
-			return // full screen: the controls hide, nothing to make room for
-		}
-		a.dbg(c, ui.Row(c.Key("titlebar")).Height(bar.Height).Padding(0, bar.Right+px("space-2"), 0, bar.Left+px("space-2")).
-			AlignItems(ui.Center).Justify(ui.Center).Shrink(0).Background(tok(c, "surface-100")).DragWindow().Children(func() {
-			ui.Text(c, a.windowTitle()).FontSize(12).TextColor(titleColor(c)).SingleLine()
-		}), "titlebar")
-		separatorLine(c.Key("titlebar.sep"))
-		return
-	}
-	a.toolbar(c, ids)
+	bar := c.TitleBar()
+	th := *c.Theme()
+	th.TooltipDelay = -1
+	ui.Themed(c.Key("titlebar.theme"), &th).Gap(0).Padding(0).Background(ui.Transparent).Shrink(0).Children(func() {
+		row := ui.Row(c.Key("titlebar")).Height(max(px("toolbar-height"), bar.Height)).Gap(px("space-2")).
+			Padding(px("space-1"), px("space-2")+bar.Right, px("space-1"), px("space-2")+bar.Left).
+			AlignItems(ui.Center).Shrink(0).Background(tok(c, "surface-100")).DragWindow()
+		a.dbg(c, row, "titlebar")
+		row.Children(func() {
+			a.agentSplit(c, a.tab())
+			a.workspaceButtons(c)
+			ui.Spacer(c)
+			ui.Text(c, a.windowTitle()).FontSize(12).TextColor(titleColor(c)).SingleLine().Shrink(1).MinWidth(0)
+			ui.Spacer(c)
+		})
+	})
+	separatorLine(c.Key("titlebar.sep"))
 }
 
 // titleColor is the title strip's text color: brand cyan while goFinder is
@@ -214,86 +162,7 @@ func (a *app) windowTitle() string {
 	return d
 }
 
-func (a *app) toolbar(c *ui.Context, ids []string) {
-	ts := a.tab()
-	bar := c.TitleBar()
-	// The toolbar's tips show at once; the rest of the window keeps its
-	// theme's delay.
-	th := *c.Theme()
-	th.TooltipDelay = -1
-	ui.Themed(c.Key("toolbar.theme"), &th).Gap(0).Padding(0).Background(ui.Transparent).Shrink(0).Children(func() {
-		a.toolbarStrip(c, ids, ts, bar)
-	})
-}
-
-func (a *app) toolbarStrip(c *ui.Context, ids []string, ts *tabState, bar ui.TitleBar) {
-	row := ui.Row(c.Key("toolbar")).Height(max(px("toolbar-height"), bar.Height)).Gap(px("space-2")).
-		Padding(px("space-1"), px("space-2")+bar.Right, px("space-1"), px("space-2")+bar.Left).
-		AlignItems(ui.Center).Shrink(0).Background(tok(c, "surface-100")).DragWindow()
-	defer func() { a.dbg(c, row, "toolbar") }()
-	row.Children(func() {
-		for _, id := range ids {
-			switch id {
-			case "-":
-				// Empty, between two gaps: a group apart is space-4.
-				ui.Row(c).Width(0)
-				continue
-			case "@flex":
-				ui.Spacer(c)
-				continue
-			case "@new":
-				a.dbg(c, a.symButton(c.Key("tb:@new"), actionSymbols[id], "新建", "新建 · "+toolbarTips[id], false, false).
-					Menu(func(m *ui.Menu) { a.newItems(m, a.active, ts.t.Dir) }), "tb.new")
-				continue
-			case "workspace":
-				a.workspaceButtons(c)
-				continue
-			case "@sort":
-				a.dbg(c, a.symButton(c.Key("tb:@sort"), actionSymbols[id], "排序", "排序 · "+toolbarTips[id], false, false).
-					Menu(func(m *ui.Menu) { a.sortMenu(m, ts) }), "tb.sort")
-				continue
-			}
-			act, ok := a.km.Action(id)
-			if !ok {
-				continue
-			}
-			if id == "agent" {
-				a.agentSplit(c, ts)
-				continue
-			}
-			disabled := id == "back" && !ts.t.CanBack() || id == "forward" && !ts.t.CanForward() ||
-				id == "up" && filepath.Dir(ts.t.Dir) == ts.t.Dir ||
-				id == "trash" && (len(ts.chosen()) == 0 || vfs.InZip(ts.t.Dir))
-			on := id == "hidden" && ts.t.ShowHidden || id == "filter" && (ts.t.Filter != "" || a.filterOn) || id == "shelf" && a.sh.show || id == "preview" && a.showPreview || id == "sidebar" && a.sb.show
-			tint := ""
-			if id == "trash" {
-				tint = hoverDanger
-			}
-			btn := a.symButtonTint(c.Key("tb:"+id), actionSymbols[id], toolbarLabel(a.actionTitle(id), id), a.toolbarTip(id, act.Title), on, disabled, tint)
-			a.dbg(c, btn, tbName(id))
-			if btn.Clicked() && id == "filter" && on {
-				// Lit, the filter button turns the filter off.
-				a.filterOn, a.filterText = false, ""
-				a.setFilter(ts, "")
-				a.wantFocus = true
-			} else if btn.Clicked() {
-				a.run(id)
-				a.wantFocus = id != "filter" // the filter box takes the keyboard
-			}
-		}
-	})
-	separatorLine(c.Key("toolbar.sep"))
-}
-
-// tbName is a toolbar item's name in debugIDs: its own, or tb.other.
-func tbName(id string) string {
-	if _, ok := debugIDs["tb."+id]; ok {
-		return "tb." + id
-	}
-	return "tb.other"
-}
-
-// agentSplit is the toolbar's Agent button in two segments on one face:
+// agentSplit is the title bar's Agent button in two segments on one face:
 // the three beams and the default agent's name, which opens it here, then
 // ▾, which pops up the menu of the enabled agents. Only the segment under
 // the pointer is lit.
@@ -716,14 +585,13 @@ func separatorLine(c *ui.Context) {
 // layoutIDs are the actions choosing each layout.
 var layoutIDs = map[int]string{layoutColumns: "layout.columns", layoutDual: "layout.dual", layoutRows: "layout.rows"}
 
-// chromeWarnings says which items of config.json's toolbar and blankMenu
-// are unknown.
+// chromeWarnings says which items of config.json's blankMenu are unknown.
 func chromeWarnings(cfg config, known func(string) bool) []string {
 	var warns []string
 	for _, list := range []struct {
 		name string
 		ids  []string
-	}{{"toolbar", cfg.Toolbar}, {"blankMenu", cfg.BlankMenu}} {
+	}{{"blankMenu", cfg.BlankMenu}} {
 		for _, id := range list.ids {
 			if !known(id) && !chromeItems[id] {
 				warns = append(warns, fmt.Sprintf("config.json %s：未知项 %q，已忽略", list.name, id))

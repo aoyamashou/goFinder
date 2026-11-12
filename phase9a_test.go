@@ -28,7 +28,7 @@ func press9(tt *ui.Tester, mods ui.Modifiers, k ui.Key) {
 }
 
 // Quick Select is gone: / does nothing, the keymap has no such action,
-// and the toolbar has no button for it.
+// and nothing shows it.
 func TestNoQuickSelect(t *testing.T) {
 	a, tt, _, _ := setup(t)
 	if _, ok := a.km.Action("quickselect"); ok {
@@ -45,9 +45,6 @@ func TestNoQuickSelect(t *testing.T) {
 	}
 	if tt.HasText("快速选择") {
 		t.Fatalf("quick select still shown: %q", tt.Texts())
-	}
-	if slices.Contains(a.toolbarIDs(), "@qs") {
-		t.Fatal("toolbar has @qs")
 	}
 }
 

@@ -101,31 +101,17 @@ func TestStatusBarSwitchesLayout(t *testing.T) {
 	}
 }
 
-// The toolbar shows by default; an empty list hides it.
-func TestToolbar(t *testing.T) {
-	a, tt, _, root := setup(t)
-	for _, l := range []string{"后退", "前进", "新建", "排序", "在这里打开默认 Agent"} {
-		if !tt.HasText(l) {
-			t.Fatalf("toolbar lacks %q: %q", l, tt.Texts())
+// There is no toolbar: the title bar has the Agent button and the
+// workspaces, and no back or new buttons.
+func TestNoToolbar(t *testing.T) {
+	_, tt, _, _ := setup(t)
+	if !tt.HasText("在这里打开默认 Agent") && !hasPart(tt, "Agent") {
+		t.Fatalf("no Agent button: %q", tt.Texts())
+	}
+	for _, l := range []string{"后退", "前进", "新建"} {
+		if tt.HasText(l) {
+			t.Fatalf("a toolbar button %q: %q", l, tt.Texts())
 		}
-	}
-	// New folder from the toolbar's menu, in the active pane's folder.
-	if err := tt.Click("新建"); err != nil {
-		t.Fatal(err)
-	}
-	if err := tt.ChooseMenuItem("新建文件夹"); err != nil {
-		t.Fatal(err)
-	}
-	tt.Frame()
-	if !a.dlgOpen || a.dlg != dlgNewFolder || a.dlgDir != root {
-		t.Fatalf("dialog %v %d %q", a.dlgOpen, a.dlg, a.dlgDir)
-	}
-	a.dlgOpen = false
-	tt.Frame()
-	a.cfg.Toolbar = []string{}
-	tt.Frame()
-	if tt.HasText("快速选择") {
-		t.Fatal("empty toolbar still shows")
 	}
 }
 
@@ -205,26 +191,17 @@ func TestBlankMenu(t *testing.T) {
 	}
 }
 
-// Old config.json files wrote "toolbar": [] as the default: that is the
-// default toolbar now. A file of this version keeps [] as hidden.
-func TestConfigToolbarMigration(t *testing.T) {
+// An old config.json's "toolbar" is ignored; the blank menu's unknown
+// items are warned of.
+func TestConfigOldToolbarIgnored(t *testing.T) {
 	dir := t.TempDir()
-	write := func(s string) config {
-		os.WriteFile(filepath.Join(dir, "config.json"), []byte(s), 0o644)
-		return loadConfig(dir)
-	}
-	if c := write(`{"terminal": "Kaku", "toolbar": []}`); c.Toolbar != nil || c.Terminal != "Kaku" {
+	os.WriteFile(filepath.Join(dir, "config.json"), []byte(`{"terminal": "Kaku", "toolbar": ["back"], "showToolbar": true}`), 0o644)
+	if c := loadConfig(dir); c.Terminal != "Kaku" {
 		t.Fatalf("old file: %+v", c)
 	}
-	if c := write(`{"version": 7, "toolbar": []}`); c.Toolbar == nil || len(c.Toolbar) != 0 {
-		t.Fatalf("hidden toolbar: %+v", c.Toolbar)
-	}
-	if c := write(`{"version": 7, "toolbar": ["back", "@nope"]}`); len(c.Toolbar) != 2 {
-		t.Fatalf("listed toolbar: %+v", c.Toolbar)
-	}
-	km, _, warns := buildKeymap(config{Toolbar: []string{"@new", "nope"}, BlankMenu: []string{"@sort", "-", "zzz"}}, "")
+	km, _, warns := buildKeymap(config{BlankMenu: []string{"@sort", "-", "zzz"}}, "")
 	_ = km
-	if len(warns) != 2 || !strings.Contains(warns[0], "nope") || !strings.Contains(warns[1], "zzz") {
+	if len(warns) != 1 || !strings.Contains(warns[0], "zzz") {
 		t.Fatalf("warnings %q", warns)
 	}
 }

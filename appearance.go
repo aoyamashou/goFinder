@@ -40,12 +40,4 @@ func (a *app) appearanceSettings(c *ui.Context) {
 			a.saveConfig()
 		}
 	})
-	show, label := a.cfg.ShowToolbar, "显示工具栏"
-	if keys := a.km.KeysFor("toolbar"); len(keys) > 0 {
-		label += "（" + keys[0].String() + "）"
-	}
-	if ui.Checkbox(c.Key("set.toolbar"), &show, label).Changed() {
-		a.cfg.ShowToolbar = show
-		a.saveConfig()
-	}
 }

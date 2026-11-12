@@ -39,7 +39,7 @@ func TestDebugBadges(t *testing.T) {
 	a.debugOn = true
 	tt.Frame()
 	tt.Frame()
-	for _, name := range []string{"toolbar", "tb.back", "sidebar", "addr.capsule", "col.parent", "col.current", "col.preview",
+	for _, name := range []string{"titlebar", "tb.agent", "sidebar", "addr.capsule", "col.parent", "col.current", "col.preview",
 		"inspector", "shelf", "status.msg", "status.hints", "status.layout", "status.insp", "status.debug"} {
 		if !tt.HasText(idText(name)) {
 			t.Errorf("no badge %s (%s): %q", name, idText(name), tt.Texts())
@@ -77,7 +77,7 @@ func TestDebugBadgeNoClick(t *testing.T) {
 	tt := ui.NewTester(func(c *ui.Context) {
 		ui.Column(c).Padding(60).Children(func() {
 			b := ui.Button(c.Key("b"), "Target").Height(40)
-			a.dbg(c, b, "tb.back")
+			a.dbg(c, b, "tb.agent")
 			if b.Clicked() {
 				clicked++
 			}
@@ -85,7 +85,7 @@ func TestDebugBadgeNoClick(t *testing.T) {
 	}, 400, 300)
 	tt.Frame()
 	tt.Frame()
-	badge, ok := tt.Find(idText("tb.back"))
+	badge, ok := tt.Find(idText("tb.agent"))
 	if !ok {
 		t.Fatalf("no badge: %q", tt.Texts())
 	}
@@ -159,7 +159,7 @@ func TestDebugIDsDoc(t *testing.T) {
 		if id < 1 || id > 89 {
 			t.Errorf("%s: %d out of 1–89", n, id)
 		}
-		seg := map[string][2]int{"tb.": {1, 19}, "titlebar": {1, 19}, "toolbar": {1, 19}, "sidebar": {20, 29}, "addr.": {30, 39},
+		seg := map[string][2]int{"tb.": {1, 19}, "titlebar": {1, 19}, "sidebar": {20, 29}, "addr.": {30, 39},
 			"col.": {40, 59}, "inspector": {40, 59}, "shelf": {40, 59}, "status.": {60, 69}, "dlg.": {70, 89}, "menu.": {70, 89}}
 		ok := false
 		for p, r := range seg {

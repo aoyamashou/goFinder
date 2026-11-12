@@ -1333,6 +1333,27 @@ UX：
 - 用测试窗口截图确认了工具栏的样子。
 - `go test ./...`、`vet`、`mygo vet`。
 
+### 阶段 18 后修订八：彻底移除工具栏，Agent 移到工作区按钮左边
+> 来源：本开发会话（2026-11-12），用户提出。
+
+**要改什么**
+1. 原来的工具栏彻底不要，设置里的「工具栏」页也去掉。
+2. Agent 按钮移到工作区按钮的最左边。
+
+**实现**
+- 顶部固定一条标题栏（`titleBar`）：Agent 分体按钮 → 工作区胶囊按钮和对话框按钮 → 居中的文件夹名，可拖动窗口。
+- 删除：`toolbarpage.go`（设置「工具栏」页），动作 `toolbar`（⌃⌘B）及菜单项，`config.json` 的 `toolbar`、`showToolbar`（旧文件里的这两项被忽略），外观页的「显示工具栏」，`defaultToolbar`、`toolbarStrip` 等，窗格上方的工作区条（`workspaceStrip`）。
+- 设置页变为「通用、快捷键、Agent、关于」，`pageAbout` 改为 3。
+- Debug 编号删去工具栏各按钮，保留 `titlebar`、`tb.agent`、`tb.workspace`。
+
+**边界**
+- 不改 Agent 按钮和工作区按钮本身的行为、键位。
+- 状态栏的布局切换、检查器开关保留。
+
+**验证**
+- `TestNoToolbar`、`TestNoToolbarAndDarkByDefault`：没有后退/新建等按钮，没有 `toolbar` 动作；`TestTitleBarTips`、`TestAgentTitleBar`、`TestConfigOldToolbarIgnored`。
+- `go test ./...`、`go vet ./...`、`go tool mygo vet .` 通过。
+
 ## 测试和验证
 - **纯逻辑包写单元测试，用 `go test ./...` 运行**：
   - `keymap`：按键解析、上下文过滤、用户覆盖、冲突检测；

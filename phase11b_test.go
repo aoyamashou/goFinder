@@ -175,7 +175,6 @@ func TestSettingsWordmark(t *testing.T) {
 func TestAgentDefaultRow(t *testing.T) {
 	a, tt := themed(t, false)
 	a.dataDir = t.TempDir()
-	a.cfg.ShowToolbar = false // its Agent button also says "Codex"
 	installed(a, "claude", "codex")
 	a.setDefaultAgent("codex")
 	a.run("settings")
@@ -183,20 +182,25 @@ func TestAgentDefaultRow(t *testing.T) {
 	tt.Frame()
 	tt.Frame()
 	soft := token("signal-soft", false)
-	cx, ok1 := tt.Find("Codex")
-	cl, ok2 := tt.Find("Claude")
-	if !ok1 || !ok2 {
+	// The title bar's Agent button also says "Codex", and every row has a
+	// 默认 radio: the Codex row is the one under Claude's.
+	cl, ok := tt.Find("Claude")
+	if !ok {
 		t.Fatalf("no rows: %q", tt.Texts())
 	}
 	img := tt.Image()
-	if p := pixel(img, cx.X+cx.W+30, cx.Y+cx.H/2); !near(p, soft) {
-		t.Errorf("default row %v, want signal-soft %v", p, soft)
+	found := false
+	for y := cl.Y + cl.H; y < cl.Y+cl.H+80; y++ {
+		if near(pixel(img, cl.X+cl.W+30, y), soft) {
+			found = true
+		}
+	}
+	if !found {
+		t.Errorf("no signal-soft default row under Claude's")
 	}
 	if p := pixel(img, cl.X+cl.W+30, cl.Y+cl.H/2); near(p, soft) {
 		t.Errorf("other row is signal-soft: %v", p)
 	}
-	d, _ := tt.Find("默认")
-	_ = d
 }
 
 // Screenshots for the review, when MYGO_SHOTS names a folder.

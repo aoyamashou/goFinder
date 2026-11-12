@@ -156,7 +156,6 @@ func TestRecordKey(t *testing.T) {
 func TestCustomCommand(t *testing.T) {
 	cfg := testConfig()
 	cfg.Commands = []command{{ID: "typora", Title: "用 Typora 打开", Command: "open -a Typora {selection} --dir {path}", Keys: []string{"Cmd+Alt+Y"}}}
-	cfg.Toolbar = []string{"layout.rows", "cmd.typora"}
 	a, tt, fs, root := setupWith(t, cfg, "")
 	for cursorName(a) != "it's a file.txt" {
 		tt.Key(0, ui.KeyDown)
@@ -173,9 +172,7 @@ func TestCustomCommand(t *testing.T) {
 		t.Fatalf("status %q", a.status)
 	}
 	fs.shellErr = errors.New("exit status 1")
-	if err := tt.Click("用 Typora 打开"); err != nil { // the toolbar button
-		t.Fatal(err)
-	}
+	a.run("cmd.typora")
 	tt.Frame()
 	if len(fs.shells) != 2 || !strings.Contains(a.status, "失败") || !strings.Contains(a.status, "boom") {
 		t.Fatalf("failure: %d runs, status %q", len(fs.shells), a.status)
@@ -194,7 +191,7 @@ func TestCustomCommand(t *testing.T) {
 	}
 	tt.Frame()
 	if a.layout != layoutRows {
-		t.Fatal("toolbar did not switch layout")
+		t.Fatal("the view switch did not switch layout")
 	}
 	// In the context menu, when listed there.
 	a.cfg.ContextMenu = []string{"-", "cmd.typora", "-", "-", "copy"}

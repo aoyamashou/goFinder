@@ -144,46 +144,30 @@ func capGap(img *image.RGBA, col ui.Color) int {
 	return n / s
 }
 
-// Tips of the toolbar show at once; the window's others after the default
-// delay; a toolbar tip says what the button does and its key.
-func TestToolbarTips(t *testing.T) {
+// Tips of the title bar show at once; the window's others after the
+// default delay; a title bar tip says what the button does and its key.
+func TestTitleBarTips(t *testing.T) {
 	a, tt, _, _ := setupWith(t, testConfig(), "")
 	tt.Frame()
-	for _, id := range append(append([]string{}, defaultToolbar...), a.toolbarChoices()...) {
-		act, ok := a.km.Action(id)
-		if id == "-" || id == "@flex" || id == "agent" || strings.HasPrefix(id, "@") || !ok {
-			continue
-		}
-		if _, has := toolbarTips[id]; !has {
-			if _, sym := actionSymbols[id]; sym {
-				t.Errorf("toolbar button %q has no tip", id)
-			}
-			continue
-		}
+	for _, id := range []string{"agent", "workspace"} {
+		act, _ := a.km.Action(id)
 		tip := a.toolbarTip(id, act.Title)
-		if !strings.Contains(tip, " · "+toolbarTips[id]) || strings.Count(tip, " · ") < 1 {
+		if !strings.Contains(tip, " · "+toolbarTips[id]) {
 			t.Errorf("tip %q", tip)
 		}
 		if keys := a.km.KeysFor(id); len(keys) > 0 && !strings.HasSuffix(tip, " · "+keys[0].String()) {
 			t.Errorf("tip %q lacks its key", tip)
 		}
 	}
-	if tip := a.toolbarTip("trash", "废纸篓"); tip != "废纸篓 · 删除选中项（可在废纸篓恢复） · "+a.km.KeysFor("trash")[0].String() {
-		t.Fatalf("trash tip %q", tip)
-	}
-	if tip := a.toolbarTip("filter", "过滤"); !strings.HasPrefix(tip, "过滤 · 只显示名称包含输入文字的项 · f") {
-		t.Fatalf("filter tip %q", tip)
-	}
-
-	r, ok := tt.Find("排序")
+	r, ok := tt.Find("工作区…")
 	if !ok {
-		t.Fatalf("no sort button: %q", tt.Texts())
+		t.Fatalf("no workspace button: %q", tt.Texts())
 	}
 	tt.Move(r.X+r.W/2, r.Y+r.H/2)
 	tt.Frame()
 	tt.Advance(20 * time.Millisecond)
 	tt.Frame()
-	if !tt.HasText("选择文件的排序方式") {
+	if !hasPart(tt, "把当前布局保存为工作区") {
 		t.Fatalf("no tip at once: %q", tt.Texts())
 	}
 	// Elsewhere (the path capsule's blank end) the default delay holds.

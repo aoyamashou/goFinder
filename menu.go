@@ -20,7 +20,7 @@ var menuBar = []struct {
 }{
 	{"文件", []string{"newfile", "newfolder", "-", "open", "reveal", "terminal", "agent", "@agentmenu", "editor", "-", "rename", "copypath", "trash"}},
 	{"编辑", []string{"@undo", "@redo", "-", "@cut", "@copy", "@paste", "@selectAll", "-", "filter", "select.none"}},
-	{"显示", []string{"layout.columns", "layout.dual", "layout.rows", "-", "quicklook", "preview", "sidebar", "toolbar", "shelf", "-", "@sort", "sortmenu", "hidden", "refresh", "addr"}},
+	{"显示", []string{"layout.columns", "layout.dual", "layout.rows", "-", "quicklook", "preview", "sidebar", "shelf", "-", "@sort", "sortmenu", "hidden", "refresh", "addr"}},
 	{"前往", []string{"back", "forward", "up", "-", "go.start", "go.home", "go.desktop", "go.downloads", "go.documents", "go.apps", "-", "fav.add", "fav.remove"}},
 	{"暂存架", []string{"shelf.add", "shelf.copy", "shelf.move", "shelf.clear"}},
 	{"窗口", []string{"@minimize", "@zoom", "-", "ws.next", "ws.prev", "@ws", "workspace", "-", "pane.switch"}},
@@ -85,7 +85,7 @@ func menuAccel(chords []keymap.Chord) string {
 var menuToggles = map[string]mygo.MenuItemType{
 	"layout.dual":    mygo.MenuItemRadio,
 	"layout.columns": mygo.MenuItemRadio, "layout.rows": mygo.MenuItemRadio,
-	"preview": mygo.MenuItemCheckbox, "sidebar": mygo.MenuItemCheckbox, "toolbar": mygo.MenuItemCheckbox,
+	"preview": mygo.MenuItemCheckbox, "sidebar": mygo.MenuItemCheckbox,
 	"shelf": mygo.MenuItemCheckbox, "hidden": mygo.MenuItemCheckbox,
 }
 
@@ -248,7 +248,7 @@ func (a *app) menuChecks() map[string]bool {
 	return map[string]bool{
 		"layout.dual":    a.layout == layoutDual,
 		"layout.columns": a.layout == layoutColumns, "layout.rows": a.layout == layoutRows,
-		"preview": a.showPreview, "sidebar": a.sb.show, "toolbar": a.cfg.ShowToolbar, "shelf": a.sh.show,
+		"preview": a.showPreview, "sidebar": a.sb.show, "shelf": a.sh.show,
 		"hidden":    a.tab().t.ShowHidden,
 		"sort.name": a.tab().sort.Column == "name", "sort.size": a.tab().sort.Column == "size",
 		"sort.date": a.tab().sort.Column == "date", "sort.kind": a.tab().sort.Column == "kind",

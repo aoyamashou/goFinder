@@ -1,3 +1,5 @@
+<p align="center"><img src="resources/icon.png" width="128" alt="goFinder"></p>
+
 # goFinder
 
 > 基于 [MyGo](https://mygo.egoist.dev/docs) 打造的Finder替代品，因为是狗大V做的Finder，中文名为狗方德。
@@ -40,9 +42,9 @@ goFinder 在 Yazi 的基础上增加了：
 
 ### 其他
 - 左右或上下双栏、暂存架、Workspace（多工作区切换）、按模板新建文件、像文件夹一样浏览 Zip、Git 状态标记。
-- 右键菜单、工具栏、快捷键和 shell 命令都可以自定义。
+- 右键菜单、快捷键和 shell 命令都可以自定义。
 - 自动更新：从 GitHub Release 下载签名校验过的新版本。
--不支持多标签，因为本身已带双窗口模式，多标签没有意义。支持Workspace，可将常用的窗口/路径组合保存下来，一键调用。工具栏上每个工作区一个按钮，也可以按 `1`–`9`、`[` `]` 切换；首次打开自带 Home、Download（左右双栏）、Documents（上下双栏）三个演示工作区。
+-不支持多标签，因为本身已带双窗口模式，多标签没有意义。支持Workspace，可将常用的窗口/路径组合保存下来，一键调用。顶部标题栏上每个工作区一个按钮（Agent 按钮在它们最左边），也可以按 `1`–`9`、`[` `]` 切换；首次打开自带 Home、Download（左右双栏）、Documents（上下双栏）三个演示工作区。
 
 ## 性能
 在同一台 Mac 上，用同样的方法分别测了 goFinder和原生访达：
@@ -69,6 +71,10 @@ goFinder 在 Yazi 的基础上增加了：
 - 下载：在 [Releases](https://github.com/aoyamashou/goFinder/releases) 下载 `.dmg`，把 goFinder 拖进「应用程序」文件夹。目前只有 Apple Silicon 版本。安装后，goFinder 会自动检查更新。
 - 字体：列表图标用的是 `JetBrainsMono Nerd Font Mono`。如果没装，设置里可以一键下载；不装也能用，图标会退回文字符号。
 - 签名：目前用的是自签证书，没有经过 Apple 公证。第一次打开时如果被系统拦下，到「系统设置 › 隐私与安全性」里点「仍要打开」。
+- 解除隔离：如果提示「已损坏」或「无法打开」，可以先解除下载隔离（下载的 `.dmg` 也可以先这样处理再打开）：
+  ```bash
+  sudo xattr -r -d com.apple.quarantine /Applications/goFinder.app
+  ```
 
 ## 键位
 
@@ -97,7 +103,7 @@ goFinder 在 Yazi 的基础上增加了：
 
 数据目录在 `~/Library/Application Support/goFinder/`：
 
-- `config.json`：终端和编辑器、是否显示隐藏文件、外观、右键菜单（`contextMenu`、`blankMenu`）、工具栏（`toolbar`）、Agent、自定义 shell 命令（`commands`，可以用 `{path}`、`{selection}` 占位）。
+- `config.json`：终端和编辑器、是否显示隐藏文件、外观、右键菜单（`contextMenu`、`blankMenu`）、Agent、自定义 shell 命令（`commands`，可以用 `{path}`、`{selection}` 占位）。
 - `keymap.json`：按动作 ID 覆盖快捷键，例如 `{"trash": ["Cmd+Alt+Backspace"]}`。动作 ID 见 `actions.go`，或在速查表里搜索。
 - `templates/`：新建文件用的模板，每个文件就是一个模板。
 - `shelf.json`：暂存架；`workspaces/`：保存的 Workspace。

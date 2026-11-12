@@ -228,9 +228,9 @@ func TestAgentsInMenus(t *testing.T) {
 	}
 }
 
-// The toolbar's agent button opens the default agent; its dropdown lists
+// The title bar's agent button opens the default agent; its dropdown lists
 // the enabled agents.
-func TestAgentToolbar(t *testing.T) {
+func TestAgentTitleBar(t *testing.T) {
 	withAgents(t, "codex", agClaude, agCodex)
 	a, tt, fs, _ := setup(t)
 	a.cacheDir = t.TempDir()

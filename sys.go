@@ -266,10 +266,8 @@ type config struct {
 	Editor      string `json:"editor"`
 	ShowHidden  bool   `json:"showHidden"`
 	ShowSidebar bool   `json:"showSidebar"`
-	// ContextMenu and Toolbar list action IDs in order, "-" a separator
-	// in the menu. An empty toolbar shows none.
+	// ContextMenu lists action IDs in order, "-" a separator.
 	ContextMenu []string  `json:"contextMenu"`
-	Toolbar     []string  `json:"toolbar"`
 	Commands    []command `json:"commands"`
 	// BlankMenu is the menu of a column's blank space, as ContextMenu;
 	// nil is defaultBlankMenu. AgentCommand runs in the terminal for
@@ -284,11 +282,9 @@ type config struct {
 	// ConfirmTrash asks before d and ⌘⌫ move items to the Trash; the
 	// confirmation's 不再提醒 turns it off. Missing is on.
 	ConfirmTrash bool `json:"confirmTrash"`
-	// ShowToolbar shows the toolbar; missing is hidden. Appearance is
-	// "dark" (missing), "light" or "system": the window is drawn so,
-	// whatever macOS's appearance, its own title bar included.
-	ShowToolbar bool   `json:"showToolbar"`
-	Appearance  string `json:"appearance,omitempty"`
+	// Appearance is "dark" (missing), "light" or "system": the window is
+	// drawn so, whatever macOS's appearance, its own title bar included.
+	Appearance string `json:"appearance,omitempty"`
 	// ListFontSize is the lists' font size, one of listSizes; 0 is 14.
 	ListFontSize int `json:"listFontSize,omitempty"`
 	// StartDir is the folder the window opens in, set by a folder's
@@ -298,13 +294,12 @@ type config struct {
 	// keeps its own, for 启动时从这里开始 and ` alike.
 	StartDir2 string `json:"startDir2,omitempty"`
 	// Workspaces is the order of the saved workspaces (1–9, [ ], the
-	// toolbar); those not named here follow by name. WorkspacesSeeded is
+	// title bar); those not named here follow by name. WorkspacesSeeded is
 	// set once the three of the first launch (Home, Download, Documents)
 	// were made, so ones deleted stay deleted.
 	Workspaces       []string `json:"workspaces,omitempty"`
 	WorkspacesSeeded bool     `json:"workspacesSeeded,omitempty"`
-	// Version is the config's format; before 7, the toolbar was off by
-	// default and written as [], which now means the default toolbar.
+	// Version is the config's format.
 	Version int `json:"version"`
 }
 
@@ -323,7 +318,7 @@ type command struct {
 func defaultConfig() config {
 	return config{
 		Terminal: "Terminal", Editor: "Visual Studio Code", ShowSidebar: true,
-		ContextMenu: slices.Clone(defaultMenu), Toolbar: slices.Clone(defaultToolbar), Commands: []command{},
+		ContextMenu: slices.Clone(defaultMenu), Commands: []command{},
 		BlankMenu: slices.Clone(defaultBlankMenu), AgentCommand: defaultAgent, ConfirmTrash: true, Version: configVersion,
 	}
 }
@@ -347,9 +342,6 @@ func loadConfig(dir string) config {
 	json.Unmarshal(data, &cfg)
 	migrateAgents(&cfg)
 	if cfg.Version < configVersion {
-		if len(cfg.Toolbar) == 0 {
-			cfg.Toolbar = nil // the default toolbar
-		}
 		cfg.Version = configVersion
 	}
 	return cfg

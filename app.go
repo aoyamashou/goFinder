@@ -217,7 +217,6 @@ type app struct {
 	recording string // the action whose new key the settings' 快捷键 page waits for
 	recEat    bool   // the text the recorded key types is no search
 	setPage   int    // the settings dialog's page: 0 通用, 1 快捷键, 2 Agent, 3 工具栏, 4 关于
-	tbSel     int    // the 工具栏 page's chosen row
 	keyQ      ui.Handle
 	focusKeyQ bool // the 快捷键 page's search takes the keyboard
 	toKeys    bool // the cheat sheet closed for the 快捷键 page, which opens next frame
@@ -1030,10 +1029,6 @@ func (a *app) run(id string) {
 	case "settings":
 		a.settingsDialog()
 
-	case "toolbar":
-		a.cfg.ShowToolbar = !a.cfg.ShowToolbar
-		a.saveConfig()
-		a.wantFocus = true
 	case "sidebar":
 		a.sb.show = !a.sb.show
 		a.cfg.ShowSidebar = a.sb.show

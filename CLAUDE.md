@@ -8,7 +8,7 @@ goFinder：轻量、键盘优先的 macOS 文件管理器。用 [MyGo](https://m
 
 - **资源优先**：低内存、低 CPU、响应快，界面朴素即可。不引入第三方库或动画，MyGo 插件只允许 SF Symbols（侧边栏图标）和 updater（`native.Plugin`，自动更新）；图标和列表用本机已装的 `JetBrainsMono Nerd Font Mono`（`internal/icons`，不打包字体，缺字体时只在用户点击后下载两个 ttf，没装时回退为文字符号），预览按需加载。
 - **键位是 Yazi 单键风格**：不含 hjkl，也没有多键序列，只有 `c c`、`n n` 两个同键双击；方向键移动；⌘ 组合键作为第二键位，供菜单使用。
-- 新增或修改快捷键只改 `actions.go`（`actions()` 和 `defaultKeys()`）。状态栏键帽提示（`hints.go`）、`?` 速查表、设置的快捷键页、右键菜单、工具栏上的快捷键标注都从这里读取；每个动作的第一个键就是提示里显示的那个。用户的 `config.json` 自定义命令和 `keymap.json` 由 `buildKeymap` 叠加上去。新动作还要放进 `menu.go` 的 `menuBar`（`TestMenuCoversActions` 会检查），菜单项的快捷键也从键位表生成。
+- 新增或修改快捷键只改 `actions.go`（`actions()` 和 `defaultKeys()`）。状态栏键帽提示（`hints.go`）、`?` 速查表、设置的快捷键页、右键菜单、标题栏按钮提示里的快捷键都从这里读取；每个动作的第一个键就是提示里显示的那个。用户的 `config.json` 自定义命令和 `keymap.json` 由 `buildKeymap` 叠加上去。新动作还要放进 `menu.go` 的 `menuBar`（`TestMenuCoversActions` 会检查），菜单项的快捷键也从键位表生成。
 - 改 MyGo UI 代码前，先看 `.agents/skills/mygo-maintenance/SKILL.md`。API 以锁定版本的本地源码为准：`go list -m -f '{{.Dir}}' github.com/egoist/mygo`，其中 `docs/`、`ui/doc.go`、`ui/api_gen.go` 是本地文档和接口定义。
 
 ## 常用命令
@@ -58,7 +58,7 @@ go tool mygo build -skip-installer    # 打包到 build/darwin-arm64/goFinder.ap
   - `sys.go`：`system` 接口（含 shell 命令、`NSFileViewer` 读写）和 `config.json` 读取。设为默认浏览器会改用户系统设置，只在测试里用 `fakeSys` 验证，不要在本机实际执行。
 - **线程模型**：耗时的读写通过 `a.async` 放到 goroutine，结果通过 `a.post`（即 `win.Update`）回到主线程。`tabState.seq` 和 `previewState.seq` 用来丢弃过期结果。测试里把 `async` 和 `post` 换成同步执行，`system` 换成 `fakeSys`（见 `main_test.go`）。
 - **文件监听**：`syncWatches` 只监听屏幕上可见窗格的目录，使用 `HintsOnly` 模式，收到变化后重新读取目录。
-- **用户配置**：放在 `~/Library/Application Support/goFinder/`，包括 `config.json`（终端和编辑器的应用名、是否显示隐藏文件和侧边栏、`contextMenu`、`toolbar`、`commands`、工作区顺序 `workspaces`）、`keymap.json`（按动作 ID 覆盖键位）、`templates/`、`shelf.json`、`workspaces/`；收藏夹在 iCloud Drive 的 `goFinder/favorites.json`（无 iCloud 时在数据目录）。
+- **用户配置**：放在 `~/Library/Application Support/goFinder/`，包括 `config.json`（终端和编辑器的应用名、是否显示隐藏文件和侧边栏、`contextMenu`、`commands`、工作区顺序 `workspaces`）、`keymap.json`（按动作 ID 覆盖键位）、`templates/`、`shelf.json`、`workspaces/`；收藏夹在 iCloud Drive 的 `goFinder/favorites.json`（无 iCloud 时在数据目录）。
 
 ## 文档索引
 

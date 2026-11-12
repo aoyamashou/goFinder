@@ -6,16 +6,19 @@ import (
 	"github.com/egoist/mygo/ui"
 )
 
-// A new config hides the toolbar and draws dark, whatever macOS's look.
-func TestToolbarHiddenAndDarkByDefault(t *testing.T) {
+// A new config draws dark, whatever macOS's look; there is no toolbar.
+func TestNoToolbarAndDarkByDefault(t *testing.T) {
 	cfg := defaultConfig()
-	if cfg.ShowToolbar || cfg.Appearance != "" || !darkFor(cfg.Appearance, false) {
-		t.Fatalf("defaults: toolbar %v appearance %q", cfg.ShowToolbar, cfg.Appearance)
+	if cfg.Appearance != "" || !darkFor(cfg.Appearance, false) {
+		t.Fatalf("defaults: appearance %q", cfg.Appearance)
 	}
 	a, tt, _, _ := setupWith(t, cfg, "")
 	tt.Frame()
-	if tt.HasText("‹ 后退") {
-		t.Fatal("toolbar shows by default")
+	if tt.HasText("‹ 后退") || tt.HasText("后退") {
+		t.Fatalf("a toolbar shows: %q", tt.Texts())
+	}
+	if _, ok := a.km.Action("toolbar"); ok {
+		t.Fatal("the toolbar action is still there")
 	}
 	// The tester's system look is light: the window is dark anyway.
 	var bg ui.Color
@@ -29,24 +32,8 @@ func TestToolbarHiddenAndDarkByDefault(t *testing.T) {
 	}
 }
 
-// ⌃⌘B shows and hides the toolbar, saved to config.json; light and system
-// follow their word.
-func TestToolbarToggleAndAppearanceModes(t *testing.T) {
-	a, tt, _, _ := setupWith(t, defaultConfig(), "")
-	a.dataDir = t.TempDir()
-	a.run("toolbar")
-	tt.Frame()
-	if !a.cfg.ShowToolbar || !tt.HasText("‹ 后退") {
-		t.Fatal("toolbar did not show")
-	}
-	if !loadConfig(a.dataDir).ShowToolbar {
-		t.Fatal("not saved")
-	}
-	a.run("toolbar")
-	tt.Frame()
-	if tt.HasText("‹ 后退") {
-		t.Fatal("toolbar did not hide")
-	}
+// light and system follow their word.
+func TestAppearanceModes(t *testing.T) {
 	if darkFor("light", true) || !darkFor("system", true) || darkFor("system", false) || !darkFor("dark", false) {
 		t.Fatal("darkFor")
 	}

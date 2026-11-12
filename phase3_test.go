@@ -116,17 +116,10 @@ func TestWorkspaceSaveRestore(t *testing.T) {
 	if !slices.Equal(a.wsList, []string{"写代码", "读文档"}) || !slices.Equal(a.cfg.Workspaces, a.wsList) {
 		t.Fatalf("list %v order %v", a.wsList, a.cfg.Workspaces)
 	}
-	// The toolbar's buttons, not the strip; without the toolbar, the strip.
-	if !slices.Contains(tt.Texts(), "写代码") || tt.HasText("1 写代码") {
-		t.Fatalf("toolbar buttons: %q", tt.Texts())
+	// The title bar's buttons.
+	if !slices.Contains(tt.Texts(), "写代码") || !slices.Contains(tt.Texts(), "读文档") {
+		t.Fatalf("title bar buttons: %q", tt.Texts())
 	}
-	a.cfg.ShowToolbar = false
-	tt.Frame()
-	if !tt.HasText("1 写代码") {
-		t.Fatal("strip missing without the toolbar")
-	}
-	a.cfg.ShowToolbar = true
-	tt.Frame()
 
 	tt.Key(0, ui.Key1)
 	tt.Frame()
@@ -249,7 +242,7 @@ func TestGitStatusMarks(t *testing.T) {
 
 // The first launch makes three workspaces to show what they do: Home in
 // three columns, Download side by side, Documents one above the other;
-// first in the toolbar, in that order, and made once only.
+// first in the title bar, in that order, and made once only.
 func TestDemoWorkspaces(t *testing.T) {
 	home := t.TempDir()
 	for _, d := range []string{"Downloads", "Documents"} {

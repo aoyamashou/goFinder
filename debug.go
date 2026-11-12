@@ -22,22 +22,8 @@ import (
 var debugIDs = map[string]int{
 	// 标题栏与工具栏
 	"titlebar":     1,
-	"toolbar":      2,
-	"tb.back":      3,
-	"tb.forward":   4,
-	"tb.up":        5,
-	"tb.new":       6,
-	"tb.sort":      7,
-	"tb.hidden":    8,
-	"tb.trash":     9,
-	"tb.terminal":  10,
 	"tb.agent":     11,
 	"tb.workspace": 12,
-	"tb.shelf":     13,
-	"tb.filter":    14,
-	"tb.preview":   15,
-	"tb.sidebar":   16,
-	"tb.other":     17,
 
 	// 侧边栏
 	"sidebar":      20,
@@ -72,7 +58,6 @@ var debugIDs = map[string]int{
 	"dlg.set.general": 71,
 	"dlg.set.keys":    72,
 	"dlg.set.agent":   73,
-	"dlg.set.toolbar": 74,
 	"dlg.set.about":   75,
 	"dlg.rename":      76,
 	"dlg.newfile":     77,

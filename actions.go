@@ -61,7 +61,6 @@ func actions() []keymap.Action {
 		{ID: "layout.rows", Title: "上下分栏布局", Group: "布局"},
 		{ID: "preview", Title: "检查器", Group: "布局"},
 		{ID: "sidebar", Title: "显示/隐藏侧边栏", Group: "布局"},
-		{ID: "toolbar", Title: "显示/隐藏工具栏", Group: "布局"},
 		{ID: "workspace", Title: "保存/恢复工作区", Group: "工作区与窗格"},
 
 		{ID: "shelf.add", Title: "把选中项加入暂存架", Group: "暂存架"},
@@ -130,7 +129,6 @@ func defaultKeys() map[string][]string {
 		"layout.rows":    {"Cmd+Alt+4"},
 		"preview":        {"Cmd+Alt+P"},
 		"sidebar":        {"Cmd+Ctrl+S"},
-		"toolbar":        {"Cmd+Ctrl+B"},
 		"workspace":      {"Cmd+Alt+W"},
 
 		"shelf.add":   {"Cmd+Alt+S"},

@@ -40,10 +40,7 @@ func (a *app) view(c *ui.Context) {
 			if a.sb.show {
 				a.sidebar(c)
 			}
-			ui.Column(c).Grow(1).Background(t.Background).Children(func() {
-				a.workspaceStrip(c)
-				a.body(c)
-			})
+			ui.Column(c).Grow(1).Background(t.Background).Children(func() { a.body(c) })
 			if a.sh.show {
 				a.shelfView(c)
 			}
@@ -559,7 +556,6 @@ func (a *app) keyList(c *ui.Context, edit bool) {
 // recordKey takes the key pressed while a row of the 快捷键 page records:
 // any key, a single letter too; Esc cancels.
 func (a *app) recordKey(ev ui.InputEvent) {
-	a.toolbarKey(ev)
 	if ev.Kind == ui.InputText && a.recEat {
 		a.recEat = false // the recorded key's text; the field is read-only for it
 		return
@@ -665,11 +661,11 @@ func (a *app) settingsView(c *ui.Context) {
 	dialogModalSized(c, &a.dlgOpen, settingsW, settingsH, func() {
 		col := ui.Column(c).Grow(1).MinHeight(0).Gap(px("space-3")).ObserveInput(a.recordKey)
 		defer func() {
-			a.dbg(c, col, []string{"dlg.set.general", "dlg.set.keys", "dlg.set.agent", "dlg.set.toolbar", "dlg.set.about"}[a.setPage])
+			a.dbg(c, col, []string{"dlg.set.general", "dlg.set.keys", "dlg.set.agent", "dlg.set.about"}[a.setPage])
 		}()
 		col.Children(func() {
 			wordmark(c)
-			if ui.Tabs(c.Key("setpage"), &a.setPage, "通用", "快捷键", "Agent", "工具栏", "关于").Changed() {
+			if ui.Tabs(c.Key("setpage"), &a.setPage, "通用", "快捷键", "Agent", "关于").Changed() {
 				a.recording, a.focusKeyQ = "", a.setPage == 1
 			}
 			ui.Scroll(c.Key("setbody")).Grow(1).MinHeight(0).Children(func() {
@@ -683,6 +679,9 @@ func (a *app) settingsView(c *ui.Context) {
 		a.wantFocus = true
 	}
 }
+
+// pageAbout is the settings' 关于 page.
+const pageAbout = 3
 
 // settingsW and settingsH are the settings panel's size, the same on
 // every page.
@@ -700,10 +699,6 @@ func (a *app) settingsFooter(c *ui.Context) {
 				a.submitDialog()
 			}
 			return
-		case pageToolbar:
-			if ui.Button(c.Key("tb.reset"), "恢复默认").Disabled(a.cfg.Toolbar == nil).Clicked() {
-				a.toolbarReset()
-			}
 		}
 		if ui.PrimaryButton(c.Key("setdone"), "完成").Clicked() {
 			a.dlgOpen = false
@@ -720,10 +715,6 @@ func (a *app) settingsPage(c *ui.Context) {
 	}
 	if a.setPage == 2 {
 		a.agentsPage(c)
-		return
-	}
-	if a.setPage == pageToolbar {
-		a.toolbarPage(c)
 		return
 	}
 	if a.setPage == pageAbout {

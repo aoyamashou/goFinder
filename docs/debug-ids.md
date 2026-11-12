@@ -14,23 +14,9 @@
 
 | 编号 | 名称 | 元素 | 位置 |
 |---|---|---|---|
-| 1 | `titlebar` | 标题栏（工具栏隐藏时的文件夹名条） | `chrome.go` `titleBar` |
-| 2 | `toolbar` | 工具栏整条 | `chrome.go` `toolbarStrip` |
-| 3 | `tb.back` | 后退 | `chrome.go` `toolbarStrip` |
-| 4 | `tb.forward` | 前进 | `chrome.go` `toolbarStrip` |
-| 5 | `tb.up` | 上级目录 | `chrome.go` `toolbarStrip` |
-| 6 | `tb.new` | 新建菜单 | `chrome.go` `toolbarStrip` |
-| 7 | `tb.sort` | 排序菜单 | `chrome.go` `toolbarStrip` |
-| 8 | `tb.hidden` | 显示隐藏文件 | `chrome.go` `toolbarStrip` |
-| 9 | `tb.trash` | 废纸篓 | `chrome.go` `toolbarStrip` |
-| 10 | `tb.terminal` | 终端 | `chrome.go` `toolbarStrip` |
+| 1 | `titlebar` | 标题栏（Agent 按钮、工作区按钮、文件夹名） | `chrome.go` `titleBar` |
 | 11 | `tb.agent` | Agent（左半段，打开默认 Agent） | `chrome.go` `agentSplit` |
-| 12 | `tb.workspace` | Workspace | `chrome.go` `toolbarStrip` |
-| 13 | `tb.shelf` | 暂存架开关 | `chrome.go` `toolbarStrip` |
-| 14 | `tb.filter` | 过滤 | `chrome.go` `toolbarStrip` |
-| 15 | `tb.preview` | 检查器开关（工具栏上） | `chrome.go` `toolbarStrip` |
-| 16 | `tb.sidebar` | 侧边栏开关（工具栏上） | `chrome.go` `toolbarStrip` |
-| 17 | `tb.other` | 工具栏上其他自定义按钮 | `chrome.go` `toolbarStrip` |
+| 12 | `tb.workspace` | 工作区对话框按钮（标题栏） | `workflow.go` `workspaceButtons` |
 | 20 | `sidebar` | 侧边栏整体 | `sidebar.go` `sidebar` |
 | 21 | `sidebar.favs` | 「个人收藏」分组 | `sidebar.go` `sidebar` |
 | 22 | `sidebar.locs` | 「位置」分组 | `sidebar.go` `sidebar` |
@@ -55,7 +41,6 @@
 | 71 | `dlg.set.general` | 设置 › 通用 | `view.go` `settingsView` |
 | 72 | `dlg.set.keys` | 设置 › 快捷键 | `view.go` `settingsView` |
 | 73 | `dlg.set.agent` | 设置 › Agent | `view.go` `settingsView` |
-| 74 | `dlg.set.toolbar` | 设置 › 工具栏 | `view.go` `settingsView` |
 | 75 | `dlg.set.about` | 设置 › 关于 | `view.go` `settingsView`、`debug.go` `aboutPage` |
 | 76 | `dlg.rename` | 重命名对话框 | `view.go` `dialog` |
 | 77 | `dlg.newfile` | 新建文件对话框 | `view.go` `dialog` |

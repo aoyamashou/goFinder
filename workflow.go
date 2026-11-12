@@ -476,12 +476,7 @@ func (a *app) switchWorkspace(name string) {
 	})
 }
 
-// wsOnToolbar reports whether the toolbar shows the workspace buttons.
-func (a *app) wsOnToolbar() bool {
-	return a.cfg.ShowToolbar && slices.Contains(a.toolbarIDs(), "workspace")
-}
-
-// workspaceButtons is the toolbar's workspace item: a button for each
+// workspaceButtons is the title bar's workspaces: a button for each
 // saved workspace, the one on screen lit, its key (1–9) in the tip; then
 // the dialog's button, to save the screen as one.
 func (a *app) workspaceButtons(c *ui.Context) {
@@ -512,27 +507,9 @@ func (a *app) workspaceButtons(c *ui.Context) {
 	}
 	act, _ := a.km.Action("workspace")
 	btn := a.symButton(c.Key("tb:workspace"), actionSymbols["workspace"], a.actionTitle("workspace"), a.toolbarTip("workspace", act.Title), false, false)
-	a.dbg(c, btn, tbName("workspace"))
+	a.dbg(c, btn, "tb.workspace")
 	if btn.Clicked() {
 		a.run("workspace")
-	}
-}
-
-// workspaceStrip is the saved workspaces, the one on screen chosen, above
-// the panes once there are two or more and one is on screen, while the
-// toolbar does not show them.
-func (a *app) workspaceStrip(c *ui.Context) {
-	if a.wsCur == "" || len(a.wsList) < 2 || a.wsOnToolbar() {
-		return
-	}
-	a.wsSel = slices.Index(a.wsList, a.wsCur)
-	titles := make([]string, len(a.wsList))
-	for i, n := range a.wsList {
-		titles[i] = fmt.Sprintf("%d %s", i+1, n)
-	}
-	tabs := ui.Tabs(c.Key("wstabs"), &a.wsSel, titles...)
-	if tabs.Changed() && a.wsSel >= 0 && a.wsSel < len(a.wsList) {
-		a.switchWorkspace(a.wsList[a.wsSel])
 	}
 }
 

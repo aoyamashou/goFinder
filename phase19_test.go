@@ -161,7 +161,7 @@ func TestInspectorWidensWindow(t *testing.T) {
 func TestBrandAccentAndTitle(t *testing.T) {
 	for _, dark := range []bool{true, false} {
 		a, tt := themed(t, dark)
-		a.cfg.ShowToolbar, a.cfg.Appearance = false, "system" // the tester's light or dark
+		a.cfg.Appearance = "system" // the tester's light or dark
 		tt.SetTitleBar(ui.TitleBar{Height: 28, Left: 80})
 		tt.Frame()
 		tt.Frame()

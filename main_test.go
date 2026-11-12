@@ -310,9 +310,9 @@ func TestLayoutsAndPreview(t *testing.T) {
 }
 
 // testConfig is the defaults the older tests were written for: the
-// toolbar showing, and the window in macOS's own appearance.
+// window in macOS's own appearance.
 func testConfig() config {
 	cfg := defaultConfig()
-	cfg.ShowToolbar, cfg.Appearance = true, "system"
+	cfg.Appearance = "system"
 	return cfg
 }
