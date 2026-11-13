@@ -1497,7 +1497,7 @@ UX：
 
 ### 阶段 18 后修订十六：新建文件夹后的可选项目初始化
 
-> 来源：2026-11-13 Codex 开发会话，[Issue #4](https://github.com/aoyamashou/goFinder/issues/4)；依据 Claude 审查提交 6d8a44b、ea0eb6d 及用户执行授权。需求与验收维护在 [PRD](../Codex/folder-init-prd.md)。
+> 来源：2026-11-13 Codex 开发会话，[Issue #4](https://github.com/aoyamashou/goFinder/issues/4)；依据 Claude 审查提交 6d8a44b、ea0eb6d 及用户执行授权。需求与验收维护在 [PRD](../Codex/folder-init-prd.md)。已实现：commit ad2bc89。
 
 **要改什么及为什么**：减少建立开发项目的重复操作，在通用设置提供独立、默认关闭的 Git 初始化、Agent 说明文件、项目 skills 目录三项。
 
