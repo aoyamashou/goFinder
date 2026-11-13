@@ -42,7 +42,7 @@ go test -race ./...
 go test -run '^$' -bench Open10k ./internal/pane   # 打开 1 万文件目录的性能基准
 go test -run '^$' -bench 10k ./gui                  # 界面层：进入 1 万文件目录、空闲帧、光标移动
 MYGO_SHOTS=/某个临时目录 go test -run 'Shots' ./gui  # 生成浅色/深色界面截图，核对改动
-go tool mygo build -skip-installer    # 打包到 build/darwin-arm64/goFinder.app，用 Apple_self_dev 签名
+go tool mygo build -platform darwin/arm64,darwin/amd64 -skip-installer # 双架构打包，用 Apple_self_dev 签名
 ```
 
 每次改动的最低验证：`gofmt -l gui internal` 无输出、上面的 vet 三连、`go test ./...` 全过；改了界面再看一次截图。
@@ -58,10 +58,11 @@ go tool mygo build -skip-installer    # 打包到 build/darwin-arm64/goFinder.ap
   1. 改 `mygo.json` 的 `version`，在 `CHANGELOG.md` 顶部加 `## <版本>` 一节（面向用户的中文说明），提交并推送；
   2. 签名打包并上传到 draft release（同时生成增量更新包）：
      ```bash
-     MYGO_UPDATER_PRIVATE_KEY="$(cat ~/Library/Application\ Support/mygo/update-keys/mygo-update.key)" go tool mygo build -skip-installer -upload
+     MYGO_UPDATER_PRIVATE_KEY="$(cat ~/Library/Application\ Support/mygo/update-keys/mygo-update.key)" go tool mygo build -platform darwin/arm64,darwin/amd64 -skip-installer -upload
      ```
-  3. `scripts/unsign-dmg.sh --upload`：把 DMG 换成不签名的（自签证书签过的 DMG 会被系统拒绝打开），并替换 release 上的 DMG 和 SHA256SUMS；
-  4. `gh release edit v<版本> --repo aoyamashou/goFinder --draft=false --latest`：发布后已安装的应用才能检查到更新。
+  3. `scripts/unsign-dmg.sh --arch all --upload`：把 DMG 换成不签名的（自签证书签过的 DMG 会被系统拒绝打开），并替换 release 上的 DMG 和 SHA256SUMS；
+  4. 公开前核对两套应用签名、DMG 校验、SHA256SUMS，以及 `update-darwin-arm64.json`、`update-darwin-amd64.json` 和各自签名全量包均在 draft 上且架构正确。首次 Intel 发布可无历史增量。从首个双架构版本起，每次发版都必须双架构，缺清单会使对应客户端检查更新失败。上传中途失败保持 draft，重跑并核对完整附件后再公开。
+  5. `gh release edit v<版本> --repo aoyamashou/goFinder --draft=false --latest`：发布后已安装的应用才能检查到更新。
   
   不带私钥的 `mygo build` 照常打包，只是不生成更新文件。
 
@@ -98,7 +99,7 @@ go tool mygo build -skip-installer    # 打包到 build/darwin-arm64/goFinder.ap
 - `CHANGELOG.md`：每个版本面向用户的更新记录，发版时更新。
 - `docs/plan.md`：分阶段计划与每次修订的记录（架构、默认键位、资源原则、各阶段范围与验证方式）。
 - `Codex/vim-keybindings-prd.md`：Issue #2 可选 Vim 键位的需求、审查结论、验收与已知限制。
-- `Codex/intel-support-prd.md`：Issue #1 Intel Mac 支持的可行性、双架构分发计划与审查门槛（待 Claude 审查）。
+- `Codex/intel-support-prd.md`：Issue #1 Intel Mac 支持的可行性、双架构分发方案、审查结论与实施验证。
 - `docs/design-system.md`（及 `gui/design-tokens.json`，由 `theme.go` 嵌入）：设计系统——颜色、字体、间距、圆角、尺寸 token 与组件规范；改界面前先读。
 - `docs/debug-ids.md`：设置 › 关于里「Debug 编号」的编号表，与 `gui/debug.go` 的 `debugIDs` 保持一致（`TestDebugIDsDoc` 检查）。用户沟通时常说「N 号元素」。
 - `docs/website.md`：官网（gofinder.ryou.im）的目录、部署方式、设计依据与内容边界；官网源码在 `site/`，用 Cloudflare CLI `cf deploy` 部署。

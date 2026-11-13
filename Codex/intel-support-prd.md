@@ -3,7 +3,7 @@
 > 来源：Codex Issue 受理与需求规划会话，2026-11-13；[Issue #1](https://github.com/aoyamashou/goFinder/issues/1)。
 > 要改什么及为什么：提供 Intel Mac 的原生安装包和独立更新渠道，让 Intel 用户能够安装并持续更新 goFinder。
 > 边界：仅补齐双架构构建、DMG 处理及发布操作文档；不改应用交互、依赖、官网、README，不自动发版。
-> 状态：Claude 已审查（2026-11-13），**可以执行**；以修订后的正文为准，见文末「Claude 审查记录」。不能将编译成功视为 Intel 支持已经交付。
+> 状态：Claude 已审查（2026-11-13），**可以执行**；脚本与分发流程已实现并完成本机验证，待 Claude 代码审查。Intel 真机与实际更新仍未验证，不能宣布 Intel 支持已完全交付。
 > 功能分支：`feature/issue-1-intel-support`；规划基线：`cb04bb8`（当前版本 0.18.9）。
 
 ## 1. 需求判断与完成标准
@@ -133,3 +133,33 @@ Intel 真机当前尚未验证，也未确认可用设备。
 - 本轮验证不上传、不改真实 Release，也不覆盖安装 `/Applications/goFinder.app`。
 - README 和官网的下载说明不在本轮范围，是否补充由用户另行决定。
 - 实现后交回 Claude 做代码审查，再进入合并流程。
+
+## 实施与验证记录（2026-11-13）
+
+本需求在独立 worktree `intel-support`、分支 `feature/issue-1-intel-support` 实施，未改动主目录内 Issue #4 的未提交文件。
+
+### 已实现
+
+- `unsign-dmg.sh` 保留无参数与 `--upload` 默认 arm64，新增 `--arch arm64|amd64|all`，拒绝缺参数和非法参数。
+- 先检查所有输入；转换结果先暂存并验证无签名及镜像完整性，全部通过后再替换本地产物。精确更新对应摘要行，保留其他附件；缺少 SHA256SUMS 时生成它。
+- `--upload` 仅允许对应 draft release；转换全部通过后逐个上传 DMG，最后上传一次 SHA256SUMS。失败非零退出，不报告整体成功；远端部分失败仍须由发布负责人保持 draft 并重跑检查。
+- 发布文档改为显式双架构构建，列出两份清单、对应更新包、签名及摘要的公开前检查。后续每次发版均须保留两个架构。
+- 增加 `python3 scripts/test-unsign-dmg.py`，只在临时夹具使用替身工具，不操作真实 GitHub Release。
+
+### 验证结果
+
+- `sh -n scripts/unsign-dmg.sh`、Git 差异检查通过。
+- 脚本 9 项回归测试通过：默认及单架构、双架构重复执行与上传顺序、旧 `--upload`、非法参数、缺输入零转换/上传、转换或校验失败保留输入、拒绝公开版本、上传失败停止、缺摘要文件自动生成。
+- `gofmt -l gui internal` 无输出；`go vet ./...`、`go tool mygo vet .`、`go tool mygo vet ./gui`、`CGO_ENABLED=0 go test ./...` 通过（245 项，18 个包）。未改共享状态或 UI 实现。
+- `go tool mygo build -platform darwin/arm64,darwin/amd64 -skip-installer` 产出两套应用与 DMG；`file` 确认 arm64/x86_64，`codesign --verify --deep --strict` 均通过，证书均为 `Apple_self_dev`。
+- 实际执行双架构去签名，两份 DMG 均不带签名且 `hdiutil verify` 通过；核对 SHA256SUMS 中全部附件。两目录的同名 `install.sh` 内容一致，摘要文件保留一个对应记录。
+- 另在本地安全注入既有更新签名密钥，执行相同双架构构建（**不加 `-upload`**）。产出两份更新清单、两个签名全量包及 arm64 的两个历史增量；amd64 无历史版本、不生成增量，符合首版条件。使用 `mygo.json` 公钥独立验证全量及增量的 SHA-256/Ed25519 签名与大小；检查清单 URL、包内可执行文件架构及两套二进制中各自的 latest feed 地址，均正确。生成后再次处理 DMG，摘要仍保留全部更新附件。
+- macOS **27.2.1（26B131）**、Apple Silicon 上，以 `arch -x86_64` 启动签名后的 amd64 应用；经 computer-use 操作并读回状态，确认临时目录导航、中文文本预览、复制、剪切移动、移到废纸篓及右键菜单“复制路径”。复制/移动后核对磁盘内容，废纸篓操作后确认原路径消失且应用报告成功，菜单操作后读回剪贴板路径。Space 启动 `qlmanage -p`，观察到快速查看窗口。主界面与右键菜单截图已目视核对，未将含本机侧边栏信息的截图提交。
+- 签名后的 arm64 构建也在同一临时目录验证启动、导航、文本预览与复制，并核对复制文件内容。
+
+### 剩余验证与交接
+
+- **Intel 真机、实际自动更新安装、远端 draft 附件完整性：尚未验证。** 本轮只验证本地生成物，不上传、不改现有 0.18.9 Release，不将生成的 0.18.9 测试包作为正式发版。
+- 没有修改默认文件浏览器，没有覆盖 `/Applications/goFinder.app`，没有改版本号、README、官网或依赖。
+- 真实原生测试使用原构建应用和现有用户配置，只指定临时文件目录；未调整设置。
+- 交 Claude 做代码审查、PR、Merge 和最终 Issue 回复；是否发版仍等用户决定。无真机时按审定口径说明仅经过 Rosetta 验证，Issue 保持 Open 等 Intel 用户反馈。
