@@ -794,4 +794,13 @@ func (a *app) settingsPage(c *ui.Context) {
 			a.openFullDiskSettings()
 		}
 	})
+	ui.Divider(c)
+	ui.Text(c, "新建文件夹后").Bold()
+	uiCaption(c, "仅对之后新建的文件夹生效；默认关闭，可分别启用。", "muted")
+	ui.Checkbox(c.Key("set.newFolderGit"), &a.setFolder.Git, "初始化 Git 仓库")
+	ui.Checkbox(c.Key("set.newFolderAgentFiles"), &a.setFolder.AgentFiles, "创建 Agent 说明文件")
+	uiCaption(c, "创建空的 AGENTS.md，以及引用它的 CLAUDE.md。", "muted")
+	ui.Checkbox(c.Key("set.newFolderSkills"), &a.setFolder.Skills, "创建项目级 skills 目录")
+	uiCaption(c, a.folderSkillsCaption(), "muted")
+	ui.Divider(c)
 }

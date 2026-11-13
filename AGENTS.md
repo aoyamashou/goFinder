@@ -52,7 +52,7 @@ go tool mygo build -platform darwin/arm64,darwin/amd64 -skip-installer # 双架�
 - **改动直接 commit 并 push 到 `origin main`**（不走 PR）。推送用 `git --no-replace-objects push origin main`。
 - 提交日志用中文，写清需求或问题、实现思路；不加任何 AI 署名行（Co-Authored-By 等）。
 - 公开仓库从提交 41200b5 开始；更早的历史只在用户本机的 `history-local` 分支，用 `git replace --graft` 接上（只在本机生效，**不要推送 `refs/replace`**）。所以文档里记的部分旧 commit 号在 GitHub 上查不到，这是正常的。
-- 改功能或修 bug 后，在 `docs/plan.md` 的「## 测试和验证」之前加一节 `### 阶段 18 后修订N：标题`（下一个是**修订十六**），写来源、要改什么、实现、边界、验证；提交后再用一个文档提交在该节「来源」行末尾补「已实现：commit xxxxxxx。」。
+- 改功能或修 bug 后，在 `docs/plan.md` 的「## 测试和验证」之前加一节 `### 阶段 18 后修订N：标题`（下一个是**修订十八**），写来源、要改什么、实现、边界、验证；提交后再用一个文档提交在该节「来源」行末尾补「已实现：commit xxxxxxx。」。
 - 版本号在 `mygo.json` 的 `version`，格式 `0.阶段.修订`：完成新阶段时中间位改成阶段号、末位归 0；阶段之后的小修复末位 +1。关于页会显示构建的 commit 和时间。
 - **打 tag 和发版由用户决定**，没有明确要求不打 tag、不发 Release。用户说「发版」时：
   1. 改 `mygo.json` 的 `version`，在 `CHANGELOG.md` 顶部加 `## <版本>` 一节（面向用户的中文说明），提交并推送；
@@ -98,6 +98,7 @@ go tool mygo build -platform darwin/arm64,darwin/amd64 -skip-installer # 双架�
 - `README.md`：面向用户的介绍（截图、特点、与访达的性能对比、安装、键位、配置）；实现细节不写在这里。README 由用户提供，改动前先问。
 - `CHANGELOG.md`：每个版本面向用户的更新记录，发版时更新。
 - `docs/plan.md`：分阶段计划与每次修订的记录（架构、默认键位、资源原则、各阶段范围与验证方式）。
+- `Codex/folder-init-prd.md`：Issue #4 新建文件夹后的可选初始化需求、实施与验收（待 Claude 代码审查）。
 - `Codex/vim-keybindings-prd.md`：Issue #2 可选 Vim 键位的需求、审查结论、验收与已知限制。
 - `Codex/intel-support-prd.md`：Issue #1 Intel Mac 支持的可行性、双架构分发方案、审查结论与实施验证。
 - `docs/design-system.md`（及 `gui/design-tokens.json`，由 `theme.go` 嵌入）：设计系统——颜色、字体、间距、圆角、尺寸 token 与组件规范；改界面前先读。

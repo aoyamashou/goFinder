@@ -15,6 +15,7 @@ import (
 	"gofinder/internal/git"
 	"gofinder/internal/keymap"
 	"gofinder/internal/pane"
+	"gofinder/internal/projectinit"
 	"gofinder/internal/shellcmd"
 	"gofinder/internal/templates"
 	"gofinder/internal/vfs"
@@ -231,8 +232,10 @@ type app struct {
 	// The trash confirmation: what it moves, and its 不再提醒.
 	trashPaths []string
 	trashNoAsk bool
-	setConfirm bool     // the settings' 删除前确认
-	tplNames   []string // the templates, for the new-file menus
+	setFolder  projectinit.Options // settings draft, committed only on Save
+	initGit    func(string) error  // nil uses projectinit.InitGit
+	setConfirm bool                // the settings' 删除前确认
+	tplNames   []string            // the templates, for the new-file menus
 	ag         agentState
 
 	// The new-file dialog's templates, and the one chosen.
@@ -616,8 +619,9 @@ func (a *app) submitDialog() {
 	if a.dlg == dlgSettings {
 		a.cfg.Terminal, a.cfg.Editor = a.setTerm, a.setEditor
 		a.cfg.ConfirmTrash = a.setConfirm
-		a.saveConfig()
+		a.cfg.NewFolderGit, a.cfg.NewFolderAgentFiles, a.cfg.NewFolderSkills = a.setFolder.Git, a.setFolder.AgentFiles, a.setFolder.Skills
 		a.status = fmt.Sprintf("终端：%s，编辑器：%s", a.cfg.Terminal, a.cfg.Editor)
+		a.saveConfig()
 		return
 	}
 	if a.dlg == dlgWsRename {
@@ -653,11 +657,17 @@ func (a *app) submitDialog() {
 	}
 	if dir != ts.t.Dir { // in a side column: read those again
 		a.refreshLists()
+		if a.dlg == dlgNewFolder {
+			a.initializeFolder(p)
+		}
 		return
 	}
 	ts.t.Focus = filepath.Base(p)
 	ts.sel.Clear()
 	a.load(ts)
+	if a.dlg == dlgNewFolder {
+		a.initializeFolder(p)
+	}
 }
 
 // newFileDialog asks for the new file's name and template. The templates
@@ -831,6 +841,7 @@ func (a *app) settingsDialog() {
 	a.setTerm, a.setEditor = a.cfg.Terminal, a.cfg.Editor
 	a.syncAgentRows()
 	a.setConfirm = a.cfg.ConfirmTrash
+	a.setFolder = a.folderOptions()
 	a.setApps, a.setLoading = nil, true
 	a.async(func() {
 		apps, err := a.sys.InstalledApps()
