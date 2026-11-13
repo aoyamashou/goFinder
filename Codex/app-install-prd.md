@@ -249,3 +249,5 @@ Issue 认为进入 `.app` 查看包内容没有意义，要求用户选择打开
 | 深色 | ![深色打开](images/app-install-dark-open.png) | ![深色右键](images/app-install-dark-context.png) |
 
 验证边界：UI 使用 Tester、安装系统接口用 fakeSys；实际系统命令仅在临时目录运行，没有向本机 `/Applications` 安装或覆盖任何应用，也没有运行第三方应用或验证其签名。未做原生窗口人工验收。本次仅推送功能分支，后续 Claude 代码审查、合并和发版交人类处理。
+
+已实现：commit `4ee8c170d339a633b9d78e9520738908aadac7fe`；待 Claude 代码审查。

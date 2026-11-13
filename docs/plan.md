@@ -1540,7 +1540,7 @@ UX：
 
 ### 阶段 18 后修订十九：应用包安装菜单
 
-> 来源：2026-11-13 Codex 开发会话，[Issue #6](https://github.com/aoyamashou/goFinder/issues/6)，依据 Claude 审查提交 6031419 及用户执行授权；需求和验证维护在 [PRD](../Codex/app-install-prd.md)。
+> 来源：2026-11-13 Codex 开发会话，[Issue #6](https://github.com/aoyamashou/goFinder/issues/6)，依据 Claude 审查提交 6031419 及用户执行授权；需求和验证维护在 [PRD](../Codex/app-install-prd.md)。已实现：commit 4ee8c17。
 
 **要改什么及为什么**：为未安装的本地应用包提供打开、复制到应用程序、复制并解除隔离的菜单，减少手工安装步骤，已安装应用继续直接启动。
 
