@@ -25,7 +25,7 @@ macOS 实现用 Foundation `NSFileManager.trashItemAtURL:resultingItemURL:error:
 - **JXA 不可用**：`osascript -l JavaScript` 中 `Ref()` 出参在调用成功、文件**已移走后**，读取 `out[0]`（含 `typeof`、`Ref('@')`、`castRefToObject`）一律段错误退出（139/137）。这会造成「已删除但无记录」，禁止采用。
 - **AppleScriptObjC 可用**：`osascript` 运行 `use framework "Foundation"` 脚本，`set {ok, res, err} to fm's trashItemAtURL:u resultingItemURL:(reference) |error|:(reference)` 正确返回实际路径；同名冲突时返回系统改名后的路径（如 `dup-probe.txt 19-50-34-737.txt`），引号、`$`、空格路径正常；单次约 0.1–0.5 s。脚本内容为常量，路径只经 `argv` 传入，不拼接。
 - 一批只启动一次 `osascript`（所有路径作为 argv），每项输出一行；结果路径用 `NSURL absoluteString`（百分号编码，无换行）输出，Go 端解码，避免文件名含换行破坏解析。整批设超时（建议 30 s + 每项 1 s，上限 2 min）。
-- **异常收敛**：`osascript` 超时、崩溃、输出缺项或无法解析时，对未拿到结果的每项 `Lstat` 原路径：仍在→视为未删除并报错；已不在→计入「已移到废纸篓」但**不进入撤销历史**，状态栏说明「N 项无法撤销」。不得对这些项重试删除，也不回退到猜测路径。
+- **异常收敛**：`osascript` 超时、崩溃、输出缺项或无法解析时，先终止并等待子进程完全退出（超时须 kill 后 `Wait`，避免子进程仍在移动时就做判断），再对未拿到结果的每项 `Lstat` 原路径：仍在→视为未删除并报错；已不在→计入「已移到废纸篓」但**不进入撤销历史**，状态栏说明「N 项无法撤销」。不得对这些项重试删除，也不回退到猜测路径。
 - `osascript` 不存在或无法启动（整批无任何项被处理，原路径全部仍在）时，回退到现有 `mygo.Shell.TrashItem` 逐项删除，结果同样不进历史并说明。
 - 子进程的文件访问权限归属 goFinder（TCC 责任进程），实施后须在已签名应用中对 `~/Desktop`、`~/Documents` 下的临时文件各验证一次，确认无额外授权弹窗；若出现弹窗则停止并回到审查。
 
@@ -39,8 +39,8 @@ macOS 实现用 Foundation `NSFileManager.trashItemAtURL:resultingItemURL:error:
 - 新建文件夹后运行了初始化（`initializeFolder`，见 Issue #4）时，初始化完成后再记录该文件夹的身份快照；初始化失败或仍在运行时不记历史。初始化产生的 git 等内容随文件夹整体移到废纸篓，不单独撤销。
 - 多选批次算一步，逆序撤销；保留最多 50 步，批次记录只含路径和用于确认对象未被替换的文件身份，不保存文件内容。失败或无变化的操作不添加历史；部分成功只记录已完成项目。
 - 文件身份定义：`Lstat`（不跟随符号链接）得到的 `dev`+`ino`，产物另加 `size`、`mtime`、`ctime`、mode。删除前先保存原对象身份，拿到废纸篓路径后核对是同一对象再记录，避免子进程处理期间原路径被替换；无法核对则不记历史并说明。移动/重命名记录目标路径身份；复制/新建/解压记录产物身份。
-- 执行撤销前检查来源仍是已记录的对象（`dev`+`ino` 一致），恢复目标 `Lstat` 为不存在，原父目录存在；复制/新建产物 `size`/`mtime`/`ctime` 任一变化即拒绝撤销并提示。目录产物在记录时遍历后代记下条目数和最大 `mtime`/`ctime`（上限与 `finfo.Count` 同量级，例如 1 万项），超限的目录产物记录时即标为不可撤销；撤销时重新遍历比较，不一致则拒绝。
-- 恢复必须原子拒绝覆盖：macOS 通过仓库已有依赖 purego 调用 libSystem 的 `renamex_np`，flags 为 `RENAME_EXCL`（0x4）。本机 SDK `usr/include/sys/stdio.h` 已确认声明，purego 已有无 cgo 的 Dlopen/RegisterLibFunc API，不增加依赖或升级版本。不可用即拒绝恢复，禁止回退到存在覆盖竞态的 `os.Rename`。跨卷复制恢复先在原父目录以唯一临时目录写入，再用同一原子方式发布，失败保留来源并将临时目录移废纸篓。
+- 执行撤销前检查来源仍是已记录的对象（`dev`+`ino` 一致），恢复目标 `Lstat` 为不存在，原父目录存在；复制/新建产物 `size`/`mtime`/`ctime` 任一变化即拒绝撤销并提示。目录产物在记录时按固定顺序遍历后代（不跟随符号链接），对每个后代的相对路径、`dev`/`ino`、mode、大小、`mtime`/`ctime` 生成有序摘要（最多 1 万项）；超过上限或读取失败的目录产物不进入历史并说明；撤销时重新生成摘要比较，任一不一致即拒绝。不能只比较条目数与最大时间。
+- 恢复必须原子拒绝覆盖：macOS 通过仓库已有依赖 purego 调用 libSystem 的 `renamex_np`，flags 为 `RENAME_EXCL`（0x4）。本机 SDK `usr/include/sys/stdio.h` 已确认声明，purego 已有无 cgo 的 Dlopen/RegisterLibFunc API，不增加依赖或升级版本。不可用即拒绝恢复，禁止回退到存在覆盖竞态的 `os.Rename`。调用返回非零即视为失败并保留来源；需要 errno 区分原因时，在 `runtime.LockOSThread` 内调用并读取 libSystem `__error()`，或失败后再 `Lstat` 判断，安全性不依赖 errno。purego 现为间接依赖，直接引用后 `go.mod` 仅改为直接依赖，版本不变。删除撤销若遇 EXDEV（来源与原位置不在同一卷）同样拒绝并报错，不做复制回退。跨卷复制恢复先在原父目录以唯一临时目录写入，再用同一原子方式发布，失败保留来源并将临时目录移废纸篓。
 - 撤销串行执行：维护主线程上的「进行中的文件变更」计数（删除、粘贴、拖入、暂存架、重命名、新建、解压、撤销都计入）。计数不为零时 ⌘Z 只提示「有文件操作进行中」，不排队；撤销进行中其他变更同样提示拒绝。历史只在变更的 `a.post` 回调中按完成顺序追加，后台 I/O 经 `a.async`。撤销所用路径全部来自记录，不读取当前窗格，因此切换窗格不影响恢复。
 - 遇到部分撤销失败，保留尚未撤销的记录供用户修复冲突后重试，已恢复项不重复执行；显示实际成功数及错误。无历史时提示「没有可撤销的文件操作」。
 
@@ -112,3 +112,20 @@ Review-1: CHANGES_REQUESTED
 - 目录产物快照采用每个后代的相对路径、dev/ino、mode、大小、mtime/ctime 的有序摘要（最多 1 万项），不能仅比较条目数与最大时间，后者会漏掉非最新文件的更改。超过上限或读取失败不进入历史并说明。
 - 设置标题按 issue 的「设置...」。音效失败静默忽略，不覆盖文件结果。
 - 第二轮审查仅检查这些裁定及方案完整性，不再执行会修改真实废纸篓的探测；首轮探测文件保留原状。
+
+## Review-2（Claude Opus，2026-11-13）
+
+结论：Codex 裁定充分关闭首轮全部问题，方案无重大遗漏，可进入实施。本轮只读源码与 SDK，未触碰真实废纸篓或系统设置。
+
+核对结果：
+- AppleScriptObjC 批处理、异常收敛、保留 `system.Trash` 原签名：已关闭。补充一句：超时/崩溃时须先 kill 并 `Wait` 子进程退出再 `Lstat`，否则可能把仍在被移动的项误报为失败。
+- 原子恢复：本机 SDK `sys/stdio.h` 确有 `RENAME_EXCL 0x4` 与 `renamex_np`（10.12+）；`go.mod` 已有 `github.com/ebitengine/purego v0.11.1`（indirect）。已补充 errno 读取须锁 OS 线程、失败一律保留来源、删除撤销遇 EXDEV 拒绝。
+- 目录快照：正文原仍写「条目数和最大 mtime/ctime」，与 Codex 裁定矛盾，已改为逐条有序元数据摘要。
+- 设置标题：issue #19 原文确为「设置...」（半角点）；当前 `gui/actions.go` 的 settings `Title` 与 `menuTitles` 覆盖项均已定位，方案可行。速查表/快捷键页随之显示「设置...」，属预期。
+
+非阻断建议（实施时由 Codex 自行判断，不改变本 PRD 的既定方案）：
+1. purego 自带公开的 `purego/objc` 包，理论上可在进程内直接调用 `trashItemAtURL:resultingItemURL:error:`，免去子进程、超时与 TCC 归属问题。若实施时改用它，须同样在真机验证返回路径与同名改名、在后台线程包 autorelease pool，并在 `docs/plan.md` 记录偏差；验证不通过则维持 AppleScriptObjC。
+2. 删除条目撤销时除 `dev`+`ino` 外可顺带比较 `size`/`mtime`，进一步排除 inode 复用（极低概率）。
+3. Spotlight 等系统进程写入扩展属性会改变 `ctime`，可能使复制/新建产物被保守地拒绝撤销；方向安全，验收时如遇到在 plan 中记为已知限制即可。
+
+Review-2: APPROVED
