@@ -8,11 +8,13 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 	"unicode/utf8"
 
 	"github.com/egoist/mygo/ui"
 
+	"gofinder/internal/finfo"
 	"gofinder/internal/vfs"
 )
 
@@ -123,11 +125,17 @@ func (a *app) loadPreview(p *paneState, e vfs.Entry, hidden bool) {
 
 func buildPreview(e vfs.Entry, hidden bool) previewState {
 	dir := e.Path
-	if vfs.IsZipName(e.Name) && !vfs.InZip(e.Path) {
-		dir = vfs.ZipRoot(e.Path) // an archive previews as its listing
-	}
 	switch {
-	case e.IsDir || dir != e.Path:
+	case vfs.IsPackage(e) || vfs.IsArchive(e):
+		// Shown as one file, as Finder does; QuickLook is not asked, as
+		// qlmanage hangs on them.
+		// Named by its kind, a package as its file kind would be.
+		kind := finfo.Kind(e.Name, false, e.IsLink)
+		if e.IsDir && strings.HasSuffix(kind, " 文件") {
+			kind = strings.TrimSuffix(kind, " 文件") + " 包"
+		}
+		return previewState{kind: pvBinary, info: kind}
+	case e.IsDir:
 		if _, err := vfs.Stat(dir); err != nil {
 			return previewState{kind: pvNone, info: err.Error()}
 		}

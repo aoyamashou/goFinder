@@ -1563,6 +1563,18 @@ UX：
 **验证**：格式检查、vet 三连、全量无 cgo 测试及 GUI race 检查通过；Tester 覆盖双击键、空选择、ZIP、起点、排序、改键、续时、消失和点击；浅深色截图已检查。未做原生窗口手动验收，细节见 PRD。
 - **发布（2026-11-13）**：经用户明确授权发布 [v0.18.11](https://github.com/aoyamashou/goFinder/releases/tag/v0.18.11)（含修订十八至二十），tag 指向 d824ca6，已设为 Latest。两套应用 `Apple_self_dev` 签名与架构、两个不签名 DMG 及全部 9 个附件摘要与 SHA256SUMS 一致；`update-darwin-arm64.json` 带 0.18.8–0.18.10 三个增量，`update-darwin-amd64.json` 带首个 0.18.10 增量，两份最新清单均返回 0.18.11。本机已安装应用未覆盖。
 
+### 阶段 18 后修订二十一：包和 ZIP 直接打开
+
+> 来源：2026-11-13 Claude 开发会话，用户提出：遇到 macOS 当作单个文件的包和 ZIP 时，goFinder 不再预览内部，而是像 Finder 一样直接打开；ZIP 交给系统归档实用工具解压，保留右键「显示包内容」进入内部。
+
+**要改什么及为什么**：此前 → / 双击会进入 .framework、.rtfd、.xcodeproj 等包和 ZIP，第 3 栏也列出其内部，与 Finder 习惯不一致。
+
+**实现**：`internal/vfs/package.go` 新增包扩展名表（app、framework、bundle、plugin、appex、kext、prefPane、xcodeproj、xcworkspace、playground、xcarchive、dSYM、photoslibrary、logicx、rtfd、scptd、sparsebundle、pages/numbers/key 等，大小写不敏感）及 `IsPackage`、`IsArchive`、`Inside`。`openEntry` 对包文件夹和磁盘上的 ZIP 调用 `system.Open`（ZIP 由归档实用工具在旁边解压，goFinder 不写解压代码）；第 3 栏对它们显示图标、名称和种类卡片，不列内部、也不调 QuickLook（qlmanage 会卡到超时）。右键菜单在「打开」之后加「显示包内容」，在下一帧进入内部（ZIP 仍是只读文件夹）；在行菜单里当场导航会清空正在绘制的列表。
+
+**边界**：不改键位和其他打开逻辑；缺 Info.plist 的不完整 .app 仍可进入（打不开）；ZIP 内的文件、压缩包里的 ZIP 照旧；pkg、dmg、tar、docx 等本来是普通文件，照旧用默认应用打开。
+
+**验证**：`TestZipBrowse` 改为 → 打开 ZIP、右键进入后再验证只读、过滤、预览和解压复制；新增 `TestPackageOpens`（.framework 打开、预览卡片、显示包内容、普通文件夹无此项）和 `TestIsPackageName`；拖放测试改为直接进入 ZIP。gofmt、vet 三连、`go test ./...` 和 GUI race 通过。未做原生窗口手动验收。
+
 ## 测试和验证
 - **纯逻辑包写单元测试，用 `go test ./...` 运行**：
   - `keymap`：按键解析、上下文过滤、用户覆盖、冲突检测；

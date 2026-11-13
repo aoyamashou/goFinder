@@ -54,7 +54,25 @@ func TestZipBrowse(t *testing.T) {
 	tt.Frame()
 	goTo(t, a, tt, "pack.zip")
 
-	tt.Key(0, ui.KeyRight) // into the archive, as a folder
+	// → opens the archive with the system, which extracts it beside.
+	tt.Key(0, ui.KeyRight)
+	tt.Frame()
+	if a.tab().t.Dir != root || !slices.Equal(fs.opened, []string{z}) {
+		t.Fatalf("open zip: %s opened %v", a.tab().t.Dir, fs.opened)
+	}
+	if pv := a.panes[0].pv; pv.kind != pvBinary || pv.ql || pv.info != "ZIP 归档" {
+		t.Fatalf("zip preview: kind %d ql %v %q", pv.kind, pv.ql, pv.info)
+	}
+	fs.opened = nil
+
+	// 显示包内容 browses it as a folder.
+	if err := tt.RightClick("pack.zip"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if err := tt.ChooseMenuItem(insideTitle); err != nil {
+		t.Fatal(err)
+	}
 	tt.Frame()
 	if a.tab().t.Dir != vfs.ZipRoot(z) || !tt.HasText("docs") || !tt.HasText("top.txt") {
 		t.Fatalf("into zip: %s %q", a.tab().t.Dir, tt.Texts())
@@ -117,6 +135,62 @@ func TestZipBrowse(t *testing.T) {
 	tt.Frame()
 	if a.tab().t.Dir != vfs.ZipRoot(z) {
 		t.Fatalf("back: %s", a.tab().t.Dir)
+	}
+}
+
+func TestPackageOpens(t *testing.T) {
+	a, tt, fs, root := setup(t)
+	pkg := filepath.Join(root, "Kit.framework")
+	if err := os.MkdirAll(filepath.Join(pkg, "Headers"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	a.load(a.tab())
+	tt.Frame()
+	goTo(t, a, tt, "Kit.framework")
+	if pv := a.panes[0].pv; pv.kind != pvBinary || pv.ql || pv.info != "框架" {
+		t.Fatalf("package preview: kind %d ql %v %q", pv.kind, pv.ql, pv.info)
+	}
+
+	// → opens it with the system, as Finder does.
+	tt.Key(0, ui.KeyRight)
+	tt.Frame()
+	if a.tab().t.Dir != root || !slices.Equal(fs.opened, []string{pkg}) {
+		t.Fatalf("open package: %s opened %v", a.tab().t.Dir, fs.opened)
+	}
+
+	// 显示包内容 enters it.
+	if err := tt.RightClick("Kit.framework"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if err := tt.ChooseMenuItem(insideTitle); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if a.tab().t.Dir != pkg || !tt.HasText("Headers") {
+		t.Fatalf("inside: %s %q", a.tab().t.Dir, tt.Texts())
+	}
+
+	// A plain folder has no such item and is entered.
+	tt.Key(0, ui.KeyLeft)
+	tt.Frame()
+	if err := tt.RightClick("alpha"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if slices.Contains(tt.Menu(), insideTitle) {
+		t.Fatalf("menu on a folder: %q", tt.Menu())
+	}
+}
+
+func TestIsPackageName(t *testing.T) {
+	for name, want := range map[string]bool{
+		"A.app": true, "B.Framework": true, "C.rtfd": true, "D.xcodeproj": true, "E.pages": true,
+		"plain": false, "notes.txt": false, "x.zip": false,
+	} {
+		if vfs.IsPackageName(name) != want {
+			t.Errorf("IsPackageName(%q) = %v", name, !want)
+		}
 	}
 }
 

@@ -33,6 +33,10 @@ func (a *app) view(c *ui.Context) {
 		c.Root().Background(ui.Transparent) // the sidebar's material shows
 	}
 	a.dnd.accent, a.dnd.danger, a.dnd.hot = t.Accent, t.Danger, ""
+	if in := a.inside; in.ts != nil {
+		a.inside.ts = nil
+		a.navigate(in.ts, in.dir)
+	}
 
 	ui.Column(c).Fill().ObserveInput(a.otherKey).Children(func() {
 		a.titleBar(c)
@@ -322,7 +326,8 @@ func (a *app) contextMenuPre(m *ui.Menu, pi int, ts *tabState, e vfs.Entry, pre 
 	if ids == nil {
 		ids = defaultMenu
 	}
-	sep := false // a separator is due before the next item
+	sep := false   // a separator is due before the next item
+	shown := false // 显示包内容 is listed
 	n := 0
 	hasAgents := slices.Contains(ids, agentsItem)
 	for _, id := range ids {
@@ -356,8 +361,33 @@ func (a *app) contextMenuPre(m *ui.Menu, pi int, ts *tabState, e vfs.Entry, pre 
 			}
 			a.run(id)
 		}
+		if id == "open" {
+			a.insideItem(m, ts, e, pre)
+			shown = true
+		}
+	}
+	if !shown {
+		a.insideItem(m, ts, e, pre)
 	}
 }
+
+// insideItem offers 显示包内容 on a package or an archive, which open with
+// the system: it enters them as a folder instead.
+func (a *app) insideItem(m *ui.Menu, ts *tabState, e vfs.Entry, pre func()) {
+	if !vfs.IsPackage(e) && !vfs.IsArchive(e) {
+		return
+	}
+	if m.Item(insideTitle).Chosen() {
+		a.dropHot()
+		if pre != nil {
+			pre()
+		}
+		a.inside.ts, a.inside.dir = ts, vfs.Inside(e)
+		a.post(func() {}) // a frame to enter it in
+	}
+}
+
+const insideTitle = "显示包内容"
 
 // The address bar is a capsule capsuleH high, editing or not.
 const capsuleH = 28 // the design system gives the path pill no height token

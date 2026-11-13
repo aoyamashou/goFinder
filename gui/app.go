@@ -216,7 +216,13 @@ type app struct {
 	toast           string
 	feedbackShowing bool
 	popApp          string
-	installing      map[string]bool
+	// inside is the package or archive 显示包内容 enters at the next
+	// frame: entering it in the row's menu would empty the list it is in.
+	inside struct {
+		ts  *tabState
+		dir string
+	}
+	installing map[string]bool
 	// menuHot is the side-column row a right-click menu shows for (rightclick.go).
 	menuHot           string
 	hotSeen, hotNudge bool
@@ -483,7 +489,8 @@ func (a *app) navigate(ts *tabState, dir string) {
 }
 
 // openEntry enters folders, offers installation for uninstalled app bundles,
-// runs installed apps, browses archives, and opens other files with their app.
+// runs installed apps, opens packages and archives with the system, and
+// other files with their app.
 func (a *app) openEntry(ts *tabState, e vfs.Entry) {
 	switch {
 	case a.canInstall(e.Path):
@@ -493,10 +500,15 @@ func (a *app) openEntry(ts *tabState, e vfs.Entry) {
 		if err := a.sys.Open(e.Path); err != nil {
 			a.status = "无法打开：" + err.Error()
 		}
+	case vfs.IsPackage(e) && !isApp(e.Name) || vfs.IsArchive(e):
+		// Opened as Finder does: a package with its app, an archive with
+		// Archive Utility, which extracts it beside. 显示包内容 enters it.
+		// An app without Info.plist, which cannot open, is still entered.
+		if err := a.sys.Open(e.Path); err != nil {
+			a.status = "无法打开：" + err.Error()
+		}
 	case e.IsDir:
 		a.navigate(ts, e.Path)
-	case vfs.IsZipName(e.Name) && !vfs.InZip(e.Path):
-		a.navigate(ts, vfs.ZipRoot(e.Path)) // browse the archive as a folder
 	case vfs.InZip(e.Path):
 		a.openFromZip(e)
 	default:

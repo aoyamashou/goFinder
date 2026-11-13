@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"github.com/egoist/mygo/ui"
+
+	"gofinder/internal/vfs"
 )
 
 // outside makes a file in a folder of its own, as one in Finder.
@@ -101,8 +103,7 @@ func TestDropRefused(t *testing.T) {
 	addZip(t, root)
 	a.load(a.tab())
 	tt.Frame()
-	goTo(t, a, tt, "pack.zip")
-	tt.Key(0, ui.KeyRight)
+	a.navigate(a.tab(), vfs.ZipRoot(filepath.Join(root, "pack.zip")))
 	tt.Frame()
 	src := outside(t, "seven.txt")
 	x, y = center(t, tt, "top.txt")
@@ -151,8 +152,7 @@ func TestDragOutOfZip(t *testing.T) {
 	addZip(t, root)
 	a.load(a.tab())
 	tt.Frame()
-	goTo(t, a, tt, "pack.zip")
-	tt.Key(0, ui.KeyRight)
+	a.navigate(a.tab(), vfs.ZipRoot(filepath.Join(root, "pack.zip")))
 	tt.Frame()
 	pressDrag(t, tt, "top.txt")
 	if len(a.dnd.src) != 1 || !strings.HasPrefix(a.dnd.src[0], a.cacheDir) {
