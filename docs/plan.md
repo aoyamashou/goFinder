@@ -1574,6 +1574,7 @@ UX：
 **边界**：不改键位和其他打开逻辑；缺 Info.plist 的不完整 .app 仍可进入（打不开）；ZIP 内的文件、压缩包里的 ZIP 照旧；pkg、dmg、tar、docx 等本来是普通文件，照旧用默认应用打开。
 
 **验证**：`TestZipBrowse` 改为 → 打开 ZIP、右键进入后再验证只读、过滤、预览和解压复制；新增 `TestPackageOpens`（.framework 打开、预览卡片、显示包内容、普通文件夹无此项）和 `TestIsPackageName`；拖放测试改为直接进入 ZIP。gofmt、vet 三连、`go test ./...` 和 GUI race 通过。未做原生窗口手动验收。
+- **发布（2026-11-13）**：经用户授权发布 [v0.18.12](https://github.com/aoyamashou/goFinder/releases/tag/v0.18.12)，tag 指向 c87947c，已设为 Latest。两套应用 `Apple_self_dev` 签名与架构正确，两个不签名 DMG 及全部附件与 SHA256SUMS 一致；`update-darwin-arm64.json` 带 0.18.9–0.18.11 三个增量，`update-darwin-amd64.json` 带 0.18.10–0.18.11 两个增量，两份最新清单均返回 0.18.12。本机已安装应用未覆盖。
 
 ## 测试和验证
 - **纯逻辑包写单元测试，用 `go test ./...` 运行**：
