@@ -1524,7 +1524,7 @@ UX：
 - 实际构建 arm64、amd64 两套应用，证书 `Apple_self_dev`、架构检查通过；两套 DMG 去签名、镜像与全部附件摘要校验通过。
 - 本地生成两套签名更新清单与全量包，独立验证大小、SHA-256/Ed25519 签名、包内架构和内嵌更新地址；arm64 两个增量通过签名校验，amd64 首版无历史增量。没有上传。
 - macOS 27.2.1 上 Rosetta 启动正式 amd64 构建，临时目录导航、中文预览、复制/移动、废纸篓、快速查看窗口和右键菜单验证通过；arm64 原生启动、导航、预览、复制回归通过。细节与验证边界见 PRD。
-- **发布（2026-11-13）**：经用户明确授权发布 [v0.18.10](https://github.com/aoyamashou/goFinder/releases/tag/v0.18.10)（含修订十六、十七），tag 指向 f08ed39，已设为 Latest。首个双架构版本：两套应用 `Apple_self_dev` 签名与架构、两个不签名 DMG、两份全量包摘要均与 SHA256SUMS 一致；`update-darwin-arm64.json` 带 0.18.7–0.18.9 三个增量，`update-darwin-amd64.json` 首版无增量，`releases/latest/download/update-darwin-amd64.json` 可访问。Intel 版只经 Rosetta 验证，Issue #1 保持打开等待真机反馈；本机已安装应用未覆盖。
+- **发布（2026-11-13）**：经用户明确授权发布 [v0.18.10](https://github.com/aoyamashou/goFinder/releases/tag/v0.18.10)（含修订十六、十七），tag 指向 f08ed39，已设为 Latest。首个双架构版本：两套应用 `Apple_self_dev` 签名与架构、两个不签名 DMG、两份全量包摘要均与 SHA256SUMS 一致；`update-darwin-arm64.json` 带 0.18.7–0.18.9 三个增量，`update-darwin-amd64.json` 首版无增量，`releases/latest/download/update-darwin-amd64.json` 可访问。Intel 版只经 Rosetta 验证，已在 Issue #1 回复说明并按用户要求关闭（真机有问题可重开）；本机已安装应用未覆盖。
 
 ## 测试和验证
 - **纯逻辑包写单元测试，用 `go test ./...` 运行**：
