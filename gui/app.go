@@ -706,6 +706,10 @@ func (a *app) openDialog(kind int, ts *tabState, text, target string) {
 }
 
 func (a *app) submitDialog() {
+	if a.undoing && (a.dlg == dlgRename || a.dlg == dlgNewFile || a.dlg == dlgNewFolder) {
+		a.feedback("正在撤销文件操作")
+		return // keep the name and dialog so it can be submitted later
+	}
 	ts, name := a.dlgTab, strings.TrimSpace(a.dlgText)
 	a.dlgOpen = false
 	a.wantFocus = true

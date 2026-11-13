@@ -2,12 +2,15 @@ package gui
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
+	"github.com/egoist/mygo/transfer"
 	"github.com/egoist/mygo/ui"
+	"gofinder/internal/fileundo"
 	"gofinder/internal/keymap"
 )
 
@@ -167,5 +170,133 @@ func TestTrashFeedbackShots(t *testing.T) {
 		tt.Frame()
 		tt.Frame()
 		writePNG(t, filepath.Join(dir, "trash-feedback-"+mode+".png"), tt.Image())
+	}
+}
+
+func createUndoTestFile(a *app, name string) {
+	a.openDialog(dlgNewFile, a.tab(), name, "")
+	a.dlgTpl = blankTemplate
+	a.submitDialog()
+}
+
+func TestUndoConsecutiveOperations(t *testing.T) {
+	t.Run("create-rename", func(t *testing.T) {
+		a, _, _, root := setup(t)
+		createUndoTestFile(a, "a")
+		a.openDialog(dlgRename, a.tab(), "b", filepath.Join(root, "a"))
+		a.submitDialog()
+		a.undoFiles()
+		a.undoFiles()
+		if len(a.undoSteps) != 0 {
+			t.Fatal(a.status)
+		}
+		if _, err := os.Lstat(filepath.Join(root, "a")); !os.IsNotExist(err) {
+			t.Fatal(err)
+		}
+	})
+	t.Run("folder-child", func(t *testing.T) {
+		a, _, _, root := setup(t)
+		a.openDialog(dlgNewFolder, a.tab(), "F", "")
+		a.submitDialog()
+		a.navigate(a.tab(), filepath.Join(root, "F"))
+		createUndoTestFile(a, "child")
+		a.undoFiles()
+		a.navigate(a.tab(), root)
+		a.undoFiles()
+		if len(a.undoSteps) != 0 {
+			t.Fatal(a.status)
+		}
+		if _, err := os.Lstat(filepath.Join(root, "F")); !os.IsNotExist(err) {
+			t.Fatal(err)
+		}
+	})
+	t.Run("copy-move", func(t *testing.T) {
+		a, _, _, root := setup(t)
+		a.clip = []string{filepath.Join(root, "notes.md")}
+		a.paste(a.tab(), filepath.Join(root, "alpha"))
+		a.clip, a.clipCut = []string{filepath.Join(root, "alpha", "notes.md")}, true
+		a.paste(a.tab(), filepath.Join(root, "beta"))
+		a.undoFiles()
+		a.undoFiles()
+		if len(a.undoSteps) != 0 {
+			t.Fatal(a.status)
+		}
+	})
+}
+
+func TestUndoInitializedFolderAndFailureBarrier(t *testing.T) {
+	for _, fail := range []bool{false, true} {
+		t.Run(fmt.Sprint(fail), func(t *testing.T) {
+			a, _, _, root := setup(t)
+			a.cfg.NewFolderGit = true
+			a.initGit = func(dir string) error {
+				if fail {
+					return errors.New("init failed")
+				}
+				return os.Mkdir(filepath.Join(dir, ".git"), 0700)
+			}
+			a.openDialog(dlgNewFolder, a.tab(), "project", "")
+			a.submitDialog()
+			a.undoFiles()
+			_, err := os.Stat(filepath.Join(root, "project"))
+			if fail {
+				if err != nil || len(a.undoSteps) != 1 || !strings.Contains(a.toast, "更早的操作已不可撤销") {
+					t.Fatal(err, a.status, a.toast)
+				}
+			} else if !os.IsNotExist(err) || len(a.undoSteps) != 0 {
+				t.Fatal(err, a.status)
+			}
+		})
+	}
+}
+
+func TestUndoDropShelfAndLimit(t *testing.T) {
+	a, _, _, root := setup(t)
+	p := filepath.Join(root, "notes.md")
+	a.dropFiles([]string{p}, filepath.Join(root, "beta"), transfer.Offer{Suggested: transfer.Copy})
+	a.undoFiles()
+	if _, err := os.Stat(filepath.Join(root, "beta", "notes.md")); !os.IsNotExist(err) {
+		t.Fatal(err)
+	}
+	a.sh.items = []string{p}
+	a.shelfTo(a.tab(), false)
+	a.undoFiles()
+	if len(a.undoSteps) != 0 {
+		t.Fatal(a.status)
+	}
+	for i := 0; i < 51; i++ {
+		createUndoTestFile(a, fmt.Sprintf("limit-%02d", i))
+	}
+	if len(a.undoSteps) != 50 {
+		t.Fatal(len(a.undoSteps))
+	}
+	for i := 0; i < 50; i++ {
+		a.undoFiles()
+	}
+	if _, err := os.Stat(filepath.Join(root, "limit-00")); err != nil {
+		t.Fatal("oldest operation should be forgotten", err)
+	}
+	if _, err := os.Stat(filepath.Join(root, "limit-01")); !os.IsNotExist(err) {
+		t.Fatal(err)
+	}
+}
+
+func TestUndoMixedBarrierAndDialogPreserved(t *testing.T) {
+	a, _, _, root := setup(t)
+	p := filepath.Join(root, "notes.md")
+	e, err := fileundo.Record(p, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	a.undoSteps = []undoStep{{entries: []fileundo.Entry{e}, unavailable: 1}}
+	a.undoFiles()
+	if len(a.undoSteps) != 1 || len(a.undoSteps[0].entries) != 0 || !strings.Contains(a.status, "更早的操作已不可撤销") {
+		t.Fatal(a.status)
+	}
+	a.openDialog(dlgNewFile, a.tab(), "draft.txt", "")
+	a.undoing = true
+	a.submitDialog()
+	if !a.dlgOpen || a.dlgText != "draft.txt" {
+		t.Fatal("blocked submission discarded draft")
 	}
 }

@@ -89,5 +89,5 @@ func Trash(path string) (string, error) {
 	return p, nil
 }
 
-// Identity adds ctime to the ordinary FileInfo fields when checking products.
+// Identity identifies an object independently of timestamps changed by renames.
 func Identity(info os.FileInfo) string { return identity(info) }

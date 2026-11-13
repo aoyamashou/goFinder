@@ -84,9 +84,11 @@ func (realSystem) TrashItems(paths []string) []trashResult {
 }
 
 func (realSystem) TrashSound() {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-	_ = exec.CommandContext(ctx, "/usr/bin/afplay", "/System/Library/Components/CoreAudio.component/Contents/SharedSupport/SystemSounds/finder/move to trash.aif").Run()
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+		_ = exec.CommandContext(ctx, "/usr/bin/afplay", "/System/Library/Components/CoreAudio.component/Contents/SharedSupport/SystemSounds/finder/move to trash.aif").Run()
+	}()
 }
 
 func (realSystem) Open(p string) error  { return mygo.Shell.OpenPath(p) }

@@ -39,7 +39,13 @@ func snapshot(path string) ([32]byte, error) {
 		if err != nil {
 			return err
 		}
-		fmt.Fprintf(h, "%q/%s/%d/%d/%d\n", rel, macfile.Identity(i), i.Mode(), i.Size(), i.ModTime().UnixNano())
+		// Renames change ctime; adding and undoing a child changes its parent's
+		// timestamps and allocation size. Neither is evidence of an outside edit.
+		fmt.Fprintf(h, "%q/%s/%d", rel, macfile.Identity(i), i.Mode())
+		if !i.IsDir() {
+			fmt.Fprintf(h, "/%d/%d", i.Size(), i.ModTime().UnixNano())
+		}
+		fmt.Fprintln(h)
 		return nil
 	})
 	var sum [32]byte

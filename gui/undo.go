@@ -81,7 +81,7 @@ func (a *app) undoFiles() {
 	}
 	step := a.undoSteps[len(a.undoSteps)-1]
 	if len(step.entries) == 0 {
-		a.feedback("上一步操作无法安全撤销")
+		a.feedback(fmt.Sprintf("其余 %d 项无法撤销，更早的操作已不可撤销", step.unavailable))
 		return
 	}
 	a.undoing = true
@@ -110,7 +110,7 @@ func (a *app) undoFiles() {
 				a.status += "；失败：" + failure.Error()
 			}
 			if step.unavailable > 0 {
-				a.status += fmt.Sprintf("；%d 项无法撤销", step.unavailable)
+				a.status += fmt.Sprintf("；其余 %d 项无法撤销，更早的操作已不可撤销", step.unavailable)
 			}
 			a.feedback(a.status)
 			a.refreshLists()
