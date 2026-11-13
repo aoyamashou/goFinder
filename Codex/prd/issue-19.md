@@ -88,7 +88,7 @@ macOS 实现用 Foundation `NSFileManager.trashItemAtURL:resultingItemURL:error:
 
 patch：按仓库 `0.阶段.修订` 约定，在发布时基于最新主线版本递增末位；当前基线 0.18.12，若无其他发布则为 0.18.13。用户本次流程明确授权发版，不提前打 tag。发布前核对最新版本，避免覆盖其他会话的发布。
 
-Status: DRAFT
+Status: READY
 
 ## Review-1（Claude Opus，2026-11-13）
 
