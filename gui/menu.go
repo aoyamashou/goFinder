@@ -234,10 +234,10 @@ func (a *app) sortItems() []*mygo.MenuItem {
 		out = append(out, it)
 	}
 	for _, s := range sortOrder {
-		add("sort."+s.col, s.title, mygo.MenuItemRadio, func(ts *tabState) { ts.sort.Column = s.col })
+		add("sort."+s.col, s.title, mygo.MenuItemRadio, func(ts *tabState) { a.setSort(ts, s.col, ts.sort.Descending) })
 	}
 	out = append(out, mygo.Separator())
-	add("sort.desc", "降序", mygo.MenuItemCheckbox, func(ts *tabState) { ts.sort.Descending = !ts.sort.Descending })
+	add("sort.desc", "降序", mygo.MenuItemCheckbox, func(ts *tabState) { a.setSort(ts, ts.sort.Column, !ts.sort.Descending) })
 	return out
 }
 

@@ -46,7 +46,8 @@ goFinder 是键盘优先的 macOS 文件管理器（Finder 替代品）。这套
 - 字标 **goFinder.** 的句点（关于窗口、设置页页眉）；
 - Agent（“交给 AI”）的三道光字形：标题栏 Agent 按钮、右键菜单里的 Agent 项、设置 › Agent 页；默认 Agent 的“默认”标签用 `signal-text`，那一行底用 `signal-soft`；
 - 状态栏结果句前的“已完成”小圆点（6px，`radius-pill`）；
-- 过滤生效时状态栏的“过滤：xx”用 `signal-text`。
+- 过滤生效时状态栏的“过滤：xx”用 `signal-text`；
+- 快捷键操作提示（Toast）短暂出现时使用青底黑字，并计入上限。
 
 青底永远配黑字 `signal-ink`；白底上要青色文字时用 `signal-text`（5.6:1）。不要把选中行、焦点、按钮做成青色。
 
@@ -122,7 +123,7 @@ goFinder 是键盘优先的 macOS 文件管理器（Finder 替代品）。这套
 | `selection-ink` | `#ffffff` | `#ffffff` | selection 底上的文字与字形。 |
 | `selection-inactive` | `{surface-200}` | `{surface-200}` | 列表失去键盘焦点时的选中行底色，文字保持原色（ink），图标保持类型色。 |
 | `focus` | `{selection}` | `{selection}` | 键盘焦点所在栏的 1.5px 边框（侧边栏、当前栏、双栏中的活动栏）。跟随系统强调色，与选中行同色，对 bg ≥3:1。 |
-| `signal` | `#00dafc` | `#00dafc` | 品牌青，只做点缀、不承担交互状态：字标 goFinder. 的句点、Agent（交给 AI）的三道光、“已完成”小圆点、过滤生效标记。每屏 ≤3 处。上面的字用 signal-ink。 |
+| `signal` | `#00dafc` | `#00dafc` | 品牌青，只做点缀、不承担交互状态：字标 goFinder. 的句点、Agent（交给 AI）的三道光、“已完成”小圆点、过滤生效标记、快捷键操作提示（Toast）。每屏 ≤3 处。上面的字用 signal-ink。 |
 | `signal-ink` | `#000000` | `#000000` | 青底上的文字，12.4:1。青底永远配黑字，不配白字。 |
 | `signal-text` | `#00718a` | `#00dafc` | 需要青色“文字”时用：Agent 菜单项里的“默认”标签、状态栏“过滤：xx”。浅色 5.6:1；深色下 #00DAFC 在 bg 上 10.8:1。 |
 | `signal-soft` | `#e0f9fe` | `#00262d` | 青色浅底：设置 › Agent 页里默认 Agent 那一行的底，配 signal-text。 |

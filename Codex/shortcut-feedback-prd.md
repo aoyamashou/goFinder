@@ -3,7 +3,7 @@
 > 来源：goFinder Issue #7 独立 T3 Code Worktree 需求研究会话，2026-11-13。
 > 需求：[Issue #7：对用户的快捷键操作给到一个视觉反馈](https://github.com/aoyamashou/goFinder/issues/7)；父代理已回复「已受理」，本会话不再留言。
 > 研究基线：`origin/main` = `40645889e5a5a53f02ddd2900f2ce718f2ecf715`（含 Issue #6 的 PR #12）；功能分支 `t3/shortcut-feedback-prd`，从原准备提交 `0d9a086` 快进到该基线。
-> **状态：可以执行（Claude 审查，2026-11-13，基于 5c67f4b）。** 以文末「Claude 审查记录」为准，它简化了第 3–6 节的方案，冲突处以审查记录为准。实现后仍须 Claude 代码审查；PR、合并、回复和关闭 issue 照旧，发版另需用户指示。
+> **状态：主体已实现，悬停暂停与点击穿透存在冲突，待 Claude 裁定和代码审查（依据 9ba4b0b，2026-11-13）。** 以文末「Claude 审查记录」为准，它简化了第 3–6 节的方案，冲突处以审查记录为准。实现后仍须 Claude 代码审查；PR、合并、回复和关闭 issue 照旧，发版另需用户指示。
 
 ## 要改什么、为什么
 
@@ -201,3 +201,20 @@
   - 提示显示期间点击文件行有效。
 - 浅色、深色各截一张有提示的图。最低检查照 AGENTS.md。完成后在 `docs/plan.md` 加新的修订一节（编号取当时最新），在本文末尾标注实现 commit，交 Claude 代码审查。
 
+
+
+### 实现与验证（2026-11-13）
+
+来源：用户指定审查提交 `9ba4b0b` 开工。按 Claude 审查记录实现六类动作反馈，使用固定 ID 的 MyGo Toast，1.5 秒后消失；重复动作替换并重新计时。Toast 用 `signal` 青底和 `signal-ink` 黑字，底部居中且位于三行状态栏上方；出现期间隐藏状态栏完成圆点，以遵守品牌青每屏上限，关闭后恢复。原状态栏说明保留。
+
+**待 Claude 裁定的偏差**：MyGo v0.8.3 默认 ToastBase 的根及文字会截获点击，导致提示覆盖的文件行无法点击；给两者设置 `PassThrough` 后可以穿透，但同时不再获得悬停，框架默认的悬停暂停也不生效。当前选择保证文件行可点击，鼠标停在提示上时仍按 1.5 秒消失。`TestFeedbackClickThroughToast` 和 `TestFeedbackHoverBehavior` 分别复现两种行为；这与审查记录 D5 的悬停暂停要求不一致，须经 Claude 确认或修改方案，不能视为全部验收通过。
+
+排序的弹出菜单、空白处菜单和系统菜单共用变更比较，仅在排序实际改变时提示。空选择不再清空已有剪贴板；ZIP 剪切沿用只读说明并增加提示。复制路径与回到起点按审查约定在发起后提示，不等待系统剪贴板或目录读取回执。`gui/design-tokens.json` 与 `docs/design-system.md` 已同步登记 Toast 的品牌青用法。
+
+验证：格式检查、vet 三连、`CGO_ENABLED=0 go test ./...` 和 `go test -race ./gui` 通过。UI Tester 覆盖单击与双击 c、空选择保留剪贴板、ZIP 剪切、三种起点结果、隐藏文件双向切换、排序不变与更改、重映射、提示替换续时和关闭、直接点击提示下方文件行以及悬停时按时消失的实际行为。浅色和深色截图已查看：
+
+![浅色提示](images/shortcut-feedback-light.png)
+
+![深色提示](images/shortcut-feedback-dark.png)
+
+截图和交互通过 MyGo Tester 核对，未做原生窗口手动验收。本次仅在功能分支提交，等待 Claude 裁定悬停暂停偏差并做代码审查；审查通过后按用户要求提 PR、合并并回复和关闭 Issue。

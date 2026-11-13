@@ -16,7 +16,7 @@
       {"name": "selection-ink", "value": {"light": "#000000", "dark": "#000000"}, "usage": "selection 底上的文字与字形：青底配黑字（12.4:1）。"},
       {"name": "selection-inactive", "value": {"light": "{surface-200}", "dark": "{surface-200}"}, "usage": "列表失去键盘焦点时的选中行底色，文字保持原色（ink），图标保持类型色。"},
       {"name": "focus", "value": {"light": "{selection}", "dark": "{selection}"}, "usage": "键盘焦点所在栏的 1.5px 边框（侧边栏、当前栏、双栏中的活动栏）。跟随系统强调色，与选中行同色，对 bg ≥3:1。"},
-      {"name": "signal", "value": {"light": "#00dafc", "dark": "#00dafc"}, "usage": "品牌青，只做点缀、不承担交互状态：字标 goFinder. 的句点、Agent（交给 AI）的三道光、“已完成”小圆点、过滤生效标记。每屏 ≤3 处。上面的字用 signal-ink。"},
+      {"name": "signal", "value": {"light": "#00dafc", "dark": "#00dafc"}, "usage": "品牌青，只做点缀、不承担交互状态：字标 goFinder. 的句点、Agent（交给 AI）的三道光、“已完成”小圆点、过滤生效标记、快捷键操作提示（Toast）。每屏 ≤3 处。上面的字用 signal-ink。"},
       {"name": "signal-ink", "value": {"light": "#000000", "dark": "#000000"}, "usage": "青底上的文字，12.4:1。青底永远配黑字，不配白字。"},
       {"name": "signal-text", "value": {"light": "#00718a", "dark": "#00dafc"}, "usage": "需要青色“文字”时用：Agent 菜单项里的“默认”标签、状态栏“过滤：xx”。浅色 5.6:1；深色下 #00DAFC 在 bg 上 10.8:1。"},
       {"name": "signal-soft", "value": {"light": "#e0f9fe", "dark": "#00262d"}, "usage": "青色浅底：设置 › Agent 页里默认 Agent 那一行的底，配 signal-text。"},

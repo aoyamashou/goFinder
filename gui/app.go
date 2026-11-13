@@ -211,10 +211,12 @@ type app struct {
 	// pop is the menu the keyboard opens at the cursor row: "sort" (,)
 	// "app-install", or "new" (n n, ⌘N: a blank file or a template); popTpls are the
 	// templates it offers, listed off the main thread.
-	pop        string
-	popOpen    bool
-	popApp     string
-	installing map[string]bool
+	pop             string
+	popOpen         bool
+	toast           string
+	feedbackShowing bool
+	popApp          string
+	installing      map[string]bool
 	// menuHot is the side-column row a right-click menu shows for (rightclick.go).
 	menuHot           string
 	hotSeen, hotNudge bool
@@ -984,6 +986,11 @@ func (a *app) run(id string) {
 		a.load(ts)
 	case "hidden":
 		ts.t.ToggleHidden()
+		if ts.t.ShowHidden {
+			a.feedback("已显示隐藏文件")
+		} else {
+			a.feedback("已隐藏隐藏文件")
+		}
 		if ts.cursor >= len(ts.t.Entries()) {
 			ts.cursor = len(ts.t.Entries()) - 1
 		}
@@ -994,15 +1001,7 @@ func (a *app) run(id string) {
 			p.addrText += "/"
 		}
 	case "go.start":
-		// The folder 启动时从这里开始 chose for this pane, while it is
-		// there; else ~. The two panes keep their own.
-		if d := *a.startDirOf(a.active); d != "" {
-			if fi, err := os.Stat(d); err == nil && fi.IsDir() {
-				a.navigate(ts, d)
-				break
-			}
-		}
-		a.goHomeSub("")
+		a.goStart(ts)
 	case "go.home":
 		a.goHomeSub("")
 	case "go.desktop":
@@ -1030,13 +1029,7 @@ func (a *app) run(id string) {
 		}
 
 	case "copy", "cut":
-		if id == "cut" && a.readOnly(ts) {
-			return
-		}
-		a.clip = paths(ts.chosen())
-		a.clipCut = id == "cut"
-		verb := map[bool]string{false: "已复制", true: "已剪切"}[a.clipCut]
-		a.status = fmt.Sprintf("%s %d 项，到目标文件夹按 %s 粘贴", verb, len(a.clip), a.firstKey("paste"))
+		a.copyFeedback(ts, id == "cut")
 	case "paste":
 		if !a.readOnly(ts) {
 			a.paste(ts, ts.t.Dir)
@@ -1070,6 +1063,7 @@ func (a *app) run(id string) {
 			ps = []string{ts.t.Dir}
 		}
 		a.copyPathText(strings.Join(ps, "\n"))
+		a.feedback("已复制路径")
 	case "reveal":
 		if e, ok := ts.cursorEntry(); ok {
 			p := e.Path
@@ -1190,13 +1184,13 @@ func (a *app) popMenu(m *ui.Menu) {
 	case "sort":
 		for _, s := range sortOrder {
 			if m.Item(s.title).Checked(ts.sort.Column == s.col).Chosen() {
-				ts.sort.Column = s.col
+				a.setSort(ts, s.col, ts.sort.Descending)
 				a.wantFocus = true
 			}
 		}
 		m.Separator()
 		if m.Item("降序").Checked(ts.sort.Descending).Chosen() {
-			ts.sort.Descending = !ts.sort.Descending
+			a.setSort(ts, ts.sort.Column, !ts.sort.Descending)
 			a.wantFocus = true
 		}
 	case "new":

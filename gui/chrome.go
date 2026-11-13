@@ -262,12 +262,12 @@ func (a *app) newItems(m *ui.Menu, pi int, dir string) {
 func (a *app) sortMenu(m *ui.Menu, ts *tabState) {
 	for _, s := range sortOrder {
 		if m.Item(s.title).Radio(ts.sort.Column == s.col).Chosen() {
-			ts.sort.Column = s.col
+			a.setSort(ts, s.col, ts.sort.Descending)
 		}
 	}
 	m.Separator()
 	if m.Item("降序").Checked(ts.sort.Descending).Chosen() {
-		ts.sort.Descending = !ts.sort.Descending
+		a.setSort(ts, ts.sort.Column, !ts.sort.Descending)
 	}
 }
 
@@ -537,7 +537,7 @@ func (a *app) statusBar(c *ui.Context, t *ui.Theme) {
 				if a.status == "" {
 					return
 				}
-				if statusIsDone(a.status) {
+				if statusIsDone(a.status) && !a.feedbackShowing && a.toast == "" {
 					ui.Row(c.Key("sb:done")).Size(doneDotSize, doneDotSize).Shrink(0).
 						Radius(px("radius-pill")).Background(tok(c, "signal"))
 				}

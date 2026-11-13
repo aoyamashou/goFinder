@@ -50,6 +50,7 @@ func (a *app) view(c *ui.Context) {
 	a.helpSheet(c, t)
 	a.dialog(c)
 	a.dispatch(c)
+	a.feedbackView(c)
 }
 
 // body is the panes, each in three columns: one, or two side by side or
