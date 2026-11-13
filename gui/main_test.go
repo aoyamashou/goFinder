@@ -32,6 +32,11 @@ type fakeSys struct {
 	urls            []string // OpenURL calls
 	ejected         []string // Eject calls
 	ejectErr        error
+	installs        []struct {
+		path         string
+		unquarantine bool
+	}
+	installErr error
 }
 
 func (f *fakeSys) Open(p string) error { f.opened = append(f.opened, p); return nil }
@@ -347,8 +352,8 @@ func TestMoveOld(t *testing.T) {
 	}
 }
 
-// → on an app runs it, as Finder's double click; the list stays put.
-func TestOpenAppRuns(t *testing.T) {
+// An incomplete .app directory is still browsable.
+func TestOpenIncompleteApp(t *testing.T) {
 	a, tt, fs, root := setup(t)
 	app := filepath.Join(root, "Demo.app")
 	os.MkdirAll(filepath.Join(app, "Contents"), 0o755)
@@ -361,10 +366,18 @@ func TestOpenAppRuns(t *testing.T) {
 	}
 	tt.Key(0, ui.KeyRight)
 	tt.Frame()
-	if a.tab().t.Dir != root {
-		t.Errorf("entered the app: %s", a.tab().t.Dir)
+	if a.tab().t.Dir != app || len(fs.opened) != 0 {
+		t.Errorf("incomplete app: dir=%s opened=%v", a.tab().t.Dir, fs.opened)
 	}
-	if !slices.Contains(fs.opened, app) {
-		t.Errorf("not run: %v", fs.opened)
+}
+
+func (f *fakeSys) InstallApp(path string, unquarantine bool) (string, error) {
+	f.installs = append(f.installs, struct {
+		path         string
+		unquarantine bool
+	}{path, unquarantine})
+	if f.installErr != nil {
+		return "", f.installErr
 	}
+	return filepath.Join("/Applications", filepath.Base(path)), nil
 }

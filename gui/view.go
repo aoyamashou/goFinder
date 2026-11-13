@@ -310,6 +310,12 @@ func (a *app) contextMenu(m *ui.Menu, pi int, ts *tabState, e vfs.Entry) {
 // item chosen: the third column enters the folder its row is in then.
 func (a *app) contextMenuPre(m *ui.Menu, pi int, ts *tabState, e vfs.Entry, pre func()) {
 	defer a.startHereItem(m, pi, e)
+	defer func() {
+		if a.canInstall(e.Path) {
+			m.Separator()
+			a.installItems(m, e.Path)
+		}
+	}()
 	a.active = pi
 	ids := a.cfg.ContextMenu
 	if ids == nil {

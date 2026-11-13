@@ -2,8 +2,8 @@
 
 > 来源：本次 Codex 独立 Worktree 文档代理会话，2026-11-13；[Issue #6：针对.app类型文件的优化](https://github.com/aoyamashou/goFinder/issues/6)。Issue 原文由父代理提供，父代理已回复受理；本文未再次读取或回复 GitHub。
 > 要改什么及为什么：为待安装的本地 `.app` 提供「复制到本机应用程序」和「复制到本机应用程序并解除隔离」，减少手工复制和终端操作，同时保留已安装应用的启动入口。
-> 边界：本阶段只提交本文与 AGENTS.md 索引。禁止实现代码、安装应用、实际提权或移除隔离、改系统设置、合并 main、发版、关闭 Issue、启动其他代理或自行调用 Claude。不改 README、官网、版本、CHANGELOG、其他功能或依赖。
-> **状态：可以执行（Claude 审查，2026-11-13，基于 df187e4）。** 以文末「Claude 审查记录」为准；它大幅收窄了第 4–9 节的方案，冲突处一律以审查记录为准。
+> 边界：规划阶段只提交本文与索引；本次依用户「照 Claude 的方法执行」授权，实现审查记录限定的代码与测试。实际系统命令只用于临时夹具，不安装到本机 /Applications、不提权、不改系统设置、不合并 main、不发版或关闭 Issue。不改 README、官网、版本、CHANGELOG、其他功能或依赖。
+> **状态：已实现，待 Claude 代码审查（依据 6031419，2026-11-13）。** 以文末「Claude 审查记录」为准；它大幅收窄了第 4–9 节的方案，冲突处一律以审查记录为准。
 > 分支：`t3/app-install-prd`（系统准备的独立功能分支，保留）；基线：`86a0b4620c4891b067cdf05bd1ca0b2c998a8ddd`。Worktree：`/Users/corndog/.t3/worktrees/MygoFinder/t3-9a14184c-6d1d76300c54bdee`。开工目录干净；无 upstream，仅 `git fetch origin`，HEAD 与 origin/main 相同，未合并其他分支。
 
 ## 1. 原需求、合理性与建议的区分
@@ -222,3 +222,30 @@ Issue 认为进入 `.app` 查看包内容没有意义，要求用户选择打开
   - 浅色、深色菜单截图各一张；
   - 不在本机真实 `/Applications` 上做覆盖测试，也不动本机已安装的 goFinder。
 - 完成后按 AGENTS.md 在 `docs/plan.md` 加新的修订一节（编号取当时最新），在本文末尾标注实现 commit，交 Claude 代码审查。
+
+
+### 实现与验证（2026-11-13，Codex 开发会话）
+
+来源：用户「照 Claude 的方法执行」，严格依审查提交 `6031419` 的裁定。
+
+- 新增 `internal/appinstall`：轻量应用包判定、规范路径安装位置识别、同名检查、隐藏暂存与系统命令执行器。新增 `gui/appinstall.go`，通过 `system.InstallApp` 接入后台任务；同源忙碌期间忽略重复请求，主线程接收结果。
+- 本地未安装应用打开时显示三项菜单；已安装应用直接启动。右键在原配置菜单后固定追加两项，仅处理被点击项，不改动作、键位、菜单栏或普通文件复制。无 Info.plist 的 `.app` 目录按目录浏览，根符号链接和 ZIP 不提供安装。
+- 用独立 argv 执行 `/usr/bin/ditto --rsrc --extattr --acl --qtn`。夹具发现直接写入已创建的暂存目录会丢失**包根**扩展属性，因此用隐藏的独占暂存父目录，在其内让 ditto 创建原名 bundle，完成后重命名内部 bundle。成功后将空暂存父目录移到废纸篓，失败时同样只清理自有暂存目录；清理失败保留路径并如实提示，不把已发布副本误报为未复制。
+- 本机实测 `ditto --rsrc --noqtn` 仍保留根 `com.apple.quarantine`，已采用 D4 明确允许的备用方案：复制后、发布前执行 `/usr/bin/xattr -d -r -s com.apple.quarantine <暂存包>`。不调用 sudo，不改源包，不跟随外部符号链接。普通复制保留隔离属性。
+- 开始前与发布前均 `Lstat` 检查目标，拒绝已有文件、目录、悬空链接；接受 D3 裁定的空目录并发竞态，不引入排他重命名依赖。不做签名比对、提权、取消、进度或超时。
+
+验证：
+
+- `gofmt -l gui internal` 无输出；`go vet ./...`、`go tool mygo vet .`、`go tool mygo vet ./gui` 全部通过。
+- `CGO_ENABLED=0 go test ./...` 全部通过；`go test -race ./gui ./internal/appinstall` 通过。
+- 单元测试覆盖真实目录/普通文件/符号链接/缺 Info.plist/大小写后缀/已安装位置及别名/ZIP，已有目标、发布前冲突、复制及解除隔离失败、废纸篓失败残留提示、含空格/引号/中文/前导连字符的参数。
+- 临时目录真实运行 ditto 和 xattr：普通复制保留根/子目录/文件的隔离与自定义扩展属性；备用解除隔离后这些项目均无隔离属性，其他属性仍在；无隔离属性的源也成功；源包及外部链接目标隔离属性未变；内部链接与执行权限保留。`TestDittoMetadata -v` 同时记录本机 `--noqtn` 的表现。
+- UI Tester 覆盖三项菜单的打开、两种复制、Esc 取消，Vim l、当前列及子项双击，三列右键的目标快照、自定义菜单仍追加安装项、已安装应用继续启动，重复提交与后台失败状态。
+- 浅深色打开菜单和右键菜单各一张，均已实际查看，内容清楚且无截断：
+
+| 主题 | 打开菜单 | 右键菜单 |
+|---|---|---|
+| 浅色 | ![浅色打开](images/app-install-light-open.png) | ![浅色右键](images/app-install-light-context.png) |
+| 深色 | ![深色打开](images/app-install-dark-open.png) | ![深色右键](images/app-install-dark-context.png) |
+
+验证边界：UI 使用 Tester、安装系统接口用 fakeSys；实际系统命令仅在临时目录运行，没有向本机 `/Applications` 安装或覆盖任何应用，也没有运行第三方应用或验证其签名。未做原生窗口人工验收。本次仅推送功能分支，后续 Claude 代码审查、合并和发版交人类处理。

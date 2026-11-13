@@ -14,6 +14,7 @@ import (
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
 
+	"gofinder/internal/appinstall"
 	"gofinder/internal/fsops"
 	"gofinder/internal/git"
 	"gofinder/internal/keymap"
@@ -208,10 +209,12 @@ type app struct {
 	enterKey bool
 
 	// pop is the menu the keyboard opens at the cursor row: "sort" (,)
-	// or "new" (n n, ⌘N: a blank file or a template); popTpls are the
+	// "app-install", or "new" (n n, ⌘N: a blank file or a template); popTpls are the
 	// templates it offers, listed off the main thread.
-	pop     string
-	popOpen bool
+	pop        string
+	popOpen    bool
+	popApp     string
+	installing map[string]bool
 	// menuHot is the side-column row a right-click menu shows for (rightclick.go).
 	menuHot           string
 	hotSeen, hotNudge bool
@@ -477,12 +480,14 @@ func (a *app) navigate(ts *tabState, dir string) {
 	}
 }
 
-// openEntry opens e as Finder does: a folder is entered, an app (a .app
-// bundle, a folder on disk) runs, an archive is browsed, a file opens
-// with its default app.
+// openEntry enters folders, offers installation for uninstalled app bundles,
+// runs installed apps, browses archives, and opens other files with their app.
 func (a *app) openEntry(ts *tabState, e vfs.Entry) {
 	switch {
-	case e.IsDir && isApp(e.Name) && !vfs.InZip(e.Path):
+	case a.canInstall(e.Path):
+		a.popApp = e.Path
+		a.popup("app-install")
+	case appinstall.Bundle(e.Path):
 		if err := a.sys.Open(e.Path); err != nil {
 			a.status = "无法打开：" + err.Error()
 		}
@@ -1174,6 +1179,14 @@ func (a *app) popup(kind string) {
 func (a *app) popMenu(m *ui.Menu) {
 	ts := a.tab()
 	switch a.pop {
+	case "app-install":
+		path := a.popApp
+		if m.Item("打开").Chosen() {
+			if err := a.sys.Open(path); err != nil {
+				a.status = "无法打开：" + err.Error()
+			}
+		}
+		a.installItems(m, path)
 	case "sort":
 		for _, s := range sortOrder {
 			if m.Item(s.title).Checked(ts.sort.Column == s.col).Chosen() {
