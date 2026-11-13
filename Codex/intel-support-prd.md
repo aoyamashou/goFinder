@@ -3,7 +3,7 @@
 > 来源：Codex Issue 受理与需求规划会话，2026-11-13；[Issue #1](https://github.com/aoyamashou/goFinder/issues/1)。
 > 要改什么及为什么：提供 Intel Mac 的原生安装包和独立更新渠道，让 Intel 用户能够安装并持续更新 goFinder。
 > 边界：仅补齐双架构构建、DMG 处理及发布操作文档；不改应用交互、依赖、官网、README，不自动发版。
-> 状态：待 Claude 审查，**尚不可执行**。本提交只有规划与索引；不能将编译成功视为 Intel 支持已经交付。
+> 状态：Claude 已审查（2026-11-13），**可以执行**；以修订后的正文为准，见文末「Claude 审查记录」。不能将编译成功视为 Intel 支持已经交付。
 > 功能分支：`feature/issue-1-intel-support`；规划基线：`cb04bb8`（当前版本 0.18.9）。
 
 ## 1. 需求判断与完成标准
@@ -61,6 +61,7 @@ go tool mygo build -platform darwin/arm64,darwin/amd64 -skip-installer
 - 更新清单分别为 `update-darwin-arm64.json`、`update-darwin-amd64.json`；逐项确认其 URL 和包内容架构正确。
 - 首次 Intel 发布允许没有历史增量，但必须有有效的 amd64 全量包和清单；不得为了凑齐增量跨架构生成补丁。
 - SHA256SUMS 保留两个架构及现有其他附件的记录；框架已有合并能力，先验证，不自行重写框架。
+- **审查补充：从首个双架构版本起，每次发版都必须同时构建两个架构。** 已安装应用的更新地址是 `releases/latest/download/update-darwin-<arch>.json`（MyGo `updateFeed`），只要某次 latest Release 缺少 amd64 清单，所有 Intel 用户的检查更新就会 404。`AGENTS.md` 发版步骤必须写成双架构命令，并把「两个清单都在 Release 上」列为公开前的检查项。
 
 ### 3.2 精准修改 DMG 脚本
 
@@ -99,7 +100,11 @@ go tool mygo build -platform darwin/arm64,darwin/amd64 -skip-installer
 
 实施时执行 `sh -n scripts/unsign-dmg.sh`、有意义的临时夹具验证及项目最低验证：`gofmt -l gui internal`、`go vet ./...`、`go tool mygo vet .`、`go tool mygo vet ./gui`、`CGO_ENABLED=0 go test ./...`。没有 UI 变更则无需新增界面截图。
 
-Intel 真机当前尚未验证，也未确认可用设备。Rosetta 可作为额外冒烟验证，但不能替代 Intel 真机结果；缺设备不阻止脚本实现与交付审查，阻止“Intel 支持已验证”的完成声明。
+Intel 真机当前尚未验证，也未确认可用设备。
+
+**审查修订：Rosetta 冒烟是必做项。** 在 Apple Silicon 上用 Rosetta 运行签名后的 amd64 应用（如 `arch -x86_64 build/darwin-amd64/goFinder.app/Contents/MacOS/goFinder`，或在 Finder 里直接打开），验证启动、目录导航、预览、复制/移动、废纸篓、快速查看和菜单，并记录 macOS 版本。它不能替代真机，但能在发版前挡住启动崩溃和打包错误。
+
+没有 Intel 真机时：脚本实现、代码审查和合并照常进行；是否带 amd64 包发版由用户决定。若发版，Release 说明和 Issue 回复须写明「Intel 版只经过 Rosetta 验证，欢迎 Intel 用户反馈」，Issue 保持 Open 等反馈，不宣布 Intel 支持已验证。
 
 ## 5. 审查与交付门槛
 
@@ -110,4 +115,21 @@ Intel 真机当前尚未验证，也未确认可用设备。Rosetta 可作为额
 
 ## Claude 审查记录
 
-待审查；尚未标记可以执行。
+> 审查：Claude Code 审查会话，2026-11-13，基于 09fa1d5。已核对 MyGo v0.8.3 的 `cmd/mygo/build.go`（`-platform` 逗号分隔多目标）、`updates.go`（按 target 生成 `update-<target>.json`，feed 为 `releases/latest/download/…`）、`checksums.go`（SHA256SUMS 合并），以及现有 `scripts/unsign-dmg.sh` 和 `mygo.json`。
+
+**结论：✅ 可以执行。** 按修订后的正文实施。
+
+方案合理：选两个单架构包，不选 Universal，既保住旧 arm64 客户端的更新地址，又不增大包体积；框架原生支持多目标构建、按架构生成清单和合并摘要，不需要升级或改框架；改动只集中在 DMG 脚本和发版文档，风险低。
+
+审查修订（已改入正文）：
+
+1. **每次发版都必须双架构**（第 3.1 节）：更新地址固定指向 latest Release，漏打 amd64 会让所有 Intel 用户更新失败。
+2. **Rosetta 冒烟改为必做**（第 4 节），并明确没有真机时的发版口径：是否发版由用户决定；若发版，要标明只经 Rosetta 验证，Issue 保持 Open。
+
+放行条件：
+
+- 只改第 3.3 节列出的文件；脚本保持 POSIX sh，`sh -n` 通过；无参数时的 arm64 行为不变。
+- 第 4 节中除「Intel 真机」「Intel 更新」外的各项必须通过；这两项如实标记为未验证或不适用。
+- 本轮验证不上传、不改真实 Release，也不覆盖安装 `/Applications/goFinder.app`。
+- README 和官网的下载说明不在本轮范围，是否补充由用户另行决定。
+- 实现后交回 Claude 做代码审查，再进入合并流程。
