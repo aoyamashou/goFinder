@@ -213,7 +213,12 @@ func TestFolderInitAsyncSnapshot(t *testing.T) {
 	a.run("newfolder")
 	a.dlgText = "slow"
 	a.submitDialog()
-	// Creation is synchronous, initialization has not run. Navigation remains usable.
+	// Creation now runs off-thread. Release only creation, not initialization.
+	jobs[0]()
+	jobs = jobs[1:]
+	posts[0]()
+	posts = posts[1:]
+	// Initialization has not run. Navigation remains usable.
 	path := filepath.Join(root, "slow")
 	if st, err := os.Stat(path); err != nil || !st.IsDir() {
 		t.Fatal(err)
@@ -379,6 +384,11 @@ func TestFolderInitPendingCreationRefresh(t *testing.T) {
 	a.run("newfolder")
 	a.dlgText = "pending-project"
 	a.submitDialog()
+	// Release asynchronous creation before interleaving listing and initialization.
+	jobs[0]()
+	jobs = jobs[1:]
+	posts[0]()
+	posts = posts[1:]
 	if len(jobs) != 2 {
 		t.Fatalf("jobs %d", len(jobs))
 	}
@@ -582,6 +592,17 @@ func TestFolderDialogSaveOrder(t *testing.T) {
 	a.dlgFolder.AgentFiles = false
 	a.dlgFolder.Skills = true
 	a.submitDialog()
+	// Release the two creation jobs and their main callbacks first.
+	creation := jobs
+	jobs = nil
+	for _, f := range creation {
+		f()
+	}
+	created := posts
+	posts = nil
+	for _, f := range created {
+		f()
+	}
 	// Complete later submitted workers first, then release the stale write.
 	// Keep UI callbacks queued so only worker snapshots run off the UI thread.
 	var wg sync.WaitGroup

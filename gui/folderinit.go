@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"gofinder/internal/fileundo"
 	"gofinder/internal/git"
 	"gofinder/internal/projectinit"
 	"gofinder/internal/vfs"
@@ -24,13 +25,16 @@ func (a *app) folderSkillsCaption() string {
 	return fmt.Sprintf("按默认 Agent（%s）创建 %s", item.Name, path)
 }
 
-func (a *app) initializeFolder(dir string, opts projectinit.Options) {
-	changed := a.cfg.NewFolderGit != opts.Git || a.cfg.NewFolderAgentFiles != opts.AgentFiles || a.cfg.NewFolderSkills != opts.Skills
-	a.cfg.NewFolderGit, a.cfg.NewFolderAgentFiles, a.cfg.NewFolderSkills = opts.Git, opts.AgentFiles, opts.Skills
+func (a *app) initializeFolder(dir string, opts projectinit.Options, remember bool) {
+	changed := remember && (a.cfg.NewFolderGit != opts.Git || a.cfg.NewFolderAgentFiles != opts.AgentFiles || a.cfg.NewFolderSkills != opts.Skills)
+	if remember {
+		a.cfg.NewFolderGit, a.cfg.NewFolderAgentFiles, a.cfg.NewFolderSkills = opts.Git, opts.AgentFiles, opts.Skills
+	}
 	if !opts.Enabled() {
 		if changed {
 			a.saveConfig()
 		}
+		a.recordCreated(dir, true)
 		return
 	}
 	initGit, post := a.initGit, a.post
@@ -40,6 +44,18 @@ func (a *app) initializeFolder(dir string, opts projectinit.Options) {
 	}
 	a.async(func() {
 		results := projectinit.Init(dir, opts, initGit)
+		ok := true
+		for _, r := range results {
+			if r.Err != nil {
+				ok = false
+			}
+		}
+		step := undoStep{unavailable: 1}
+		if ok {
+			if e, err := fileundo.Record(dir, ""); err == nil {
+				step = undoStep{entries: []fileundo.Entry{e}}
+			}
+		}
 		status := folderInitStatus(dir, results)
 		if save != nil {
 			if err := save(); err != nil {
@@ -48,6 +64,7 @@ func (a *app) initializeFolder(dir string, opts projectinit.Options) {
 		}
 		post(func() {
 			a.status = status
+			a.finishFileOp(step)
 			visible := a.refreshInitializedFolder(dir)
 			for _, r := range results {
 				if visible && r.Name == "Git" && r.Err == nil {

@@ -111,6 +111,9 @@ func (a *app) dispatch(c *ui.Context) {
 		if ch.Mods&(keymap.Cmd|keymap.Ctrl|keymap.Alt) == 0 && plainBlocked {
 			continue
 		}
+		if b.Action == "undo" && plainBlocked {
+			continue // text undo always belongs to the focused input
+		}
 		// Extra navigation keys act only on the current file list, never
 		// a sidebar, side column, dialog or menu. Native Left/Right keep
 		// their existing sidebar behavior.
