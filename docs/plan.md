@@ -1552,7 +1552,7 @@ UX：
 
 ### 阶段 18 后修订二十：快捷键操作轻量反馈
 
-> 来源：2026-11-13 Codex 开发会话，[Issue #7](https://github.com/aoyamashou/goFinder/issues/7)，依据 Claude 审查提交 9ba4b0b 及用户执行授权；需求和验证维护在 [PRD](../Codex/shortcut-feedback-prd.md)。
+> 来源：2026-11-13 Codex 开发会话，[Issue #7](https://github.com/aoyamashou/goFinder/issues/7)，依据 Claude 审查提交 9ba4b0b 及用户执行授权；需求和验证维护在 [PRD](../Codex/shortcut-feedback-prd.md)。 已实现主体：commit c5c63c4；悬停暂停待裁定。
 
 **要改什么及为什么**：复制、复制路径、剪切、回到起点、显示隐藏文件及排序变更时补充短暂提示，让键盘操作结果更容易察觉。
 

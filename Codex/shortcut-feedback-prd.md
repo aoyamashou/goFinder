@@ -218,3 +218,5 @@
 ![深色提示](images/shortcut-feedback-dark.png)
 
 截图和交互通过 MyGo Tester 核对，未做原生窗口手动验收。本次仅在功能分支提交，等待 Claude 裁定悬停暂停偏差并做代码审查；审查通过后按用户要求提 PR、合并并回复和关闭 Issue。
+
+已实现主体：commit `c5c63c4d9827240488fa58be1cf2e2915b7c7933`；悬停暂停尚未实现，待 Claude 裁定。
