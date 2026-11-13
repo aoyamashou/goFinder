@@ -166,12 +166,17 @@ func (a *app) dropFiles(srcs []string, dir string, offer transfer.Offer) {
 	if move && !slices.ContainsFunc(srcs, func(s string) bool { return filepath.Dir(s) != filepath.Clean(dir) }) {
 		return // already there
 	}
+	if !a.beginFileOp() {
+		return
+	}
+	srcs = slices.Clone(srcs)
 	verb := "复制"
 	if move {
 		verb = "移动"
 	}
 	a.status = fmt.Sprintf("正在%s %d 项…", verb, len(srcs))
 	a.async(func() {
+		before := sourceInfo(srcs)
 		prog := func(done, total int, _ string) {
 			a.post(func() { a.status = fmt.Sprintf("正在%s %d/%d", verb, done, total) })
 		}
@@ -182,12 +187,14 @@ func (a *app) dropFiles(srcs []string, dir string, offer transfer.Offer) {
 		} else {
 			out, err = fsops.Copy(srcs, dir, prog)
 		}
+		step := transfers(srcs, out, before, move)
 		a.post(func() {
 			if err != nil {
 				a.status = verb + "失败：" + err.Error()
 			} else {
 				a.status = fmt.Sprintf("已%s %d 项到 %s", verb, len(out), filepath.Base(dir))
 			}
+			a.finishFileOp(step)
 			a.refreshLists()
 		})
 	})

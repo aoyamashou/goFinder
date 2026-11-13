@@ -13,10 +13,12 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/egoist/mygo"
 
 	"gofinder/internal/appinstall"
+	"gofinder/internal/macfile"
 	"gofinder/internal/shellcmd"
 )
 
@@ -25,6 +27,8 @@ type system interface {
 	Open(path string) error
 	InstallApp(path string, unquarantine bool) (string, error)
 	Trash(path string) error
+	TrashItems(paths []string) []trashResult
+	TrashSound()
 	Reveal(path string)
 	OpenWith(app, path string) error
 	// Watch calls changed when dir's direct contents change, until stop.
@@ -64,6 +68,26 @@ type system interface {
 }
 
 type realSystem struct{}
+
+type trashResult struct {
+	path, trashed string
+	err           error
+}
+
+func (realSystem) TrashItems(paths []string) []trashResult {
+	results := make([]trashResult, 0, len(paths))
+	for _, p := range paths {
+		dst, err := macfile.Trash(p)
+		results = append(results, trashResult{path: p, trashed: dst, err: err})
+	}
+	return results
+}
+
+func (realSystem) TrashSound() {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	_ = exec.CommandContext(ctx, "/usr/bin/afplay", "/System/Library/Components/CoreAudio.component/Contents/SharedSupport/SystemSounds/finder/move to trash.aif").Run()
+}
 
 func (realSystem) Open(p string) error  { return mygo.Shell.OpenPath(p) }
 func (realSystem) Trash(p string) error { return mygo.Shell.TrashItem(p) }

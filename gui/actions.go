@@ -44,6 +44,7 @@ func actions() []keymap.Action {
 		{ID: "copypath", Title: "复制路径", Group: "文件", Hint: true},
 		{ID: "cut", Title: "剪切", Group: "文件", Hint: true},
 		{ID: "paste", Title: "粘贴", Group: "文件", Hint: true},
+		{ID: "undo", Title: "撤销文件操作", Group: "文件"},
 		{ID: "newfolder", Title: "新建文件夹", Group: "文件", Hint: true},
 		{ID: "newfile", Title: "新建文件", Group: "文件", Hint: true},
 		{ID: "rename", Title: "重命名", Group: "文件", Hint: true},
@@ -52,7 +53,7 @@ func actions() []keymap.Action {
 		{ID: "terminal", Title: "在终端中打开", Group: "文件"},
 		{ID: "editor", Title: "在编辑器中打开", Group: "文件"},
 		{ID: "agent", Title: "在这里打开默认 Agent", Group: "文件", Hint: true},
-		{ID: "settings", Title: "设置（终端、编辑器、默认文件浏览器）", Group: "文件"},
+		{ID: "settings", Title: "设置...", Group: "文件"},
 
 		{ID: "ws.next", Title: "下一个工作区", Group: "工作区与窗格"},
 		{ID: "ws.prev", Title: "上一个工作区", Group: "工作区与窗格"},
@@ -113,6 +114,7 @@ func defaultKeys(vim bool) map[string][]string {
 		"copy":      {"c", "Cmd+C"},
 		"cut":       {"x", "Cmd+X"},
 		"paste":     {"v", "Cmd+V"},
+		"undo":      {"Cmd+Z"},
 		"trash":     {"d", "Cmd+Backspace"},
 		"rename":    {"Enter", "r"},
 		"newfile":   {"n n", "Cmd+N"},
@@ -170,7 +172,7 @@ var defaultMenu = []string{
 // show their own title.
 var menuTitles = map[string]string{
 	"open": "打开", "copypath": "复制路径", "reveal": "在 Finder 中显示", "shelf.add": "加入暂存架",
-	"workspace": "工作区…", "settings": "设置…", "back": "‹ 后退", "forward": "前进 ›",
+	"workspace": "工作区…", "back": "‹ 后退", "forward": "前进 ›",
 	"up": "↑ 上级", "layout.dual": "左右",
 	"layout.columns": "三列", "layout.rows": "上下", "preview": "检查器",
 }

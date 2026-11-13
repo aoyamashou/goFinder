@@ -15,6 +15,7 @@ import (
 	"github.com/egoist/mygo/ui"
 
 	"gofinder/internal/appinstall"
+	"gofinder/internal/fileundo"
 	"gofinder/internal/fsops"
 	"gofinder/internal/git"
 	"gofinder/internal/keymap"
@@ -189,9 +190,13 @@ type app struct {
 	// for again while the app runs.
 	qlFailed map[string]bool
 
-	clip    []string
-	clipCut bool
-	status  string
+	clip            []string
+	clipCut         bool
+	status          string
+	fileOps         int
+	undoing         bool
+	undoSteps       []undoStep
+	folderCreateSeq uint64
 
 	copied     string // the last text copyPathText put on the clipboard
 	filterEat  bool   // the "f" typed with the key that opened the box is no text
@@ -590,13 +595,18 @@ func (a *app) paste(ts *tabState, dst string) {
 		a.status = "没有复制或剪切的项目"
 		return
 	}
+	if !a.beginFileOp() {
+		return
+	}
 	srcs, cut := a.clip, a.clipCut
+	srcs = slices.Clone(srcs)
 	verb := "复制"
 	if cut {
 		verb = "移动"
 	}
 	a.status = fmt.Sprintf("正在%s %d 项…", verb, len(srcs))
 	a.async(func() {
+		before := sourceInfo(srcs)
 		prog := func(done, total int, _ string) {
 			a.post(func() { a.status = fmt.Sprintf("正在%s %d/%d", verb, done, total) })
 		}
@@ -607,6 +617,7 @@ func (a *app) paste(ts *tabState, dst string) {
 		} else {
 			out, err = fsops.Copy(srcs, dst, prog)
 		}
+		step := transfers(srcs, out, before, cut)
 		a.post(func() {
 			if err != nil {
 				a.status = verb + "失败：" + err.Error()
@@ -616,6 +627,7 @@ func (a *app) paste(ts *tabState, dst string) {
 			if cut {
 				a.clip = nil
 			}
+			a.finishFileOp(step)
 			if len(out) > 0 && ts.t.Dir == dst {
 				ts.t.Focus = filepath.Base(out[len(out)-1])
 			}
@@ -627,6 +639,9 @@ func (a *app) paste(ts *tabState, dst string) {
 func (a *app) trash(ts *tabState) {
 	ps := paths(ts.chosen())
 	if len(ps) == 0 {
+		return
+	}
+	if !a.beginFileOp() {
 		return
 	}
 	// Keep the cursor near where it was: on the next row not trashed.
@@ -646,17 +661,36 @@ func (a *app) trash(ts *tabState) {
 	a.async(func() {
 		var failed error
 		n := 0
-		for _, p := range ps {
-			if err := a.sys.Trash(p); err != nil {
-				failed = err
+		before := sourceInfo(ps)
+		var step undoStep
+		for i, r := range a.sys.TrashItems(ps) {
+			if r.err != nil {
+				failed = r.err
 				continue
 			}
 			n++
+			if r.trashed == "" || !fileundo.Same(r.trashed, before[i]) {
+				step.unavailable++
+				continue
+			}
+			e, err := fileundo.Record(r.trashed, r.path)
+			if err != nil {
+				step.unavailable++
+				continue
+			}
+			step.entries = append(step.entries, e)
+		}
+		if n > 0 {
+			a.sys.TrashSound()
 		}
 		a.post(func() {
 			a.status = fmt.Sprintf("已移到废纸篓 %d 项", n)
 			if failed != nil {
 				a.status += "；失败：" + failed.Error()
+			}
+			a.finishFileOp(step)
+			if n > 0 {
+				a.feedback(fmt.Sprintf("已移到废纸篓 %d 项", n))
 			}
 			ts.sel.Clear()
 			a.load(ts)
@@ -694,41 +728,73 @@ func (a *app) submitDialog() {
 	if a.dlgDir != "" {
 		dir = a.dlgDir
 	}
+	if !a.beginFileOp() {
+		return
+	}
 	opts := a.dlgFolder
 	opts.AgentID = a.folderOptions().AgentID
-	var p string
-	var err error
-	switch a.dlg {
-	case dlgRename:
-		p, err = fsops.Rename(a.dlgTarget, name)
-	case dlgNewFile:
-		var body []byte
-		if a.dlgTpl != blankTemplate && a.dlgTpl != "" {
-			if body, err = templates.Read(a.tplDir, a.dlgTpl); err != nil {
-				break
+	kind, target, tpl, tplDir := a.dlg, a.dlgTarget, a.dlgTpl, a.tplDir
+	if kind == dlgNewFolder {
+		a.folderCreateSeq++
+	}
+	createSeq := a.folderCreateSeq
+	a.async(func() {
+		var p string
+		var err error
+		var step undoStep
+		before, _ := os.Lstat(target)
+		switch kind {
+		case dlgRename:
+			p, err = fsops.Rename(target, name)
+			if err == nil && p != target {
+				if fileundo.Same(p, before) {
+					if e, eerr := fileundo.Record(p, target); eerr == nil {
+						step.entries = append(step.entries, e)
+					} else {
+						step.unavailable++
+					}
+				} else {
+					step.unavailable++
+				}
 			}
+		case dlgNewFile:
+			var body []byte
+			if tpl != blankTemplate && tpl != "" {
+				body, err = templates.Read(tplDir, tpl)
+			}
+			if err == nil {
+				p, err = fsops.NewFile(dir, name, body)
+			}
+			if err == nil {
+				if e, eerr := fileundo.Record(p, ""); eerr == nil {
+					step.entries = append(step.entries, e)
+				} else {
+					step.unavailable++
+				}
+			}
+		case dlgNewFolder:
+			p, err = fsops.NewFolder(dir, name)
 		}
-		p, err = fsops.NewFile(dir, name, body)
-	case dlgNewFolder:
-		p, err = fsops.NewFolder(dir, name)
-	}
-	if err != nil {
-		a.status = "失败：" + err.Error()
-		return
-	}
-	if dir != ts.t.Dir { // in a side column: read those again
-		a.refreshLists()
-		if a.dlg == dlgNewFolder {
-			a.initializeFolder(p, opts)
-		}
-		return
-	}
-	ts.t.Focus = filepath.Base(p)
-	ts.sel.Clear()
-	a.load(ts)
-	if a.dlg == dlgNewFolder {
-		a.initializeFolder(p, opts)
-	}
+		a.post(func() {
+			if err != nil {
+				a.status = "失败：" + err.Error()
+				a.finishFileOp(undoStep{})
+				return
+			}
+			if dir != ts.t.Dir {
+				a.refreshLists()
+			} else {
+				ts.t.Focus = filepath.Base(p)
+				ts.sel.Clear()
+				a.load(ts)
+			}
+			if kind == dlgNewFolder {
+				a.initializeFolder(p, opts, createSeq == a.folderCreateSeq)
+			} else {
+				a.finishFileOp(step)
+			}
+		})
+	})
 }
 
 // newFileDialog asks for the new file's name and template. The templates
@@ -974,6 +1040,8 @@ func (a *app) run(id string) {
 		}
 	}
 	switch id {
+	case "undo":
+		a.undoFiles()
 	case "cursor.up":
 		a.moveCursor(ts, -1)
 	case "cursor.down":

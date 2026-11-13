@@ -17,6 +17,8 @@ import (
 
 type fakeSys struct {
 	opened, trashed []string
+	trashSounds     int
+	trashFail       map[string]error
 	openedWith      [][2]string
 	revealed        []string
 	watches         map[string]func() // watched folder → its callback
@@ -44,6 +46,29 @@ func (f *fakeSys) Trash(p string) error {
 	f.trashed = append(f.trashed, p)
 	return os.RemoveAll(p)
 }
+
+func (f *fakeSys) TrashItems(paths []string) []trashResult {
+	var results []trashResult
+	for _, p := range paths {
+		r := trashResult{path: p, err: f.trashFail[p]}
+		if r.err == nil {
+			dir, err := os.MkdirTemp(filepath.Dir(p), ".fake-trash-")
+			if err != nil {
+				r.err = err
+			} else {
+				r.trashed = filepath.Join(dir, filepath.Base(p))
+				r.err = os.Rename(p, r.trashed)
+				if r.err == nil {
+					f.trashed = append(f.trashed, p)
+				}
+			}
+		}
+		results = append(results, r)
+	}
+	return results
+}
+
+func (f *fakeSys) TrashSound()     { f.trashSounds++ }
 func (f *fakeSys) Reveal(p string) { f.revealed = append(f.revealed, p) }
 func (f *fakeSys) OpenWith(app, p string) error {
 	f.openedWith = append(f.openedWith, [2]string{app, p})

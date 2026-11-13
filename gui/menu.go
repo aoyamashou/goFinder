@@ -38,7 +38,7 @@ var roles = map[string]struct {
 	label  string
 	covers string // the action the role runs outside text fields
 }{
-	"@undo":       {mygo.RoleUndo, "撤销", ""},
+	"@undo":       {mygo.RoleUndo, "撤销", "undo"},
 	"@redo":       {mygo.RoleRedo, "重做", ""},
 	"@cut":        {mygo.RoleCut, "剪切", "cut"},
 	"@copy":       {mygo.RoleCopy, "复制", "copy"},

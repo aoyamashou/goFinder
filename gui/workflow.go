@@ -97,9 +97,13 @@ func (a *app) shelfTo(ts *tabState, move bool) {
 		return
 	}
 	srcs, dst := slices.Clone(a.sh.items), ts.t.Dir
+	if !a.beginFileOp() {
+		return
+	}
 	verb := map[bool]string{false: "复制", true: "移动"}[move]
 	a.status = fmt.Sprintf("正在把暂存架的 %d 项%s到这里…", len(srcs), verb)
 	a.async(func() {
+		before := sourceInfo(srcs)
 		var out []string
 		var err error
 		if move {
@@ -107,6 +111,7 @@ func (a *app) shelfTo(ts *tabState, move bool) {
 		} else {
 			out, err = fsops.Copy(srcs, dst, nil)
 		}
+		step := transfers(srcs, out, before, move)
 		var gone []string
 		if move {
 			left := shelf.Existing(srcs)
@@ -122,6 +127,7 @@ func (a *app) shelfTo(ts *tabState, move bool) {
 			} else {
 				a.status = fmt.Sprintf("已从暂存架%s %d 项", verb, len(out))
 			}
+			a.finishFileOp(step)
 			a.unshelve(gone...)
 			if len(out) > 0 && ts.t.Dir == dst {
 				ts.t.Focus = filepath.Base(out[len(out)-1])
