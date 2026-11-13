@@ -45,7 +45,7 @@
 |---|---|---|
 | 初始化 Git 仓库 | `newFolderGit` | 仅在新目录中执行一次本地 Git 初始化 |
 | 创建 Agent 说明文件 | `newFolderAgentFiles` | 创建 `AGENTS.md` 和 `CLAUDE.md` |
-| 创建项目级 skills 目录 | `newFolderSkills` | 创建 `.agents/skills/` 空目录 |
+| 创建项目级 skills 目录 | `newFolderSkills` | 按默认 Agent 创建 `.claude/skills/` 或 `.agents/skills/` 空目录（见 4.2） |
 
 说明：“仅对之后新建的文件夹生效；默认关闭，可分别启用。”涉及键位的提示如确有需要，从键位表读取，不写死。
 
@@ -63,9 +63,20 @@ Issue 的“复制一个 Claude.md”按“再创建一个引用 Agent 文件的
 
 ### 4.2 skills 目录
 
-本轮只创建 `.agents/skills/` 空目录，不生成 `SKILL.md`、占位文件或安装任何技能，不复制用户全局 skills，不创建符号链接。目录不依赖 Agent 文件或 Git 选项。
+**用户决定（2026-11-13，审查会话中确认）：skills 目录按默认 Agent 选择路径，只有两种情况。** 说明文件（4.1）不受影响，始终是 `AGENTS.md` + `CLAUDE.md`。
 
-这是本产品拟采用的路径约定，不声称所有 Agent 都会自动识别。是否还需要 `.claude/skills/` 不在本轮实现范围；Claude 如认为必要，应先修改本文明确目录和测试，而非实现时自行扩展。空目录不会被 Git 跟踪，属于预期行为。
+| 默认 Agent | 创建的目录 |
+|---|---|
+| Claude 系：`claude`、`claude-agent-teams` | `.claude/skills/` |
+| 其他任何 Agent，或没有启用任何 Agent | `.agents/skills/` |
+
+- 「默认 Agent」与 `a` 键打开的是同一个，直接复用 `gui/agents.go` 的 `defaultAgentItem()`：`config.json` 的 `defaultAgent` 已启用时取它，否则取第一个启用的 Agent。不新增设置项、不读取 Agent 自身的配置文件。
+- Claude 系 ID 集中定义在一处（例如 `internal/projectinit` 的一个小集合，或作为参数从界面层传入），不在多个地方硬编码。`openclaude` 等其他派生工具本轮按「其他」处理；以后要加入，只改这个集合并补测试。
+- 路径在**提交新建时**按当时的默认 Agent 决定，与选项一起放进快照；初始化过程中用户改了默认 Agent 也不影响本次结果。
+- 只建一个目录，不同时建两个，不创建符号链接。
+- 设置里该复选框的说明文字要写出实际路径，随默认 Agent 变化，例如「按默认 Agent（Claude）创建 .claude/skills/」「按默认 Agent（Codex）创建 .agents/skills/」；没有启用的 Agent 时写「创建 .agents/skills/」。Agent 名称取自现有目录，不写死。
+
+其余不变：只建空目录，不生成 `SKILL.md`、占位文件或安装任何技能，不复制用户全局 skills。目录不依赖 Agent 文件或 Git 选项。空目录不会被 Git 跟踪，属于预期行为。
 
 ### 4.3 Git 初始化
 
@@ -100,6 +111,7 @@ Issue 的“复制一个 Claude.md”按“再创建一个引用 Agent 文件的
 | 已有项目、复制、移动、解压、新建文件 | 不触发初始化；不扫描或补写已有项目 |
 | 写文件或权限失败、已有同名项/符号链接 | 保留已有内容与成功步骤，逐项反馈；不删除目录 |
 | Git 缺失、超时或退出失败 | UI 可响应，Agent 文件/skills 仍可成功，不自动安装或联网 |
+| skills 路径随默认 Agent | 默认为 claude、claude-agent-teams 时只建 `.claude/skills/`；为 codex 等其他 Agent 或无启用 Agent 时只建 `.agents/skills/`；`defaultAgent` 未启用时按第一个启用的 Agent；提交后再改默认 Agent 不影响本次结果；设置说明文字随之变化 |
 | 父目录在 Git 内、继承重定向环境 | 只在新目录建立仓库，不改变父仓库；不提交、不改配置 |
 | 迅速切换目录/窗格、连续创建、额外帧 | 每次创建只初始化一次；初始化回调不改光标、焦点和当前目录 |
 | 未装命令行工具 | 不调用 `/usr/bin/git`、不弹系统安装框，提示已跳过，其他步骤照常完成 |
@@ -129,7 +141,7 @@ Issue 的“复制一个 Claude.md”按“再创建一个引用 Agent 文件的
 
 - 三项独立、默认关闭，放在「通用」页，走「保存/取消」语义：同意。
 - `AGENTS.md` 为空文件，`CLAUDE.md` 内容为 `@AGENTS.md` 加换行：同意。这与本仓库自身的做法一致。
-- 只建 `.agents/skills/`，不建 `.claude/skills/`：同意，与本仓库 `.agents/skills/` 的用法一致。
+- skills 目录：初版只建 `.agents/skills/`。审查指出 Claude Code 读的是 `.claude/skills/`，用户随后决定改为按默认 Agent 二选一（见 4.2），已改入正文。
 - 已有同名项跳过并报告、不覆盖、不回滚：同意。
 - 父目录已在仓库内时仍在新目录 `git init`：同意，这是用户主动开启的选项。
 
