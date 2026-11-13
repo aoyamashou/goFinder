@@ -26,16 +26,20 @@ goFinder 是一个针对键盘鼠标同时使用的用户的，以简洁、高�
 - **过滤时支持拼音首字母搜索**：比如，输入 `mxcx` 就能找到「模型查询.txt」。
 - **单键快捷键**：`c` 复制、`v` 粘贴、`d` 移到废纸篓、`n` 新建文件夹、`↩` 重命名……常用操作都只要按一个键。所有的快捷键基于英语四级水平而设定，不需努力就能记住，且按 `?` 能打开速查表。
 - **不用终端**：Yazi 的操作方式，跑在一个真正的 macOS 窗口里，不依赖 TUI。
-- **方向键导航**：不需要去习惯Yazi原本的vim键位。`↑↓` 移动，`→` 进入文件夹，`←` 返回上级。
+- **方向键导航**：不需要去习惯Yazi原本的vim键位。`↑↓` 移动，`→` 进入文件夹，`←` 返回上级。习惯 Vim 的话，也可以在设置 › 快捷键里打开 `h/j/k/l`，方向键照样能用。
 - **和原生macOS一致的鼠标操作**
 - **空格快速查看**：调用系统的 Quick Look，PDF、Office 文稿、视频、图片都能直接看。
+- **撤销文件操作**：按 `⌘Z` 撤销最近的删除、重命名、同一磁盘内的移动、复制或新建，恢复时不会覆盖已有文件。
+- **操作提示**：复制、剪切、移到废纸篓等操作后，窗口底部会短暂显示一条提示，不用盯着状态栏确认。
 
 - **访达侧边栏移植**
 - **多空格布局**  左右或上下双栏
 - **暂存架**，用于整理文件时暂存
 - **Workspace（多工作区切换）**
 - **按模板新建文件**
-- **像文件夹一样浏览 Zip**
+- **新建文件夹时可选初始化**：勾选后自动初始化 Git 仓库、创建 AGENTS.md / CLAUDE.md、项目级 skills 目录
+- **包和 ZIP 直接打开**：`.framework`、`.xcodeproj` 等包和 ZIP 像访达一样直接打开（ZIP 由系统解压到旁边），右键「显示包内容」可以进去看，ZIP 内只读
+- **安装应用**：打开下载文件夹或 DMG 里的 `.app` 时，可以直接复制到「应用程序」，可选解除隔离
 - **支持Git 状态标记**
 
 
@@ -61,7 +65,7 @@ goFinder 是一个针对键盘鼠标同时使用的用户的，以简洁、高�
 
 ## 安装
 
-- 下载：在 [官网](https://gofinder.ryou.im) 或 [Releases](https://github.com/aoyamashou/goFinder/releases) 下载 `.dmg`，把 goFinder 拖进「应用程序」文件夹。目前只有 Apple Silicon 版本。启动时，goFinder 会自动检查更新。
+- 下载：在 [官网](https://gofinder.ryou.im) 或 [Releases](https://github.com/aoyamashou/goFinder/releases) 下载 `.dmg`，把 goFinder 拖进「应用程序」文件夹。Apple Silicon 选 `arm64`，Intel Mac 选 `amd64`（Intel 版目前只在 Rosetta 下验证过，欢迎反馈）。启动时，goFinder 会自动检查更新。
 - 字体：列表图标用的是 `JetBrainsMono Nerd Font Mono`。设置里可以一键下载；不装也能用，图标会退回文字符号。
 - 签名：目前用的是自签证书，没有经过 Apple 公证。第一次打开时如果被系统拦下，到「系统设置 › 隐私与安全性」里点「仍要打开」。
 - 解除隔离：如果提示「已损坏」或「无法打开」，可以先解除下载隔离（下载的 `.dmg` 也可以先这样处理再打开）：
@@ -88,9 +92,11 @@ goFinder 是一个针对键盘鼠标同时使用的用户的，以简洁、高�
 | 在编辑器中打开 / 加入暂存架 / 收藏当前文件夹        | `e` / `s` / `s s`       | — / `⌥⌘S` / —              |
 | 工作区对话框 / 切换工作区                   | `w` / `1`–`9`、`[` `]`   | — / `⌘1-9`                 |
 | 后退 / 前进                          | 鼠标侧键                    | `⌘[` / `⌘]`                |
+| 撤销文件操作                           | —                       | `⌘Z`                       |
 | 速查表                              | `?`                     | —                          |
 
 - 只有 `c c`、`n n`、`s s` 是同一个键连按两下（400 ms 内），其余都是单键。
+- 打开 Vim 键位后，`j/k` 上下移动，`h` 返回上级，`l` 打开，方向键仍然可用。
 
 
 - 所有键位都可以在设置（`⌘,`）的「快捷键」页修改。
@@ -99,7 +105,7 @@ goFinder 是一个针对键盘鼠标同时使用的用户的，以简洁、高�
 
 数据目录在 `~/Library/Application Support/goFinder/`：
 
-- `config.json`：终端和编辑器、是否显示隐藏文件、外观、右键菜单（`contextMenu`、`blankMenu`）、Agent、自定义 shell 命令（`commands`，可以用 `{path}`、`{selection}` 占位）。
+- `config.json`：终端和编辑器、是否显示隐藏文件、外观、Vim 键位（`vimKeys`）、新建文件夹后的初始化（`newFolderGit`、`newFolderAgentFiles`、`newFolderSkills`）、右键菜单（`contextMenu`、`blankMenu`）、Agent、自定义 shell 命令（`commands`，可以用 `{path}`、`{selection}` 占位）。
 - `keymap.json`：按动作 ID 覆盖快捷键，例如 `{"trash": ["Cmd+Alt+Backspace"]}`。动作 ID 见 `actions.go`，或在速查表里搜索。
 - `templates/`：新建文件用的模板，每个文件就是一个模板。
 - `shelf.json`：暂存架；`workspaces/`：保存的 Workspace。
