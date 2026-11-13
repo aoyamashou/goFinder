@@ -16,12 +16,14 @@ import (
 
 	"github.com/egoist/mygo"
 
+	"gofinder/internal/appinstall"
 	"gofinder/internal/shellcmd"
 )
 
 // system is what the app asks of the OS, so tests can fake it.
 type system interface {
 	Open(path string) error
+	InstallApp(path string, unquarantine bool) (string, error)
 	Trash(path string) error
 	Reveal(path string)
 	OpenWith(app, path string) error
@@ -370,4 +372,8 @@ func saveConfig(dir string, cfg config) error {
 		return err
 	}
 	return os.Rename(p+".tmp", p)
+}
+
+func (s realSystem) InstallApp(path string, unquarantine bool) (string, error) {
+	return appinstall.Copy(path, "/Applications", unquarantine, appinstall.Run, s.Trash)
 }
