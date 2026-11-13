@@ -97,6 +97,7 @@ go tool mygo build -skip-installer    # 打包到 build/darwin-arm64/goFinder.ap
 - `README.md`：面向用户的介绍（截图、特点、与访达的性能对比、安装、键位、配置）；实现细节不写在这里。README 由用户提供，改动前先问。
 - `CHANGELOG.md`：每个版本面向用户的更新记录，发版时更新。
 - `docs/plan.md`：分阶段计划与每次修订的记录（架构、默认键位、资源原则、各阶段范围与验证方式）。
+- `Codex/folder-init-prd.md`：Issue #4 新建文件夹后的可选初始化需求、实施边界与验收（待 Claude 审查）。
 - `Codex/vim-keybindings-prd.md`：Issue #2 可选 Vim 键位的需求、审查结论、验收与已知限制。
 - `docs/design-system.md`（及 `gui/design-tokens.json`，由 `theme.go` 嵌入）：设计系统——颜色、字体、间距、圆角、尺寸 token 与组件规范；改界面前先读。
 - `docs/debug-ids.md`：设置 › 关于里「Debug 编号」的编号表，与 `gui/debug.go` 的 `debugIDs` 保持一致（`TestDebugIDsDoc` 检查）。用户沟通时常说「N 号元素」。
