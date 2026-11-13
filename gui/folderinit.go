@@ -24,15 +24,30 @@ func (a *app) folderSkillsCaption() string {
 	return fmt.Sprintf("按默认 Agent（%s）创建 %s", item.Name, path)
 }
 
-func (a *app) initializeFolder(dir string) {
-	opts, initGit, post := a.folderOptions(), a.initGit, a.post
+func (a *app) initializeFolder(dir string, opts projectinit.Options) {
+	changed := a.cfg.NewFolderGit != opts.Git || a.cfg.NewFolderAgentFiles != opts.AgentFiles || a.cfg.NewFolderSkills != opts.Skills
+	a.cfg.NewFolderGit, a.cfg.NewFolderAgentFiles, a.cfg.NewFolderSkills = opts.Git, opts.AgentFiles, opts.Skills
 	if !opts.Enabled() {
+		if changed {
+			a.saveConfig()
+		}
 		return
+	}
+	initGit, post := a.initGit, a.post
+	var save func() error
+	if changed {
+		save = a.configSave()
 	}
 	a.async(func() {
 		results := projectinit.Init(dir, opts, initGit)
+		status := folderInitStatus(dir, results)
+		if save != nil {
+			if err := save(); err != nil {
+				status += "；本次选择未能保存：" + err.Error()
+			}
+		}
 		post(func() {
-			a.status = folderInitStatus(dir, results)
+			a.status = status
 			visible := a.refreshInitializedFolder(dir)
 			for _, r := range results {
 				if visible && r.Name == "Git" && r.Err == nil {

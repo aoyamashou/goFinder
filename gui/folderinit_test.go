@@ -2,10 +2,12 @@ package gui
 
 import (
 	"errors"
+	"fmt"
 	"gofinder/internal/keymap"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -404,5 +406,262 @@ func TestFolderInitPendingCreationRefresh(t *testing.T) {
 	}
 	if a.git[filepath.Join(root, "pending-project")] == nil {
 		t.Fatal("repository icon cache not refreshed")
+	}
+}
+
+func TestFolderDialogRemember(t *testing.T) {
+	a, tt, _, root := setup(t)
+	a.dataDir = t.TempDir()
+	a.run("newfolder")
+	tt.Frame()
+	tt.Key(ui.Cmd, ui.KeyA)
+	tt.Type("记住选择")
+	tt.Frame()
+	if a.dlgText != "记住选择" {
+		t.Fatalf("name not focused: %q", a.dlgText)
+	}
+	for _, label := range []string{"创建 Agent 说明文件", "创建项目级 skills 目录"} {
+		if err := tt.Click(label); err != nil {
+			t.Fatal(err)
+		}
+		tt.Frame()
+	}
+	if a.cfg.NewFolderAgentFiles || a.cfg.NewFolderSkills {
+		t.Fatal("draft applied before confirmation")
+	}
+	// Return from the name field exercises the same submission as the button.
+	if err := tt.Click("名称"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Key(0, ui.KeyEnter)
+	tt.Frame()
+	if a.dlgOpen {
+		t.Fatal("Return did not submit")
+	}
+	for _, name := range []string{"AGENTS.md", "CLAUDE.md", ".agents/skills"} {
+		if _, err := os.Stat(filepath.Join(root, "记住选择", name)); err != nil {
+			t.Fatal(name, err)
+		}
+	}
+	cfg := loadConfig(a.dataDir)
+	if cfg.NewFolderGit || !cfg.NewFolderAgentFiles || !cfg.NewFolderSkills {
+		t.Fatalf("not persisted: %+v", cfg)
+	}
+	// A fresh app from disk must initialize both dialog drafts from the same prefs.
+	b, bt, _, _ := setup(t)
+	b.cfg = cfg
+	b.run("newfolder")
+	bt.Frame()
+	if b.dlgFolder.Git || !b.dlgFolder.AgentFiles || !b.dlgFolder.Skills {
+		t.Fatal("new dialog forgot preferences")
+	}
+	b.dlgOpen = false
+	bt.Frame()
+	b.run("settings")
+	bt.Frame()
+	if b.setFolder.Git || !b.setFolder.AgentFiles || !b.setFolder.Skills {
+		t.Fatal("settings forgot preferences")
+	}
+	// No change means no redundant save, even after initialization.
+	seq := a.configSeq
+	a.run("newfolder")
+	a.dlgText = "same-options"
+	a.submitDialog()
+	if a.configSeq != seq {
+		t.Fatal("unchanged options saved again")
+	}
+	a.run("newfolder")
+	tt.Frame()
+	for _, label := range []string{"创建 Agent 说明文件", "创建项目级 skills 目录"} {
+		if err := tt.Click(label); err != nil {
+			t.Fatal(err)
+		}
+		tt.Frame()
+	}
+	a.dlgText = "no-init"
+	if err := tt.Click("确定"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	cfg = loadConfig(a.dataDir)
+	if cfg.NewFolderGit || cfg.NewFolderAgentFiles || cfg.NewFolderSkills {
+		t.Fatal("disabled options not persisted")
+	}
+	entries, err := os.ReadDir(filepath.Join(root, "no-init"))
+	if err != nil || len(entries) != 0 {
+		t.Fatal("disabled options initialized folder", err)
+	}
+}
+
+func TestFolderDialogCancelAndFailure(t *testing.T) {
+	for _, close := range []string{"取消", "Escape", "关闭", "空名称", "创建失败"} {
+		t.Run(close, func(t *testing.T) {
+			a, tt, _, _ := setup(t)
+			a.dataDir = t.TempDir()
+			a.run("newfolder")
+			tt.Frame()
+			if err := tt.Click("创建 Agent 说明文件"); err != nil {
+				t.Fatal(err)
+			}
+			tt.Frame()
+			switch close {
+			case "取消":
+				if err := tt.Click("取消"); err != nil {
+					t.Fatal(err)
+				}
+			case "Escape":
+				tt.Key(0, ui.KeyEscape)
+			case "关闭":
+				a.dlgOpen = false
+			case "空名称":
+				a.dlgText = " "
+				a.submitDialog()
+			case "创建失败":
+				a.dlgText = "bad/path"
+				a.submitDialog()
+			}
+			tt.Frame()
+			if a.cfg.NewFolderAgentFiles || a.configSeq != 0 {
+				t.Fatal("cancel/failure remembered draft")
+			}
+			if _, err := os.Stat(filepath.Join(a.dataDir, "config.json")); !os.IsNotExist(err) {
+				t.Fatal("unexpected save", err)
+			}
+			a.run("newfolder")
+			tt.Frame()
+			if a.dlgFolder.Enabled() {
+				t.Fatal("cancelled draft retained")
+			}
+		})
+	}
+}
+
+func TestFolderDialogSaveFailure(t *testing.T) {
+	for _, enabled := range []bool{false, true} {
+		t.Run(fmt.Sprint(enabled), func(t *testing.T) {
+			a, _, _, root := setup(t)
+			blocker := filepath.Join(t.TempDir(), "file")
+			if err := os.WriteFile(blocker, nil, 0o644); err != nil {
+				t.Fatal(err)
+			}
+			a.dataDir = blocker
+			a.cfg.NewFolderAgentFiles = !enabled
+			a.run("newfolder")
+			a.dlgFolder.AgentFiles = enabled
+			a.dlgText = "save-failure"
+			a.submitDialog()
+			if st, err := os.Stat(filepath.Join(root, "save-failure")); err != nil || !st.IsDir() {
+				t.Fatal(err)
+			}
+			want := "无法保存 config.json"
+			if enabled {
+				want = "本次选择未能保存"
+			}
+			if !strings.Contains(a.status, want) {
+				t.Fatal(a.status)
+			}
+			if a.cfg.NewFolderAgentFiles != enabled {
+				t.Fatal("memory default lost")
+			}
+		})
+	}
+}
+
+func TestFolderDialogSaveOrder(t *testing.T) {
+	a, _, _, root := setup(t)
+	a.dataDir = t.TempDir()
+	var jobs, posts []func()
+	a.async = func(f func()) { jobs = append(jobs, f) }
+	a.post = func(f func()) { posts = append(posts, f) }
+	a.run("newfolder")
+	a.dlgText = "first"
+	a.dlgFolder.AgentFiles = true
+	a.submitDialog()
+	a.run("newfolder")
+	a.dlgText = "second"
+	a.dlgFolder.AgentFiles = false
+	a.dlgFolder.Skills = true
+	a.submitDialog()
+	// Complete later submitted workers first, then release the stale write.
+	// Keep UI callbacks queued so only worker snapshots run off the UI thread.
+	var wg sync.WaitGroup
+	for i := len(jobs) - 1; i >= 0; i-- {
+		wg.Add(1)
+		go func(f func()) { defer wg.Done(); f() }(jobs[i])
+		wg.Wait()
+	}
+	cfg := loadConfig(a.dataDir)
+	if cfg.NewFolderAgentFiles || !cfg.NewFolderSkills {
+		t.Fatal("old write overwrote latest options")
+	}
+	if _, err := os.Stat(filepath.Join(root, "first", "AGENTS.md")); err != nil {
+		t.Fatal("first snapshot lost", err)
+	}
+	if _, err := os.Stat(filepath.Join(root, "second", ".agents", "skills")); err != nil {
+		t.Fatal("second snapshot lost", err)
+	}
+	if _, err := os.Stat(filepath.Join(root, "second", "AGENTS.md")); !os.IsNotExist(err) {
+		t.Fatal("used first options")
+	}
+}
+
+func TestConfigSaveSnapshotAndConcurrency(t *testing.T) {
+	a, _, _, _ := setup(t)
+	a.dataDir = t.TempDir()
+	a.cfg.Agents = map[string]agentCfg{"codex": {Enabled: true}}
+	a.cfg.Commands = []command{{ID: "sample", Keys: []string{"a"}}}
+	a.cfg.ContextMenu = []string{"open"}
+	a.cfg.Workspaces = []string{"before"}
+	first := a.configSave()
+	a.cfg.Agents["codex"] = agentCfg{Enabled: false}
+	a.cfg.Commands[0].Keys[0] = "b"
+	a.cfg.ContextMenu[0] = "copy"
+	a.cfg.Workspaces[0] = "after"
+	if err := first(); err != nil {
+		t.Fatal(err)
+	}
+	cfg := loadConfig(a.dataDir)
+	if !cfg.Agents["codex"].Enabled || cfg.Commands[0].Keys[0] != "a" || cfg.ContextMenu[0] != "open" || cfg.Workspaces[0] != "before" {
+		t.Fatal("snapshot shared mutable data")
+	}
+	var saves []func() error
+	for i := range 20 {
+		a.cfg.Editor = fmt.Sprint(i)
+		saves = append(saves, a.configSave())
+	}
+	var wg sync.WaitGroup
+	for _, save := range saves {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if err := save(); err != nil {
+				t.Error(err)
+			}
+		}()
+	}
+	wg.Wait()
+	if cfg := loadConfig(a.dataDir); cfg.Editor != "19" {
+		t.Fatal("latest config not persisted", cfg.Editor)
+	}
+}
+
+func TestFolderDialogShots(t *testing.T) {
+	dir := os.Getenv("MYGO_SHOTS")
+	if dir == "" {
+		t.Skip("MYGO_SHOTS not set")
+	}
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	for _, mode := range []string{"light", "dark"} {
+		a, tt, _, _ := setup(t)
+		a.cfg.Appearance = mode
+		a.cfg.NewFolderGit, a.cfg.NewFolderAgentFiles, a.cfg.NewFolderSkills = true, true, true
+		e, _ := agents.ByID("claude-agent-teams")
+		a.ag.found = []agents.Found{{Entry: e}}
+		a.cfg.DefaultAgent = e.ID
+		a.run("newfolder")
+		tt.Frame()
+		writePNG(t, filepath.Join(dir, "folder-dialog-"+mode+".png"), tt.Image())
 	}
 }

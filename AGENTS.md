@@ -98,7 +98,7 @@ go tool mygo build -platform darwin/arm64,darwin/amd64 -skip-installer # 双架�
 - `README.md`：面向用户的介绍（截图、特点、与访达的性能对比、安装、键位、配置）；实现细节不写在这里。README 由用户提供，改动前先问。
 - `CHANGELOG.md`：每个版本面向用户的更新记录，发版时更新。
 - `docs/plan.md`：分阶段计划与每次修订的记录（架构、默认键位、资源原则、各阶段范围与验证方式）。
-- `Codex/folder-init-prd.md`：Issue #4 新建文件夹后的可选初始化需求、实施与验收（待 Claude 代码审查）。
+- `Codex/folder-init-prd.md`：Issue #4 可选初始化需求与实施记录，以及 Issue #10 新建对话框选择与记忆的实现与验收（待 Claude 代码审查）。
 - `Codex/vim-keybindings-prd.md`：Issue #2 可选 Vim 键位的需求、审查结论、验收与已知限制。
 - `Codex/intel-support-prd.md`：Issue #1 Intel Mac 支持的可行性、双架构分发方案、审查结论与实施验证。
 - `docs/design-system.md`（及 `gui/design-tokens.json`，由 `theme.go` 嵌入）：设计系统——颜色、字体、间距、圆角、尺寸 token 与组件规范；改界面前先读。
