@@ -627,6 +627,15 @@ func (a *app) dialog(c *ui.Context) {
 			if ui.TextInput(c.Key("dlg"), &a.dlgText).Label("名称").AutoFocus().Submitted() {
 				a.submitDialog()
 			}
+			if a.dlg == dlgNewFolder {
+				ui.Column(c).Gap(px("space-1")).Children(func() {
+					ui.Text(c, "新建文件夹后").Bold()
+					ui.Checkbox(c.Key("dlg.newFolderGit"), &a.dlgFolder.Git, "初始化 Git 仓库")
+					ui.Checkbox(c.Key("dlg.newFolderAgentFiles"), &a.dlgFolder.AgentFiles, "创建 Agent 说明文件")
+					ui.Checkbox(c.Key("dlg.newFolderSkills"), &a.dlgFolder.Skills, "创建项目级 skills 目录")
+					uiCaption(c, a.folderSkillsCaption(), "muted")
+				})
+			}
 			ui.Row(c).Gap(8).Justify(ui.End).Children(func() {
 				if ui.Button(c, "取消").Clicked() {
 					a.dlgOpen = false

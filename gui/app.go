@@ -3,9 +3,12 @@ package gui
 import (
 	"fmt"
 	"hash/fnv"
+	"maps"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/egoist/mygo"
@@ -233,6 +236,7 @@ type app struct {
 	trashPaths []string
 	trashNoAsk bool
 	setFolder  projectinit.Options // settings draft, committed only on Save
+	dlgFolder  projectinit.Options // new-folder draft, applied only after creation
 	initGit    func(string) error  // nil uses projectinit.InitGit
 	setConfirm bool                // the settings' 删除前确认
 	tplNames   []string            // the templates, for the new-file menus
@@ -256,9 +260,12 @@ type app struct {
 	qlSeq      int    // drops a Quick Look started before a newer press
 	fullDisk   bool   // Full Disk Access granted (settings)
 
-	dataDir  string // config.json is saved here; "" saves nothing
-	updates  bool   // the updater plugin is used (not in tests): menu item and About button
-	cacheDir string // files opened from archives are extracted here
+	configSeq     uint64     // assigned on the main thread, before queuing a save
+	configMu      sync.Mutex // serializes config writes
+	configWritten uint64     // protected by configMu
+	dataDir       string     // config.json is saved here; "" saves nothing
+	updates       bool       // the updater plugin is used (not in tests): menu item and About button
+	cacheDir      string     // files opened from archives are extracted here
 
 	sb  sidebarState
 	sh  shelfState
@@ -327,15 +334,45 @@ func (a *app) setWarnings(w []string) {
 	}
 }
 
+// configSave captures an independent snapshot on the main thread. Its returned
+// worker shares the write lock with every config save, including folder init.
+func (a *app) configSave() func() error {
+	if a.dataDir == "" {
+		return func() error { return nil }
+	}
+	a.configSeq++
+	seq, dir, cfg := a.configSeq, a.dataDir, a.cfg
+	cfg.Agents = maps.Clone(cfg.Agents)
+	cfg.ContextMenu = slices.Clone(cfg.ContextMenu)
+	cfg.BlankMenu = slices.Clone(cfg.BlankMenu)
+	cfg.Workspaces = slices.Clone(cfg.Workspaces)
+	cfg.Commands = slices.Clone(cfg.Commands)
+	for i := range cfg.Commands {
+		cfg.Commands[i].Keys = slices.Clone(cfg.Commands[i].Keys)
+	}
+	return func() error {
+		a.configMu.Lock()
+		defer a.configMu.Unlock()
+		if seq <= a.configWritten {
+			return nil
+		}
+		if err := saveConfig(dir, cfg); err != nil {
+			return err
+		}
+		a.configWritten = seq
+		return nil
+	}
+}
+
 // saveConfig writes config.json off the main thread.
 func (a *app) saveConfig() {
 	if a.dataDir == "" {
 		return
 	}
-	dir, cfg := a.dataDir, a.cfg
+	save, post := a.configSave(), a.post
 	a.async(func() {
-		if err := saveConfig(dir, cfg); err != nil {
-			a.post(func() { a.status = "无法保存 config.json：" + err.Error() })
+		if err := save(); err != nil {
+			post(func() { a.status = "无法保存 config.json：" + err.Error() })
 		}
 	})
 }
@@ -610,6 +647,9 @@ func (a *app) trash(ts *tabState) {
 
 func (a *app) openDialog(kind int, ts *tabState, text, target string) {
 	a.dlg, a.dlgOpen, a.dlgText, a.dlgTarget, a.dlgTab, a.dlgDir = kind, true, text, target, ts, ""
+	if kind == dlgNewFolder {
+		a.dlgFolder = a.folderOptions()
+	}
 }
 
 func (a *app) submitDialog() {
@@ -635,6 +675,8 @@ func (a *app) submitDialog() {
 	if a.dlgDir != "" {
 		dir = a.dlgDir
 	}
+	opts := a.dlgFolder
+	opts.AgentID = a.folderOptions().AgentID
 	var p string
 	var err error
 	switch a.dlg {
@@ -658,7 +700,7 @@ func (a *app) submitDialog() {
 	if dir != ts.t.Dir { // in a side column: read those again
 		a.refreshLists()
 		if a.dlg == dlgNewFolder {
-			a.initializeFolder(p)
+			a.initializeFolder(p, opts)
 		}
 		return
 	}
@@ -666,7 +708,7 @@ func (a *app) submitDialog() {
 	ts.sel.Clear()
 	a.load(ts)
 	if a.dlg == dlgNewFolder {
-		a.initializeFolder(p)
+		a.initializeFolder(p, opts)
 	}
 }
 
