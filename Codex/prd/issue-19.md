@@ -135,9 +135,9 @@ Review-2: APPROVED
 
 - 按第二轮审查允许的建议，采用已有 purego/objc 在进程内调用 Foundation，省去脚本及子进程；详情与验证更新在 `docs/plan.md` 修订二十二。真实临时文件往返验证已通过，含同名改名与特殊字符，测试产物均恢复。
 - 跨卷移动采用方案已允许的保守分支：不纳入可撤销条目，并明确提示，不能静默跳过历史屏障。
-- 全量测试与 race 各 332 项、gofmt、vet 三连、浅深色截图、系统音效播放、Apple_self_dev 双架构构建已通过；代码审查、PR 与发布门槛尚未完成。
+- 最终全量测试与 race 各 341 项、gofmt、vet 三连、浅深色截图、系统音效播放、Apple_self_dev 双架构构建已通过；代码审查、PR 合并与发布验证均已完成。
 
-已实现：commit 687c1ca，审查修复 b5ee213；代码审查通过，已通过 PR #20 squash 合并至主线 145bb11，准备发布 0.18.13。
+已实现：commit 687c1ca，审查修复 b5ee213；代码审查通过，已通过 PR #20 squash 合并至主线 145bb11，已发布 0.18.13（tag commit 86c2d67），两架构自动更新入口已核验。
 
 
 ## 第一轮代码审查偏差说明（2026-11-13）
@@ -153,3 +153,12 @@ Opus 代码审查 CHANGES_REQUESTED，2 MAJOR：连续撤销误拦、音效阻�
 - 第一轮：CHANGES_REQUESTED（2 MAJOR、3 MINOR），已在 b5ee213 修复并补充测试。
 - 第二轮：APPROVED，复核 HEAD b5ee2136831ca9ef2ceb9ab8db29312cb5788fdf，无 BLOCKER/MAJOR，审查偏差获认可；Opus 补跑针对性检查通过。
 - 已知限制：dev/ino 极小概率复用；外部新增 .DS_Store 等内容将保守拒绝撤销。
+
+
+## 最终交付（2026-11-13）
+
+- PR：#20，已 squash 合并；两阶段审查均最终 APPROVED。
+- 版本：0.18.13，Latest release，14 个附件已下载核验，双架构应用签名、DMG 校验、更新包签名与最新清单均通过。具体证据见 docs/plan.md 修订二十二。
+- 完成验证：全量与 race 各 341 项，静态检查、截图、系统接口往返及双架构构建均通过。未覆盖本机安装应用，未改默认文件管理器。
+
+已实现：commit 145bb11（原实现 687c1ca、审查修复 b5ee213）；发版 commit 86c2d67 / v0.18.13。
