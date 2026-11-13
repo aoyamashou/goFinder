@@ -1594,6 +1594,18 @@ UX：
 - **边界**：不加音效设置，不改系统音量、Finder 与用户配置；修订二十二一节和 CHANGELOG 0.18.13 的音效描述是历史记录，不改。
 - **验证**：gofmt、vet 三连通过；`CGO_ENABLED=0 go test ./...` 与 `go test -race ./...` 各 341 项通过；临时去掉 `n > 0` 守卫时全部失败断言能报错（变异检验）；`grep -rn 'TrashSound\|trashSounds\|afplay\|move to trash' gui internal main.go` 无输出；Apple_self_dev 双架构构建通过、签名校验和架构正确。无布局变化未截图；用户侧经自动更新确认无音效待发版后进行。
 
+### 阶段 18 后修订二十四：终端候选加入 Otty
+
+> 来源：2026-11-13 外部贡献 PR #22（Magic-Xin），用户提出「支持 Otty 终端」；与修订二十三并行提交，合并时改号为二十四。
+
+**要改什么及为什么**：设置里的终端下拉框只列出 `commonTerminals` 中已安装的应用，Otty（appmakes 出品，bundle 名 `Otty`，ID `io.appmakes.otty`）不在名单里，选不到。
+
+**实现**：`view.go` 的 `commonTerminals` 末尾加 `"Otty"`；`TestCommonApps` 的已安装列表加入 Otty，检查它出现在终端候选里。打开方式沿用 `open -a Otty <路径>`，不调用 `otty-cli`。
+
+**边界**：不为 Otty 特判。它的 Info.plist（XML）以 Shell 角色声明了 `com.apple.terminal.shell-script`，`RunsScripts` 原有的检查即判定它能运行 `.command`，Agent 不会退回 Terminal.app。README、官网、版本号不变。
+
+**验证**：本机 Otty 1.6.2 实测，`open -a Otty <文件夹>` 新开标签页，`otty-cli pane list` 显示其 cwd 为该文件夹；`open -a Otty <脚本>.command`（与 `agentScript` 同样的 `#!/bin/zsh -l` + `cd … && exec …`）在 Otty 里运行并写出测试标记文件。用户用 `go tool mygo dev` 运行后确认没有问题。gofmt、vet 三连、`go test ./...` 通过。
+
 ## 测试和验证
 - **纯逻辑包写单元测试，用 `go test ./...` 运行**：
   - `keymap`：按键解析、上下文过滤、用户覆盖、冲突检测；

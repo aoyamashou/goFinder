@@ -565,8 +565,8 @@ func TestEjectVolume(t *testing.T) {
 // TestCommonApps: the terminal and editor lists offer the common ones
 // installed, not every app, and keep the current choice.
 func TestCommonApps(t *testing.T) {
-	installed := []string{"Ghostty", "Google Chrome", "Kaku", "Terminal", "Visual Studio Code", "Zed"}
-	if got := commonApps(installed, commonTerminals, "Terminal"); !slices.Equal(got, []string{"Terminal", "Ghostty", "Kaku"}) {
+	installed := []string{"Ghostty", "Google Chrome", "Kaku", "Otty", "Terminal", "Visual Studio Code", "Zed"}
+	if got := commonApps(installed, commonTerminals, "Terminal"); !slices.Equal(got, []string{"Terminal", "Ghostty", "Kaku", "Otty"}) {
 		t.Fatalf("terminals %v", got)
 	}
 	if got := commonApps(installed, commonEditors, "MyEditor"); !slices.Equal(got, []string{"MyEditor", "Visual Studio Code", "Zed"}) {
