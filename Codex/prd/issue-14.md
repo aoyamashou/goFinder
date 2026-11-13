@@ -69,4 +69,4 @@ Review-1（Claude Opus，2026-11-13）：已直接修订本文件，要点——
 
 Review-1: APPROVED（按上述修订后，范围、安全边界、所有权与验收均可实现、可验证；无须再改方案即可进入实施，READY 由用户决定）
 
-Status: DRAFT
+Status: READY
