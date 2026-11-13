@@ -267,6 +267,10 @@ type config struct {
 	ShowHidden  bool   `json:"showHidden"`
 	ShowSidebar bool   `json:"showSidebar"`
 	VimKeys     bool   `json:"vimKeys"` // optional h/j/k/l; arrows always work
+	// Optional initialization after creating a folder; all default to false.
+	NewFolderGit        bool `json:"newFolderGit"`
+	NewFolderAgentFiles bool `json:"newFolderAgentFiles"`
+	NewFolderSkills     bool `json:"newFolderSkills"`
 	// ContextMenu lists action IDs in order, "-" a separator.
 	ContextMenu []string  `json:"contextMenu"`
 	Commands    []command `json:"commands"`
