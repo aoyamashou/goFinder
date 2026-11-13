@@ -1496,7 +1496,7 @@ UX：
 - **发布（2026-11-13）**：Claude 代码审查提交 f0a3f88 放行后，经用户明确授权发布 [v0.18.9](https://github.com/aoyamashou/goFinder/releases/tag/v0.18.9)，tag 指向 920a1dd，已设为 Latest。245 项测试、vet 三连及应用签名、DMG、全量/3 个增量包签名和远端附件摘要均通过验证；本机已安装应用未覆盖。
 
 ### 阶段 18 后修订十六：Intel Mac 双架构分发流程
-> 来源：Codex 开发会话（2026-11-13），[Issue #1](https://github.com/aoyamashou/goFinder/issues/1)，按 Claude 审查提交 5ae1e87 的 [PRD](../Codex/intel-support-prd.md) 实施；用户授权在独立 worktree 工作。
+> 来源：Codex 开发会话（2026-11-13），[Issue #1](https://github.com/aoyamashou/goFinder/issues/1)，按 Claude 审查提交 5ae1e87 的 [PRD](../Codex/intel-support-prd.md) 实施；用户授权在独立 worktree 工作。已实现：commit f290eb0。
 
 **要改什么**：提供原生 amd64 打包与独立更新渠道，保留现有 arm64 更新地址；每次正式发布必须同时包含两个架构。
 

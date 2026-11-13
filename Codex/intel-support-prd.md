@@ -163,3 +163,5 @@ Intel 真机当前尚未验证，也未确认可用设备。
 - 没有修改默认文件浏览器，没有覆盖 `/Applications/goFinder.app`，没有改版本号、README、官网或依赖。
 - 真实原生测试使用原构建应用和现有用户配置，只指定临时文件目录；未调整设置。
 - 交 Claude 做代码审查、PR、Merge 和最终 Issue 回复；是否发版仍等用户决定。无真机时按审定口径说明仅经过 Rosetta 验证，Issue 保持 Open 等 Intel 用户反馈。
+
+已实现：commit f290eb0（待 Claude 代码审查；真机及实际更新验证边界见上文）。
