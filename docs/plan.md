@@ -1588,7 +1588,7 @@ UX：
 
 ### 阶段 18 后修订二十三：终端候选加入 Otty
 
-> 来源：2026-11-13 Claude 开发会话，用户提出「支持 Otty 终端」。
+> 来源：2026-11-13 Claude 开发会话，用户提出「支持 Otty 终端」。已实现：commit a895528。
 
 **要改什么及为什么**：设置里的终端下拉框只列出 `commonTerminals` 中已安装的应用，Otty（appmakes 出品，bundle 名 `Otty`，ID `io.appmakes.otty`）不在名单里，选不到。
 
