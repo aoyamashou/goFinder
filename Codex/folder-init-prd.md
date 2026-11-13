@@ -308,3 +308,5 @@ Issue 的“复制一个 Claude.md”按“再创建一个引用 Agent 文件的
 - 原生验收没有启用 Agent 检测，skills 使用无 Agent 的 `.agents/skills/` 分支；Claude 分支及提交快照由既有自动化测试覆盖。没有把后台输入自动化当作物理键盘焦点或后台即时重绘的证明；名称初始焦点、Enter 与按钮提交由 `ui.Tester` 验证。
 
 仅在 `feature/issue-10-folder-init-dialog` 提交并推送；Issue 保持 Open，代码交 Claude 审查，剩余操作由人类完成。未改 main、README、官网、依赖、版本号或发布渠道，未覆盖安装应用、修改系统默认文件浏览器。临时原生入口已移除，验收应用已退出。
+
+Issue #10 已实现：commit 22d9ae6。等待 Claude 代码审查，尚未合并或发布。

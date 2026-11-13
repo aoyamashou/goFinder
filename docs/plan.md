@@ -1528,7 +1528,7 @@ UX：
 
 ### 阶段 18 后修订十八：新建文件夹对话框初始化选择与记忆
 
-> 来源：2026-11-13 Codex 开发会话，[Issue #10](https://github.com/aoyamashou/goFinder/issues/10)，依据 Claude 审查提交 7cd87a3 及用户执行授权；需求和验收维护在 [PRD](../Codex/folder-init-prd.md)。
+> 来源：2026-11-13 Codex 开发会话，[Issue #10](https://github.com/aoyamashou/goFinder/issues/10)，依据 Claude 审查提交 7cd87a3 及用户执行授权；需求和验收维护在 [PRD](../Codex/folder-init-prd.md)。已实现：commit 22d9ae6。
 
 **要改什么及为什么**：在新建文件夹时直接选择三项初始化并记住偏好，减少创建前进入设置页的操作。
 
