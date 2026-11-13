@@ -1586,6 +1586,18 @@ UX：
 - **验证**：全量测试与 race 各 341 项通过，gofmt/vet 三连通过；浅深色 Toast 截图、真实废纸篓同名/特殊字符往返和系统音效播放通过；Apple_self_dev 双架构签名构建通过。Opus PRD 第二轮与代码第二轮均 APPROVED，代码复核 b5ee213，无 BLOCKER/MAJOR；外部往产物目录加入 .DS_Store 等也会被安全拒绝撤销。未动本机安装应用和系统默认文件管理器。
 - **合并与发布（2026-11-13）**：[PR #20](https://github.com/aoyamashou/goFinder/pull/20) squash 合并为 145bb11；[v0.18.13](https://github.com/aoyamashou/goFinder/releases/tag/v0.18.13) tag 指向 86c2d67，已公开并设为 Latest。仓库没有 CI 或分支保护必需检查，使用既有本地验证和两阶段 Opus 审查。上传后重新下载核验全部 14 个附件、11 项 SHA256SUMS；两架构全量包及从 0.18.10–0.18.12 的各三个增量的 Ed25519 更新签名全部有效；解包核对 Apple_self_dev 签名、版本和架构，两个 DMG 无签名且 hdiutil 校验通过。两个实际 latest/download 更新清单均与已核验的 0.18.13 一致。
 
+### 阶段 18 后修订二十三：终端候选加入 Otty
+
+> 来源：2026-11-13 Claude 开发会话，用户提出「支持 Otty 终端」。
+
+**要改什么及为什么**：设置里的终端下拉框只列出 `commonTerminals` 中已安装的应用，Otty（appmakes 出品，bundle 名 `Otty`，ID `io.appmakes.otty`）不在名单里，选不到。
+
+**实现**：`view.go` 的 `commonTerminals` 末尾加 `"Otty"`；`TestCommonApps` 的已安装列表加入 Otty，检查它出现在终端候选里。打开方式沿用 `open -a Otty <路径>`，不调用 `otty-cli`。
+
+**边界**：不为 Otty 特判。它的 Info.plist（XML）以 Shell 角色声明了 `com.apple.terminal.shell-script`，`RunsScripts` 原有的检查即判定它能运行 `.command`，Agent 不会退回 Terminal.app。README、官网、版本号不变。
+
+**验证**：本机 Otty 1.6.2 实测，`open -a Otty <文件夹>` 新开标签页，`otty-cli pane list` 显示其 cwd 为该文件夹；`open -a Otty <脚本>.command`（与 `agentScript` 同样的 `#!/bin/zsh -l` + `cd … && exec …`）在 Otty 里运行并写出测试标记文件。用户用 `go tool mygo dev` 运行后确认没有问题。gofmt、vet 三连、`go test ./...` 通过。
+
 ## 测试和验证
 - **纯逻辑包写单元测试，用 `go test ./...` 运行**：
   - `keymap`：按键解析、上下文过滤、用户覆盖、冲突检测；

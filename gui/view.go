@@ -695,7 +695,7 @@ func (a *app) dialog(c *ui.Context) {
 // terminal and editor, by bundle name, when installed: not every app.
 var (
 	commonTerminals = []string{"Terminal", "iTerm", "Ghostty", "Kaku", "Warp", "WezTerm", "Alacritty",
-		"kitty", "Hyper", "Tabby", "Wave", "Rio"}
+		"kitty", "Hyper", "Tabby", "Wave", "Rio", "Otty"}
 	commonEditors = []string{"TextEdit", "Xcode", "Visual Studio Code", "Cursor", "Windsurf", "Antigravity",
 		"Kiro", "Trae", "Zed", "Sublime Text", "CotEditor", "BBEdit", "Nova", "TextMate", "MacVim",
 		"Neovide", "Emacs", "Typora", "Fleet", "IntelliJ IDEA", "GoLand", "PyCharm", "WebStorm", "Android Studio"}
