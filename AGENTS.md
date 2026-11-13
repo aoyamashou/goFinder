@@ -108,8 +108,8 @@ go tool mygo build -platform darwin/arm64,darwin/amd64 -skip-installer # 双架�
 
 ## 交接现状（2026-11-13）
 
-- **当前发布版本 0.18.9**（tag 指向 920a1dd），已设为 GitHub 最新 Release；包含修订十五的可选 Vim 键位。全量及从 0.18.6–0.18.8 升级的增量包均已签名上传，DMG 不签名，应用用 Apple_self_dev 签名。
-- 阶段 0–18 及修订一至十五全部完成，没有进行中的代码任务。
+- **当前发布版本 0.18.10**（tag 指向 f08ed39），已设为 GitHub 最新 Release；包含修订十六（新建文件夹可选初始化）和修订十七（Intel 双架构）。这是首个双架构版本：arm64 全量及从 0.18.7–0.18.9 的增量、amd64 全量均已签名上传，DMG 不签名，应用用 Apple_self_dev 签名。Intel 版只经 Rosetta 验证，Issue #1 保持打开。
+- 阶段 0–18 及修订一至十七全部完成，没有进行中的代码任务。
 - **MyGo 官方 Showcase**：用户提交的 egoist/mygo#1749 因冲突被作者关闭，内容并入 egoist/mygo#1751（保留作者署名，截至交接时尚未合并）。合并后可以删掉用户 fork（aoyamashou/mygo）上的 `showcase-gofinder` 分支。
 - 用户用自动更新测试新版本，所以发版后的问题通常来自真实安装的应用；修复后照常提交，等用户决定何时发版。
 - 已知的测试注意点：
