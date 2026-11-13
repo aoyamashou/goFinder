@@ -52,7 +52,7 @@ go tool mygo build -platform darwin/arm64,darwin/amd64 -skip-installer # 双架�
 - **改动直接 commit 并 push 到 `origin main`**（不走 PR）。推送用 `git --no-replace-objects push origin main`。
 - 提交日志用中文，写清需求或问题、实现思路；不加任何 AI 署名行（Co-Authored-By 等）。
 - 公开仓库从提交 41200b5 开始；更早的历史只在用户本机的 `history-local` 分支，用 `git replace --graft` 接上（只在本机生效，**不要推送 `refs/replace`**）。所以文档里记的部分旧 commit 号在 GitHub 上查不到，这是正常的。
-- 改功能或修 bug 后，在 `docs/plan.md` 的「## 测试和验证」之前加一节 `### 阶段 18 后修订N：标题`（下一个是**修订十八**），写来源、要改什么、实现、边界、验证；提交后再用一个文档提交在该节「来源」行末尾补「已实现：commit xxxxxxx。」。
+- 改功能或修 bug 后，在 `docs/plan.md` 的「## 测试和验证」之前加一节 `### 阶段 18 后修订N：标题`（下一个是**修订二十一**），写来源、要改什么、实现、边界、验证；提交后再用一个文档提交在该节「来源」行末尾补「已实现：commit xxxxxxx。」。
 - 版本号在 `mygo.json` 的 `version`，格式 `0.阶段.修订`：完成新阶段时中间位改成阶段号、末位归 0；阶段之后的小修复末位 +1。关于页会显示构建的 commit 和时间。
 - **打 tag 和发版由用户决定**，没有明确要求不打 tag、不发 Release。用户说「发版」时：
   1. 改 `mygo.json` 的 `version`，在 `CHANGELOG.md` 顶部加 `## <版本>` 一节（面向用户的中文说明），提交并推送；
@@ -110,8 +110,8 @@ go tool mygo build -platform darwin/arm64,darwin/amd64 -skip-installer # 双架�
 
 ## 交接现状（2026-11-13）
 
-- **当前发布版本 0.18.10**（tag 指向 f08ed39），已设为 GitHub 最新 Release；包含修订十六（新建文件夹可选初始化）和修订十七（Intel 双架构）。这是首个双架构版本：arm64 全量及从 0.18.7–0.18.9 的增量、amd64 全量均已签名上传，DMG 不签名，应用用 Apple_self_dev 签名。Intel 版只经 Rosetta 验证；Issue #1、#4 已在发版后回复并关闭，Intel 真机问题请用户重开或新开 Issue。
-- 阶段 0–18 及修订一至十七全部完成，没有进行中的代码任务。
+- **当前发布版本 0.18.11**（tag 指向 d824ca6），已设为 GitHub 最新 Release；包含修订十八（新建文件夹对话框初始化选择）、十九（应用包安装菜单）、二十（快捷键操作提示）。arm64 全量及从 0.18.8–0.18.10 的增量、amd64 全量及从 0.18.10 的增量均已签名上传，DMG 不签名，应用用 Apple_self_dev 签名。Intel 版仍只经 Rosetta 验证。
+- 阶段 0–18 及修订一至二十全部完成，没有进行中的代码任务。修订十八、十九的代码未经 Claude 代码审查即已合并发布（用户决定暂不补审）。
 - **MyGo 官方 Showcase**：用户提交的 egoist/mygo#1749 因冲突被作者关闭，内容并入 egoist/mygo#1751（保留作者署名，截至交接时尚未合并）。合并后可以删掉用户 fork（aoyamashou/mygo）上的 `showcase-gofinder` 分支。
 - 用户用自动更新测试新版本，所以发版后的问题通常来自真实安装的应用；修复后照常提交，等用户决定何时发版。
 - 已知的测试注意点：
