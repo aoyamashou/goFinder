@@ -1,5 +1,11 @@
 # 更新记录
 
+## 0.18.15
+
+### 改进
+
+- 设置里的终端候选加入 Otty（[#22](https://github.com/aoyamashou/goFinder/pull/22)，感谢 @Magic-Xin）；Agent 和「在终端中打开」都可以用它。
+
 ## 0.18.14
 
 ### 改进
