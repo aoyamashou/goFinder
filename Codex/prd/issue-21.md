@@ -81,3 +81,7 @@ Review-1: APPROVED
 APPROVED，审查 HEAD 11d9923；无 BLOCKER/MAJOR。确认音效调用与实现均移除，视觉反馈和安全撤销未改，测试保留并加强成功/部分失败/全部失败验证。审查者独立运行 go vet ./gui、17 项 Trash/Undo 测试及 gofmt/音效检索，均通过；全量、race 和双架构构建采用实现者已通过的结果。两项 MINOR 为合并后补 main commit、发版后更新 AGENTS.md，由收尾完成。
 
 用户明确授权 Opus 接手实现，Codex 已核对完整代码 diff。经验：Go import 以文件为作用域，删除功能后逐项检查本文件引用并编译，不盲信审查中的引用判断。
+
+## 合并与发布准备（2026-11-14）
+
+PR #23 已 squash 合并，已实现：commit 797cfa0。仓库无 CI 检查，采用上述本地验证及 Opus 两阶段审查。版本升级为 0.18.14，准备双架构签名更新附件，尚未公开 Release。

@@ -1588,7 +1588,7 @@ UX：
 
 ### 阶段 18 后修订二十三：移除删除音效（Issue #21）
 
-- **来源**：2026-11-14 GitHub issue #21，用户认为删除音效不合适，要求移除。需求、Opus PRD 审查与实施偏差见 `Codex/prd/issue-21.md`。
+- **来源**：2026-11-14 GitHub issue #21，用户认为删除音效不合适，要求移除。需求、Opus PRD 审查与实施偏差见 `Codex/prd/issue-21.md`。 已实现：commit 797cfa0（PR #23 squash 合并）。
 - **要改什么及原因**：取消修订二十二加入的「删除成功后播放 macOS 废纸篓音效」，保留 Toast、状态栏、移到废纸篓与 ⌘Z 撤销。
 - **实现**：删除 `trash` 中的 `a.sys.TrashSound()` 调用、`system` 接口的 `TrashSound` 及 `realSystem` 的 afplay 实现，并删除随之无用的 `sys.go` `time` import（PRD 原判断保留有误，`qlTimeout` 定义在 `preview.go`）；测试去掉 `fakeSys.trashSounds`，原用音效计数间接验证「全部失败不算成功」改为直接断言无 Toast、不增加撤销步骤。
 - **边界**：不加音效设置，不改系统音量、Finder 与用户配置；修订二十二一节和 CHANGELOG 0.18.13 的音效描述是历史记录，不改。
