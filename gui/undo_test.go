@@ -15,21 +15,21 @@ import (
 )
 
 func TestTrashUndoKeyAndFeedback(t *testing.T) {
-	a, tt, sys, root := setup(t)
+	a, tt, _, root := setup(t)
 	toNotes(a, tt)
 	p := filepath.Join(root, "notes.md")
 	a.trash(a.tab())
 	tt.Frame()
-	if sys.trashSounds != 1 || !tt.HasText("已移到废纸篓 1 项") || len(a.undoSteps) != 1 {
-		t.Fatal(a.status, sys.trashSounds, len(a.undoSteps))
+	if !tt.HasText("已移到废纸篓 1 项") || len(a.undoSteps) != 1 {
+		t.Fatal(a.status, len(a.undoSteps))
 	}
 	tt.Key(ui.Cmd, ui.KeyZ)
 	tt.Frame()
 	if _, err := os.Stat(p); err != nil {
 		t.Fatal("Cmd+Z failed", err, a.status)
 	}
-	if len(a.undoSteps) != 0 || sys.trashSounds != 1 {
-		t.Fatal("undo history/sound", a.undoSteps, sys.trashSounds)
+	if len(a.undoSteps) != 0 {
+		t.Fatal("undo history", a.undoSteps)
 	}
 	a.helpOpen = true
 	a.helpQuery = "撤销"
@@ -54,7 +54,7 @@ func TestTrashPartialFailureAndRetryUndo(t *testing.T) {
 	a.tab().sel.Add(q)
 	sys.trashFail = map[string]error{q: errors.New("no permission")}
 	a.trash(a.tab())
-	if sys.trashSounds != 1 || !strings.Contains(a.status, "失败") || len(a.undoSteps) != 1 {
+	if !strings.Contains(a.status, "已移到废纸篓 1 项；失败") || len(a.undoSteps) != 1 {
 		t.Fatal(a.status)
 	}
 	if err := os.WriteFile(p, []byte("keep"), 0600); err != nil {
@@ -76,9 +76,11 @@ func TestTrashPartialFailureAndRetryUndo(t *testing.T) {
 	}
 	toNotes(a, tt)
 	sys.trashFail[p] = errors.New("failed")
+	steps := len(a.undoSteps)
+	a.toast = ""
 	a.trash(a.tab())
-	if sys.trashSounds != 1 {
-		t.Fatal("all-failed batch sounded")
+	if a.toast != "" || len(a.undoSteps) != steps {
+		t.Fatal("all-failed batch reported success", a.toast, len(a.undoSteps))
 	}
 }
 

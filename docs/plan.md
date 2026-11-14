@@ -1586,6 +1586,14 @@ UX：
 - **验证**：全量测试与 race 各 341 项通过，gofmt/vet 三连通过；浅深色 Toast 截图、真实废纸篓同名/特殊字符往返和系统音效播放通过；Apple_self_dev 双架构签名构建通过。Opus PRD 第二轮与代码第二轮均 APPROVED，代码复核 b5ee213，无 BLOCKER/MAJOR；外部往产物目录加入 .DS_Store 等也会被安全拒绝撤销。未动本机安装应用和系统默认文件管理器。
 - **合并与发布（2026-11-13）**：[PR #20](https://github.com/aoyamashou/goFinder/pull/20) squash 合并为 145bb11；[v0.18.13](https://github.com/aoyamashou/goFinder/releases/tag/v0.18.13) tag 指向 86c2d67，已公开并设为 Latest。仓库没有 CI 或分支保护必需检查，使用既有本地验证和两阶段 Opus 审查。上传后重新下载核验全部 14 个附件、11 项 SHA256SUMS；两架构全量包及从 0.18.10–0.18.12 的各三个增量的 Ed25519 更新签名全部有效；解包核对 Apple_self_dev 签名、版本和架构，两个 DMG 无签名且 hdiutil 校验通过。两个实际 latest/download 更新清单均与已核验的 0.18.13 一致。
 
+### 阶段 18 后修订二十三：移除删除音效（Issue #21）
+
+- **来源**：2026-11-14 GitHub issue #21，用户认为删除音效不合适，要求移除。需求、Opus PRD 审查与实施偏差见 `Codex/prd/issue-21.md`。
+- **要改什么及原因**：取消修订二十二加入的「删除成功后播放 macOS 废纸篓音效」，保留 Toast、状态栏、移到废纸篓与 ⌘Z 撤销。
+- **实现**：删除 `trash` 中的 `a.sys.TrashSound()` 调用、`system` 接口的 `TrashSound` 及 `realSystem` 的 afplay 实现，并删除随之无用的 `sys.go` `time` import（PRD 原判断保留有误，`qlTimeout` 定义在 `preview.go`）；测试去掉 `fakeSys.trashSounds`，原用音效计数间接验证「全部失败不算成功」改为直接断言无 Toast、不增加撤销步骤。
+- **边界**：不加音效设置，不改系统音量、Finder 与用户配置；修订二十二一节和 CHANGELOG 0.18.13 的音效描述是历史记录，不改。
+- **验证**：gofmt、vet 三连通过；`CGO_ENABLED=0 go test ./...` 与 `go test -race ./...` 各 341 项通过；临时去掉 `n > 0` 守卫时全部失败断言能报错（变异检验）；`grep -rn 'TrashSound\|trashSounds\|afplay\|move to trash' gui internal main.go` 无输出；Apple_self_dev 双架构构建通过、签名校验和架构正确。无布局变化未截图；用户侧经自动更新确认无音效待发版后进行。
+
 ## 测试和验证
 - **纯逻辑包写单元测试，用 `go test ./...` 运行**：
   - `keymap`：按键解析、上下文过滤、用户覆盖、冲突检测；

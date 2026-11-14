@@ -13,7 +13,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/egoist/mygo"
 
@@ -28,7 +27,6 @@ type system interface {
 	InstallApp(path string, unquarantine bool) (string, error)
 	Trash(path string) error
 	TrashItems(paths []string) []trashResult
-	TrashSound()
 	Reveal(path string)
 	OpenWith(app, path string) error
 	// Watch calls changed when dir's direct contents change, until stop.
@@ -81,14 +79,6 @@ func (realSystem) TrashItems(paths []string) []trashResult {
 		results = append(results, trashResult{path: p, trashed: dst, err: err})
 	}
 	return results
-}
-
-func (realSystem) TrashSound() {
-	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancel()
-		_ = exec.CommandContext(ctx, "/usr/bin/afplay", "/System/Library/Components/CoreAudio.component/Contents/SharedSupport/SystemSounds/finder/move to trash.aif").Run()
-	}()
 }
 
 func (realSystem) Open(p string) error  { return mygo.Shell.OpenPath(p) }

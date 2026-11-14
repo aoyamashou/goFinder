@@ -17,7 +17,6 @@ import (
 
 type fakeSys struct {
 	opened, trashed []string
-	trashSounds     int
 	trashFail       map[string]error
 	openedWith      [][2]string
 	revealed        []string
@@ -68,7 +67,6 @@ func (f *fakeSys) TrashItems(paths []string) []trashResult {
 	return results
 }
 
-func (f *fakeSys) TrashSound()     { f.trashSounds++ }
 func (f *fakeSys) Reveal(p string) { f.revealed = append(f.revealed, p) }
 func (f *fakeSys) OpenWith(app, p string) error {
 	f.openedWith = append(f.openedWith, [2]string{app, p})
