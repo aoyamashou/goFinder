@@ -75,3 +75,9 @@ Review-1: APPROVED
 - 实现：`gui/app.go` 删除 `trash` 中的 `TrashSound` 调用；`gui/sys.go` 删除接口方法、afplay 实现和 `time` import；`gui/main_test.go` 删除 `fakeSys.trashSounds` 与 `TrashSound`；`gui/undo_test.go` 按方案替换断言：成功分支保留 Toast 文本、1 个撤销步骤和 ⌘Z 恢复；部分失败断言收紧为状态栏含「已移到废纸篓 1 项；失败」且 1 个撤销步骤，其后冲突不吞历史、改名后重试成功并恢复原内容的断言不变；全部失败分支直接断言 `a.toast` 为空且 `undoSteps` 不增加。
 - 变异检验：临时去掉 `if n > 0` 让全部失败也弹成功 Toast，`TestTrashPartialFailureAndRetryUndo` 以「all-failed batch reported success 已移到废纸篓 0 项」失败；还原后通过，说明替代断言确实覆盖原来由音效计数间接验证的行为。
 - 检查：`gofmt -l gui internal` 无输出；`go vet ./...`、`go tool mygo vet .`、`go tool mygo vet ./gui` 通过；`CGO_ENABLED=0 go test ./...` 与 `go test -race ./...` 各 341 项通过、0 失败；验收 1 的 grep 无输出；`go tool mygo build -platform darwin/arm64,darwin/amd64 -skip-installer` 成功（仍为 0.18.13，版本号留待发版），两个 app 为 `Authority=Apple_self_dev`，`codesign --verify --deep --strict` 通过，`lipo` 分别为 arm64、x86_64。无布局改动，未截图；未播放音效、未安装或覆盖 /Applications 应用、未读取私钥。
+
+## Review-2（Opus，2026-11-14）
+
+APPROVED，审查 HEAD 11d9923；无 BLOCKER/MAJOR。确认音效调用与实现均移除，视觉反馈和安全撤销未改，测试保留并加强成功/部分失败/全部失败验证。审查者独立运行 go vet ./gui、17 项 Trash/Undo 测试及 gofmt/音效检索，均通过；全量、race 和双架构构建采用实现者已通过的结果。两项 MINOR 为合并后补 main commit、发版后更新 AGENTS.md，由收尾完成。
+
+用户明确授权 Opus 接手实现，Codex 已核对完整代码 diff。经验：Go import 以文件为作用域，删除功能后逐项检查本文件引用并编译，不盲信审查中的引用判断。
