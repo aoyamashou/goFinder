@@ -109,9 +109,9 @@ go tool mygo build -platform darwin/arm64,darwin/amd64 -skip-installer # 双架�
 - `docs/website.md`：官网（gofinder.ryou.im）的目录、部署方式、设计依据与内容边界；官网源码在 `site/`，用 Cloudflare CLI `cf deploy` 部署。
 - `.agents/skills/mygo-maintenance/SKILL.md`：MyGo 应用的维护要点（生命周期、身份、线程、测试）。
 
-## 交接现状（2026-11-13）
+## 交接现状（2026-11-14）
 
-- **当前发布版本 0.18.13**（tag 指向 86c2d67），已设为 GitHub 最新 Release；包含修订二十二（删除反馈与安全撤销），保留修订二十一（包和 ZIP 直接打开、右键「显示包内容」）。arm64/amd64 全量及各自从 0.18.10–0.18.12 的三个增量均已签名上传并下载核验，DMG 不签名，应用用 Apple_self_dev 签名。两个最新更新入口均返回 0.18.13；未验证真实 Intel 硬件。
+- **当前发布版本 0.18.15**（tag 指向 64dfe5f），已设为 GitHub 最新 Release；包含修订二十四（终端候选加入 Otty，外部 PR #22）、修订二十三（移除删除音效，0.18.14）和修订二十二（删除反馈与安全撤销）。arm64/amd64 全量及各自从 0.18.12–0.18.14 的三个增量均已签名上传并下载核验，DMG 不签名，应用用 Apple_self_dev 签名。两个最新更新入口均返回 0.18.15；未验证真实 Intel 硬件。
 - 阶段 0–18 及修订一至二十四全部完成，没有进行中的代码任务。修订二十二已通过两阶段 Opus 审查；修订十八、十九的代码未经 Claude 代码审查即已合并发布（用户决定暂不补审）。
 - **MyGo 官方 Showcase**：用户提交的 egoist/mygo#1749 因冲突被作者关闭，内容并入 egoist/mygo#1751（保留作者署名，截至交接时尚未合并）。合并后可以删掉用户 fork（aoyamashou/mygo）上的 `showcase-gofinder` 分支。
 - 用户用自动更新测试新版本，所以发版后的问题通常来自真实安装的应用；修复后照常提交，等用户决定何时发版。

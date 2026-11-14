@@ -1606,6 +1606,8 @@ UX：
 
 **验证**：本机 Otty 1.6.2 实测，`open -a Otty <文件夹>` 新开标签页，`otty-cli pane list` 显示其 cwd 为该文件夹；`open -a Otty <脚本>.command`（与 `agentScript` 同样的 `#!/bin/zsh -l` + `cd … && exec …`）在 Otty 里运行并写出测试标记文件。用户用 `go tool mygo dev` 运行后确认没有问题。gofmt、vet 三连、`go test ./...` 通过。
 
+**发布（2026-11-14）**：随 [v0.18.15](https://github.com/aoyamashou/goFinder/releases/tag/v0.18.15) 发布，tag 指向 64dfe5f。重新下载核验全部 14 个附件、11 项 SHA256SUMS；两架构清单指向各自全量包及从 0.18.12–0.18.14 的增量，解包核对 Apple_self_dev 签名、版本 0.18.15 和架构，两个 DMG 无签名且 hdiutil 校验通过；两个 latest/download 更新入口均返回 0.18.15。
+
 ## 测试和验证
 - **纯逻辑包写单元测试，用 `go test ./...` 运行**：
   - `keymap`：按键解析、上下文过滤、用户覆盖、冲突检测；
