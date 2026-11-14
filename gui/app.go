@@ -680,9 +680,6 @@ func (a *app) trash(ts *tabState) {
 			}
 			step.entries = append(step.entries, e)
 		}
-		if n > 0 {
-			a.sys.TrashSound()
-		}
 		a.post(func() {
 			a.status = fmt.Sprintf("已移到废纸篓 %d 项", n)
 			if failed != nil {

@@ -13,7 +13,7 @@
 ## 方案与涉及文件
 
 - `gui/app.go`：删除 `trash` 中 `if n > 0 { a.sys.TrashSound() }` 整段；`a.post` 内的状态栏文字、`finishFileOp`、`n > 0` 时的 `feedback` Toast 保持不变。
-- `gui/sys.go`：移除 `system` 接口的 `TrashSound()` 及 `realSystem.TrashSound` 的 afplay 实现。`context`、`time`、`os/exec` 在该文件其他位置仍被使用，预期不删 import，以 gofmt/vet 结果为准。
+- `gui/sys.go`：移除 `system` 接口的 `TrashSound()` 及 `realSystem.TrashSound` 的 afplay 实现，并删除随之失去用途的 `time` import；`context`、`os/exec` 在该文件其他位置仍被使用，保留。（原写「`time` 仍被使用、不删」有误，见下方「实施偏差」。）
 - `gui/main_test.go`：移除 `fakeSys.trashSounds` 字段和 `TrashSound` 方法。
 - `gui/undo_test.go`：移除 `trashSounds` 断言，但不得削弱测试：
   - `TestTrashUndoKeyAndFeedback` 保留 Toast 文本、`undoSteps` 长度和 ⌘Z 恢复断言；
@@ -26,7 +26,7 @@
 
 ## 可验证验收标准
 
-1. `grep -rn -i 'TrashSound\|trashSounds\|afplay\|move to trash' gui internal main.go` 无输出。
+1. `grep -rn 'TrashSound\|trashSounds\|afplay\|move to trash' gui internal main.go` 无输出（不加 `-i`：大小写不敏感会命中 `internal/keymap/keymap_test.go` 里动作标题「Move to Trash」，与音效无关）。
 2. 删除成功仍显示「已移到废纸篓 N 项」Toast，文件进入模拟废纸篓且 ⌘Z 可撤销恢复；部分失败状态栏同时含成功数与「失败」；全部失败时 `a.toast` 为空、`undoSteps` 不增加（均由 `gui/undo_test.go` 直接断言，见上）。
 3. 撤销恢复不覆盖已有文件，保留原有身份校验和安全失败测试。
 4. 全量测试、race、gofmt、vet 三连及 Apple_self_dev 双架构构建通过；没有布局变化，无需新截图。测试不实际修改默认文件浏览器或本机安装应用。
@@ -64,3 +64,14 @@ Status: READY
 残余风险：低。仓库无 `.github/workflows`，PR 预计无检查。
 
 Review-1: APPROVED
+
+## 实施偏差（Opus 实现，2026-11-14）
+
+1. **`time` import 应删除**：Review-1 第 2 条断言 `sys.go` 的 `time` 仍被使用，判断错误。删除音效前，`sys.go` 里唯一的 `time.` 引用就是 `TrashSound` 中的 `3*time.Second`（`git show HEAD:gui/sys.go | grep -n 'time\.'` 只有第 88 行）；QuickLook 缩略图的 `context.WithTimeout(..., qlTimeout)` 用的是 `gui/preview.go:39` 定义的常量 `qlTimeout = 3 * time.Second`，`time` 包的引用在 `preview.go`，不在 `sys.go`。Go 的 import 作用域是文件级，同包其他文件用 `time` 不能让本文件的 import 合法，因此删掉音效后编译器报 `gui/sys.go:16:2: "time" imported and not used`，定向测试无法编译。审查时只看到 `context.WithTimeout` 带超时，就推断该行用到 `time`，没有逐个 grep 本文件的 `time.` 引用，也没有实际编译。修正：删除 `time` import；`context`（第 140、264 行）与 `os/exec`（多处）经 grep 确认仍在本文件使用，保留。方案描述已就地更正。
+2. **验收 1 的 grep 去掉 `-i`**：原命令大小写不敏感，会命中按键表测试中的动作标题「Move to Trash」，永远有输出；改为大小写敏感后无输出，仍能覆盖 afplay 路径中的 `move to trash.aif`。
+
+## 实现与验证（Opus，2026-11-14）
+
+- 实现：`gui/app.go` 删除 `trash` 中的 `TrashSound` 调用；`gui/sys.go` 删除接口方法、afplay 实现和 `time` import；`gui/main_test.go` 删除 `fakeSys.trashSounds` 与 `TrashSound`；`gui/undo_test.go` 按方案替换断言：成功分支保留 Toast 文本、1 个撤销步骤和 ⌘Z 恢复；部分失败断言收紧为状态栏含「已移到废纸篓 1 项；失败」且 1 个撤销步骤，其后冲突不吞历史、改名后重试成功并恢复原内容的断言不变；全部失败分支直接断言 `a.toast` 为空且 `undoSteps` 不增加。
+- 变异检验：临时去掉 `if n > 0` 让全部失败也弹成功 Toast，`TestTrashPartialFailureAndRetryUndo` 以「all-failed batch reported success 已移到废纸篓 0 项」失败；还原后通过，说明替代断言确实覆盖原来由音效计数间接验证的行为。
+- 检查：`gofmt -l gui internal` 无输出；`go vet ./...`、`go tool mygo vet .`、`go tool mygo vet ./gui` 通过；`CGO_ENABLED=0 go test ./...` 与 `go test -race ./...` 各 341 项通过、0 失败；验收 1 的 grep 无输出；`go tool mygo build -platform darwin/arm64,darwin/amd64 -skip-installer` 成功（仍为 0.18.13，版本号留待发版），两个 app 为 `Authority=Apple_self_dev`，`codesign --verify --deep --strict` 通过，`lipo` 分别为 arm64、x86_64。无布局改动，未截图；未播放音效、未安装或覆盖 /Applications 应用、未读取私钥。
