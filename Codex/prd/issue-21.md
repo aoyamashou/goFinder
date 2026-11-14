@@ -49,7 +49,7 @@ AGENTS.md 默认「直接推 `origin main`、不走 PR、打 tag/发版由用户
 
 patch：0.18.13 → 0.18.14。两次 Opus 审查通过后创建含 Closes #21 的 PR，squash 合并。按仓库已有流程签名双架构应用、上传 draft Release、替换无签名 DMG、核验校验和及双架构更新清单后公开；不发布只有说明而无更新附件的版本。发布和关闭 issue 后结束本次运行。
 
-Status: REVIEWED
+Status: READY
 
 ## Review-1（Opus，2026-11-14）
 
