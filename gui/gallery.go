@@ -5,6 +5,8 @@ import (
 	"encoding/binary"
 	"image"
 	"image/draw"
+	"os"
+	"path/filepath"
 	"slices"
 	"time"
 
@@ -36,11 +38,21 @@ type galleryState struct {
 
 func thumbKey(e vfs.Entry) string { return e.Path + "\x00" + e.ModTime.UTC().Format(time.RFC3339Nano) }
 
+// qlImageExts are the images the app cannot decode itself but the system's
+// QuickLook draws: the gallery asks it for their thumbnails.
+var qlImageExts = map[string]bool{
+	"heic": true, "heif": true, "tif": true, "tiff": true, "avif": true,
+	"psd": true, "ico": true, "icns": true, "raw": true, "cr2": true, "nef": true, "dng": true,
+}
+
 // galleryEntries are the images among es, in order.
 func galleryEntries(es []vfs.Entry) []vfs.Entry {
 	var out []vfs.Entry
 	for _, e := range es {
-		if !e.IsDir && imageExts[e.Ext()] && e.Size <= imagePreviewMax {
+		if e.IsDir || e.Size > imagePreviewMax {
+			continue
+		}
+		if imageExts[e.Ext()] || qlImageExts[e.Ext()] && !vfs.InZip(e.Path) {
 			out = append(out, e)
 		}
 	}
@@ -76,7 +88,12 @@ func (a *app) thumb(e vfs.Entry) *ui.Bitmap {
 	g.busy[k] = true
 	a.async(func() {
 		g.sem <- struct{}{}
-		small := makeThumb(e.Path)
+		var small image.Image
+		if qlImageExts[e.Ext()] {
+			small = a.makeQLThumb(e)
+		} else {
+			small = makeThumb(e.Path)
+		}
 		<-g.sem
 		a.post(func() {
 			if g.busy == nil { // the gallery was left meanwhile
@@ -106,6 +123,26 @@ func makeThumb(path string) image.Image {
 	if err != nil {
 		return nil
 	}
+	return thumbOf(data)
+}
+
+// makeQLThumb is makeThumb for a kind the system draws: its QuickLook
+// thumbnail, kept in the cache as the preview's are, then shrunk.
+func (a *app) makeQLThumb(e vfs.Entry) image.Image {
+	dst := a.qlFile(e)
+	if _, err := os.Stat(dst); err != nil {
+		if os.MkdirAll(filepath.Dir(dst), 0o755) != nil || a.sys.Thumbnail(e.Path, dst, qlPx) != nil {
+			return nil
+		}
+	}
+	data, err := os.ReadFile(dst)
+	if err != nil {
+		return nil
+	}
+	return thumbOf(data)
+}
+
+func thumbOf(data []byte) image.Image {
 	img, _, err := image.Decode(bytes.NewReader(data))
 	if err != nil {
 		return nil

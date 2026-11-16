@@ -71,3 +71,17 @@ func TestShrinkAndOrient(t *testing.T) {
 		t.Fatalf("rotated %v", o.Bounds())
 	}
 }
+
+func TestGalleryHEIC(t *testing.T) {
+	a, tt, fs, root := setup(t)
+	a.cacheDir = t.TempDir()
+	os.WriteFile(filepath.Join(root, "IMG_1.HEIC"), []byte("heic"), 0o644)
+	a.load(a.tab())
+	tt.Frame()
+	press9(tt, 0, ui.KeyQ)
+	tt.Frame()
+	tt.Frame()
+	if len(fs.thumbs) != 1 || len(a.gal.bmp) != 1 {
+		t.Fatalf("thumbs asked %v, shown %d", fs.thumbs, len(a.gal.bmp))
+	}
+}
