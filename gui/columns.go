@@ -429,6 +429,10 @@ func readListing(dir string, hidden bool) []vfs.Entry {
 // system's QuickLook thumbnail), else its icon and details.
 func (a *app) fourthView(c *ui.Context, pi int) {
 	p := a.panes[pi]
+	if a.gallery {
+		a.galleryView(c, pi)
+		return
+	}
 	if e, ok := p.tab().cursorEntry(); ok {
 		a.previewBody(c, p, e)
 	}

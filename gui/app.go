@@ -126,6 +126,9 @@ type paneState struct {
 	pvSeq   int       // ends a pending click once a double click comes
 	pvSubAt time.Time // when a double click came: its Changed that follows is not a click
 	insp    inspState
+
+	gal    ui.GridState // the gallery's grid
+	galSel int          // its chosen image
 }
 
 func (p *paneState) tab() *tabState { return p.ts }
@@ -163,6 +166,8 @@ type app struct {
 	active      int
 	layout      int
 	showPreview bool
+	gallery     bool // the preview column shows the folder's images
+	gal         galleryState
 	// inspWide is whether the window was widened for the inspector;
 	// growWindow widens it by dw DIPs to the right (nil in tests).
 	inspWide   bool
@@ -1187,6 +1192,8 @@ func (a *app) run(id string) {
 		a.setLayout(layoutColumns)
 	case "layout.rows":
 		a.setLayout(layoutRows)
+	case "gallery":
+		a.toggleGallery()
 	case "preview":
 		a.showPreview = !a.showPreview
 		a.wantFocus = true // the table moves into a split: keep its focus
