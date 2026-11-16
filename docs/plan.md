@@ -1622,6 +1622,8 @@ UX：
 
 **发布（2026-11-16）**：随 [v0.18.16](https://github.com/aoyamashou/goFinder/releases/tag/v0.18.16) 发布，tag 指向 5dfcabb。下载核验 14 个附件、SHA256SUMS、两架构全量包的 Apple_self_dev 签名与架构、两个 DMG 无签名且校验通过；两个 latest 更新入口均返回 0.18.16。
 
+**发布（2026-11-16）**：0.18.17 随 [v0.18.17](https://github.com/aoyamashou/goFinder/releases/tag/v0.18.17) 发布，tag 指向 89cfdf2，同样核验 14 个附件、签名、架构与更新入口。
+
 **验证**：`gui/gallery_test.go`（开关与缩略图缓存释放、只列图片、缩放与方向）；gofmt、vet 三连、`go test ./...` 通过；用测试截图看过 14 张图的网格。
 
 ## 测试和验证
