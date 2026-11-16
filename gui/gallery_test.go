@@ -85,3 +85,29 @@ func TestGalleryHEIC(t *testing.T) {
 		t.Fatalf("thumbs asked %v, shown %d", fs.thumbs, len(a.gal.bmp))
 	}
 }
+
+func TestGalleryHintAndEmptyText(t *testing.T) {
+	a, tt, _, _ := setup(t)
+	if !tt.HasText("图库视图") {
+		t.Fatalf("status bar lacks the gallery hint: %q", tt.Texts())
+	}
+	press9(tt, 0, ui.KeyQ)
+	tt.Frame()
+	if !a.gallery || !tt.HasText("无法启用图库视图，当前文件夹下没有图片，按 q 返回文件列表") {
+		t.Fatalf("empty text missing: %q", tt.Texts())
+	}
+}
+
+func TestOpenInFinder(t *testing.T) {
+	a, tt, fs, root := setup(t)
+	goTo(t, a, tt, "alpha")
+	a.run("finder")
+	if len(fs.openedWith) != 1 || fs.openedWith[0] != [2]string{"Finder", filepath.Join(root, "alpha")} {
+		t.Fatalf("folder: %v", fs.openedWith)
+	}
+	goTo(t, a, tt, "notes.md")
+	a.run("finder")
+	if n := len(fs.revealed); n != 1 || fs.revealed[0] != filepath.Join(root, "notes.md") {
+		t.Fatalf("file: %v", fs.revealed)
+	}
+}

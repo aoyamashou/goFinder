@@ -1158,6 +1158,8 @@ func (a *app) run(id string) {
 			}
 			a.sys.Reveal(p)
 		}
+	case "finder":
+		a.openInFinder(ts)
 	case "terminal", "editor":
 		a.openFolderWith(id, ts.t.Dir)
 	case "agent":

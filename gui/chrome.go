@@ -375,6 +375,8 @@ func (a *app) blankMenu(m *ui.Menu, pi int, dir string) {
 				p = archive
 			}
 			a.sys.Reveal(p)
+		case "finder":
+			a.openDirInFinder(dir)
 		case "copypath":
 			a.copyPathText(dir) // the column's folder, not the selection
 		default:

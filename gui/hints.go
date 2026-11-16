@@ -14,7 +14,7 @@ import (
 var hintTitles = map[string]string{
 	"filter": "过滤", "copy": "复制", "copypath": "复制路径", "cut": "剪切", "paste": "粘贴",
 	"rename": "重命名", "trash": "删除", "newfolder": "新文件夹", "newfile": "新文件",
-	"quicklook": "快速查看", "help": "速查表", "hidden": "隐藏文件", "sortmenu": "排序", "addr": "前往", "settings": "设置",
+	"quicklook": "快速查看", "gallery": "图库视图", "help": "速查表", "hidden": "隐藏文件", "sortmenu": "排序", "addr": "前往", "settings": "设置",
 	"agent": "Agent", "go.start": "回到起点", "open": "打开", "up": "上级", "terminal": "终端",
 	"pane.switch": "切换窗格", "editor": "编辑器", "workspace": "工作区", "shelf.add": "暂存", "fav.add": "收藏",
 }
@@ -69,7 +69,7 @@ func hintItem(c *ui.Context, keys, title string) {
 // set them (2026-11-12): going about, then acting on the items chosen.
 // "@move" shows extra movement bindings, or the list's native ↑↓.
 var hintLines = [2][]string{
-	{"@move", "open", "up", "pane.switch", "go.start", "sortmenu", "hidden", "quicklook", "filter", "terminal", "agent", "editor", "workspace", "help"},
+	{"@move", "open", "up", "pane.switch", "go.start", "sortmenu", "hidden", "quicklook", "gallery", "filter", "terminal", "agent", "editor", "workspace", "help"},
 	{"copypath", "copy", "cut", "paste", "shelf.add", "newfolder", "newfile", "rename", "trash", "fav.add"},
 }
 

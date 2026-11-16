@@ -302,7 +302,7 @@ func (a *app) galleryView(c *ui.Context, pi int) {
 	ts := p.tab()
 	imgs := galleryEntries(ts.t.Entries())
 	if len(imgs) == 0 {
-		ui.Text(c, "没有图片").TextColor(tok(c, "muted")).Padding(4, rowPadX).Grow(1)
+		ui.Text(c, "无法启用图库视图，当前文件夹下没有图片，按 "+a.firstKey("gallery")+" 返回文件列表").TextColor(tok(c, "muted")).Padding(4, rowPadX).Grow(1)
 		return
 	}
 	// The cursor's image is the one the grid has, while the list moves it.
@@ -333,4 +333,36 @@ func (a *app) galleryView(c *ui.Context, pi int) {
 		a.active = pi
 		a.openEntry(ts, imgs[p.galSel])
 	}
+}
+
+// openInFinder opens the cursor's item with Finder: a folder in a Finder
+// window of its own; a file, package or archive, which Finder would open
+// with another app, shown selected in its folder's window; with no item,
+// the pane's folder.
+func (a *app) openInFinder(ts *tabState) {
+	e, ok := ts.cursorEntry()
+	if !ok {
+		a.openDirInFinder(ts.t.Dir)
+		return
+	}
+	if e.IsDir && !vfs.IsPackage(e) && !vfs.IsArchive(e) {
+		a.openDirInFinder(e.Path)
+		return
+	}
+	p := e.Path
+	if archive, _, in := vfs.SplitZip(p); in {
+		p = archive // Finder cannot look inside: show the archive
+	}
+	a.sys.Reveal(p)
+}
+
+// openDirInFinder opens dir in a Finder window; one inside an archive
+// opens the folder holding the archive.
+func (a *app) openDirInFinder(dir string) {
+	dir = vfs.RealDir(dir)
+	a.async(func() {
+		if err := a.sys.OpenWith("Finder", dir); err != nil {
+			a.post(func() { a.status = "无法用 Finder 打开：" + err.Error() })
+		}
+	})
 }

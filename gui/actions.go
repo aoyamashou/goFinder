@@ -50,6 +50,7 @@ func actions() []keymap.Action {
 		{ID: "rename", Title: "重命名", Group: "文件", Hint: true},
 		{ID: "trash", Title: "移到废纸篓", Group: "文件", Hint: true},
 		{ID: "reveal", Title: "在 Finder 中显示", Group: "文件"},
+		{ID: "finder", Title: "使用 Finder 打开", Group: "文件"},
 		{ID: "terminal", Title: "在终端中打开", Group: "文件"},
 		{ID: "editor", Title: "在编辑器中打开", Group: "文件"},
 		{ID: "agent", Title: "在这里打开默认 Agent", Group: "文件", Hint: true},
@@ -162,7 +163,7 @@ func defaultKeys(vim bool) map[string][]string {
 // defaultMenu is the context menu when config.json does not list one;
 // "-" is a separator.
 var defaultMenu = []string{
-	"open", "-",
+	"open", "finder", "-",
 	"copy", "cut", "paste", "-",
 	"rename", "copypath", "newfile", "newfolder", "-",
 	"@agents", "editor", "-",
