@@ -20,6 +20,7 @@ type fakeSys struct {
 	trashFail       map[string]error
 	openedWith      [][2]string
 	revealed        []string
+	finder          [][2]string       // FinderOpen calls: path, mode
 	watches         map[string]func() // watched folder → its callback
 	shells          [][2]string       // dir, command line
 	shellErr        error
@@ -67,6 +68,10 @@ func (f *fakeSys) TrashItems(paths []string) []trashResult {
 	return results
 }
 
+func (f *fakeSys) FinderOpen(p string, reveal bool) error {
+	f.finder = append(f.finder, [2]string{p, map[bool]string{false: "open", true: "reveal"}[reveal]})
+	return nil
+}
 func (f *fakeSys) Reveal(p string) { f.revealed = append(f.revealed, p) }
 func (f *fakeSys) OpenWith(app, p string) error {
 	f.openedWith = append(f.openedWith, [2]string{app, p})

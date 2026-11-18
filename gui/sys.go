@@ -28,6 +28,10 @@ type system interface {
 	Trash(path string) error
 	TrashItems(paths []string) []trashResult
 	Reveal(path string)
+	// FinderOpen has the system Finder, not the default file viewer, open
+	// the folder at path in a window, or with reveal show the item in its
+	// folder, selected. It blocks: call it off the main thread.
+	FinderOpen(path string, reveal bool) error
 	OpenWith(app, path string) error
 	// Watch calls changed when dir's direct contents change, until stop.
 	Watch(dir string, changed func()) (stop func())
@@ -84,6 +88,33 @@ func (realSystem) TrashItems(paths []string) []trashResult {
 func (realSystem) Open(p string) error  { return mygo.Shell.OpenPath(p) }
 func (realSystem) Trash(p string) error { return mygo.Shell.TrashItem(p) }
 func (realSystem) Reveal(p string)      { mygo.Shell.ShowItemInFolder(p) }
+
+// finderScript is run with osascript: Finder is told what to show, which
+// reaches it even when goFinder is the default file viewer (open -a Finder
+// is handed on to that).
+const finderScript = `on run argv
+	set p to POSIX file (item 1 of argv) as alias
+	tell application "Finder"
+		activate
+		if item 2 of argv is "reveal" then
+			reveal p
+		else
+			make new Finder window to p
+		end if
+	end tell
+end run`
+
+func (realSystem) FinderOpen(p string, reveal bool) error {
+	mode := "open"
+	if reveal {
+		mode = "reveal"
+	}
+	out, err := exec.Command("osascript", "-e", finderScript, p, mode).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("%v: %s", err, strings.TrimSpace(string(out)))
+	}
+	return nil
+}
 
 func (realSystem) OpenWith(app, p string) error {
 	return exec.Command("open", "-a", app, p).Run()
@@ -342,6 +373,13 @@ type command struct {
 	Keys    []string `json:"keys,omitempty"`
 }
 
+// menuBeforeFinder is the default context menu before 使用 Finder 打开
+// came (0.18.18): a config.json that kept it unchanged takes the new one.
+var menuBeforeFinder = []string{
+	"open", "-", "copy", "cut", "paste", "-", "rename", "copypath", "newfile", "newfolder", "-",
+	"@agents", "editor", "-", "fav.add", "shelf.add", "workspace", "-", "trash",
+}
+
 func defaultConfig() config {
 	return config{
 		Terminal: "Terminal", Editor: "Visual Studio Code", ShowSidebar: true,
@@ -368,6 +406,9 @@ func loadConfig(dir string) config {
 	cfg.Version = 0
 	json.Unmarshal(data, &cfg)
 	migrateAgents(&cfg)
+	if slices.Equal(cfg.ContextMenu, menuBeforeFinder) {
+		cfg.ContextMenu = slices.Clone(defaultMenu)
+	}
 	if cfg.Version < configVersion {
 		cfg.Version = configVersion
 	}

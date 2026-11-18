@@ -353,15 +353,18 @@ func (a *app) openInFinder(ts *tabState) {
 	if archive, _, in := vfs.SplitZip(p); in {
 		p = archive // Finder cannot look inside: show the archive
 	}
-	a.sys.Reveal(p)
+	a.finderDo(p, true)
 }
 
 // openDirInFinder opens dir in a Finder window; one inside an archive
 // opens the folder holding the archive.
-func (a *app) openDirInFinder(dir string) {
-	dir = vfs.RealDir(dir)
+func (a *app) openDirInFinder(dir string) { a.finderDo(vfs.RealDir(dir), false) }
+
+// finderDo has the system Finder itself show p, as goFinder may be the
+// default file viewer, which opening it by app name would come back to.
+func (a *app) finderDo(p string, reveal bool) {
 	a.async(func() {
-		if err := a.sys.OpenWith("Finder", dir); err != nil {
+		if err := a.sys.FinderOpen(p, reveal); err != nil {
 			a.post(func() { a.status = "无法用 Finder 打开：" + err.Error() })
 		}
 	})

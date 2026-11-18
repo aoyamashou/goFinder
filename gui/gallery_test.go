@@ -5,6 +5,7 @@ import (
 	"image/color"
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 
 	"github.com/egoist/mygo/ui"
@@ -102,12 +103,27 @@ func TestOpenInFinder(t *testing.T) {
 	a, tt, fs, root := setup(t)
 	goTo(t, a, tt, "alpha")
 	a.run("finder")
-	if len(fs.openedWith) != 1 || fs.openedWith[0] != [2]string{"Finder", filepath.Join(root, "alpha")} {
-		t.Fatalf("folder: %v", fs.openedWith)
+	if len(fs.finder) != 1 || fs.finder[0] != [2]string{filepath.Join(root, "alpha"), "open"} {
+		t.Fatalf("folder: %v", fs.finder)
 	}
 	goTo(t, a, tt, "notes.md")
 	a.run("finder")
-	if n := len(fs.revealed); n != 1 || fs.revealed[0] != filepath.Join(root, "notes.md") {
-		t.Fatalf("file: %v", fs.revealed)
+	if len(fs.finder) != 2 || fs.finder[1] != [2]string{filepath.Join(root, "notes.md"), "reveal"} || len(fs.openedWith) != 0 {
+		t.Fatalf("file: %v", fs.finder)
+	}
+}
+
+func TestConfigMenuMigratesToFinder(t *testing.T) {
+	dir := t.TempDir()
+	old := defaultConfig()
+	old.ContextMenu = slices.Clone(menuBeforeFinder)
+	saveConfig(dir, old)
+	if cfg := loadConfig(dir); !slices.Contains(cfg.ContextMenu, "finder") {
+		t.Fatalf("old default menu kept: %v", cfg.ContextMenu)
+	}
+	old.ContextMenu = []string{"open", "trash"} // the user's own
+	saveConfig(dir, old)
+	if cfg := loadConfig(dir); slices.Contains(cfg.ContextMenu, "finder") {
+		t.Fatalf("a custom menu was changed: %v", cfg.ContextMenu)
 	}
 }
