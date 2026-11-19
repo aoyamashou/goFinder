@@ -1640,7 +1640,7 @@ UX：
 
 ### 阶段 18 后修订二十七：「使用 Finder 打开」改调系统 Finder，并迁移旧右键菜单
 
-> 来源：用户使用 0.18.18 后的两点反馈：右键菜单里没有该项；goFinder 设为默认文件浏览器后，`open -a Finder` 会被转交给 goFinder。
+> 来源：用户使用 0.18.18 后的两点反馈：右键菜单里没有该项；goFinder 设为默认文件浏览器后，`open -a Finder` 会被转交给 goFinder。已实现：commit 3cac883，随 [v0.18.19](https://github.com/aoyamashou/goFinder/releases/tag/v0.18.19) 发布（tag 指向 d72018d）并核验。
 
 **原因**：①`config.json` 保存了 0.18.18 之前的默认 `contextMenu`，默认菜单新增的项不会进入已保存的配置。②`NSFileViewer` 指向 goFinder 时，按应用名让 Finder 打开文件夹会被系统转交给默认浏览器。
 
@@ -1648,7 +1648,7 @@ UX：
 
 **边界**：首次使用时 macOS 可能询问是否允许 goFinder 控制 Finder（自动化权限）。「在 Finder 中显示」仍用原来的 `Reveal`，未改。
 
-**验证**：`TestOpenInFinder`、`TestConfigMenuMigratesToFinder`；gofmt、vet 三连、`go test ./...` 通过；本机在 goFinder 为默认浏览器的情况下实际运行该脚本，系统 Finder 开出了文件夹窗口并定位了文件。尚未发版。
+**验证**：`TestOpenInFinder`、`TestConfigMenuMigratesToFinder`；gofmt、vet 三连、`go test ./...` 通过；本机在 goFinder 为默认浏览器的情况下实际运行该脚本，系统 Finder 开出了文件夹窗口并定位了文件。
 
 ## 测试和验证
 - **纯逻辑包写单元测试，用 `go test ./...` 运行**：
