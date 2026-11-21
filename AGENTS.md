@@ -109,7 +109,7 @@ go tool mygo build -platform darwin/arm64,darwin/amd64 -skip-installer # 双架�
 - `docs/website.md`：官网（gofinder.ryou.im）的目录、部署方式、设计依据与内容边界；官网源码在 `site/`，用 Cloudflare CLI `cf deploy` 部署。
 - `.agents/skills/mygo-maintenance/SKILL.md`：MyGo 应用的维护要点（生命周期、身份、线程、测试）。
 
-## 交接现状（2026-11-14）
+## 交接现状（2026-11-22）
 
 - **当前发布版本 0.18.20**（tag 指向 957fc84；含修订二十八：粘贴路径直接跳转），已设为 GitHub 最新 Release。arm64/amd64 全量及各自从 0.18.17–0.18.19 的三个增量均已签名上传并下载核验，DMG 不签名，应用用 Apple_self_dev 签名，两个最新更新入口均返回 0.18.20；未验证真实 Intel 硬件。此前 0.18.19 含修订二十七（「使用 Finder 打开」改调系统 Finder）、二十六（图库状态栏提示）、二十五（图库预览，Issue #24）、二十四（终端候选 Otty）、二十三（移除删除音效）、二十二（删除反馈与安全撤销）。
 - 阶段 0–18 及修订一至二十八全部完成，没有进行中的代码任务。修订二十二已通过两阶段 Opus 审查；修订十八、十九的代码未经 Claude 代码审查即已合并发布（用户决定暂不补审）。
