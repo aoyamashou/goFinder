@@ -197,6 +197,7 @@ type app struct {
 
 	clip            []string
 	clipCut         bool
+	clipText        string // the clipboard's text when clip was copied
 	status          string
 	fileOps         int
 	undoing         bool
@@ -1117,6 +1118,9 @@ func (a *app) run(id string) {
 	case "copy", "cut":
 		a.copyFeedback(ts, id == "cut")
 	case "paste":
+		if a.pastePath(ts) {
+			return
+		}
 		if !a.readOnly(ts) {
 			a.paste(ts, ts.t.Dir)
 		}

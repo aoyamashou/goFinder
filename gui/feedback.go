@@ -89,6 +89,7 @@ func (a *app) copyFeedback(ts *tabState, cut bool) {
 		return
 	}
 	a.clip, a.clipCut = chosen, cut
+	a.clipText = a.svc.ReadClipboard()
 	verb := "已复制"
 	if cut {
 		verb = "已剪切"
